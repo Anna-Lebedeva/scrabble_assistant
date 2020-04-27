@@ -1,29 +1,67 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
+  <component name="BranchesTreeState">
+    <expand>
+      <path>
+        <item name="ROOT" type="e8cecc67:BranchNodeDescriptor" />
+        <item name="LOCAL_ROOT" type="e8cecc67:BranchNodeDescriptor" />
+      </path>
+      <path>
+        <item name="ROOT" type="e8cecc67:BranchNodeDescriptor" />
+        <item name="REMOTE_ROOT" type="e8cecc67:BranchNodeDescriptor" />
+      </path>
+      <path>
+        <item name="ROOT" type="e8cecc67:BranchNodeDescriptor" />
+        <item name="REMOTE_ROOT" type="e8cecc67:BranchNodeDescriptor" />
+        <item name="GROUP_NODE:origin" type="e8cecc67:BranchNodeDescriptor" />
+      </path>
+    </expand>
+    <select />
+  </component>
   <component name="ChangeListManager">
-    <list default="true" id="49a95eec-acf6-43d4-8b86-dd30a4773c88" name="Default" comment="" />
+    <list default="true" id="49a95eec-acf6-43d4-8b86-dd30a4773c88" name="Default" comment="w">
+      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/scrabble-board-recognition.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/scrabble-board-recognition.iml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
     <option name="LAST_RESOLUTION" value="IGNORE" />
   </component>
   <component name="Git.Settings">
+    <option name="PREVIOUS_COMMIT_AUTHORS">
+      <list>
+        <option value="ex10se &lt;pyth0n@inbox.ru&gt;" />
+        <option value="pyth0n@inbox.ru" />
+        <option value="ex10se@github.com" />
+        <option value="ex10se" />
+        <option value="Mikhail Belyakov" />
+      </list>
+    </option>
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="GithubDefaultAccount">
+    <option name="defaultAccountId" value="cfdd2766-5932-413e-8178-901a78b563d5" />
   </component>
   <component name="ProjectId" id="1b4U4wrz9ogitmS4l4rSAJAK4cJ" />
   <component name="ProjectLevelVcsManager" settingsEditedManually="true" />
   <component name="ProjectViewState">
     <option name="hideEmptyMiddlePackages" value="true" />
-    <option name="showExcludedFiles" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
   <component name="PropertiesComponent">
+    <property name="RunOnceActivity.OpenProjectViewOnStart" value="true" />
+    <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
     <property name="WebServerToolWindowFactoryState" value="false" />
     <property name="ignore.virus.scanning.warn.message" value="true" />
-    <property name="last_opened_file_path" value="$PROJECT_DIR$" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$/images" />
     <property name="settings.editor.selected.configurable" value="vcs.Git" />
   </component>
   <component name="RecentsManager">
+    <key name="CopyFile.RECENT_KEYS">
+      <recent name="C:\Users\ex10se\PycharmProjects\scrabble-board-recognition\images" />
+    </key>
     <key name="MoveFile.RECENT_KEYS">
       <recent name="C:\Users\Pavel\PycharmProjects\document-scanner\images" />
     </key>
@@ -71,13 +109,48 @@
       <workItem from="1587922361043" duration="321000" />
       <workItem from="1587922785601" duration="67000" />
       <workItem from="1587923192360" duration="281000" />
+      <workItem from="1587978361204" duration="990000" />
     </task>
+    <task id="LOCAL-00001" summary="w">
+      <created>1587979166633</created>
+      <option name="number" value="00001" />
+      <option name="presentableId" value="LOCAL-00001" />
+      <option name="project" value="LOCAL" />
+      <updated>1587979166633</updated>
+    </task>
+    <task id="LOCAL-00002" summary="w">
+      <created>1587979326112</created>
+      <option name="number" value="00002" />
+      <option name="presentableId" value="LOCAL-00002" />
+      <option name="project" value="LOCAL" />
+      <updated>1587979326112</updated>
+    </task>
+    <option name="localTasksCounter" value="3" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
-    <option name="version" value="1" />
+    <option name="version" value="2" />
+  </component>
+  <component name="Vcs.Log.Tabs.Properties">
+    <option name="TAB_STATES">
+      <map>
+        <entry key="MAIN">
+          <value>
+            <State />
+          </value>
+        </entry>
+      </map>
+    </option>
+  </component>
+  <component name="VcsManagerConfiguration">
+    <MESSAGE value="w" />
+    <option name="LAST_COMMIT_MESSAGE" value="w" />
   </component>
   <component name="WindowStateProjectService">
+    <state x="619" y="178" key="#Deployment" timestamp="1587979275242">
+      <screen x="0" y="0" width="1920" height="1040" />
+    </state>
+    <state x="619" y="178" key="#Deployment/0.0.1920.1040@0.0.1920.1040" timestamp="1587979275242" />
     <state x="414" y="175" key="#com.intellij.execution.impl.EditConfigurationsDialog" timestamp="1587890677309">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
@@ -86,6 +159,18 @@
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state x="679" y="134" key="#scan/0.0.1920.1040@0.0.1920.1040" timestamp="1587890686607" />
+    <state x="573" y="88" width="908" height="864" key="CommitChangelistDialog2" timestamp="1587979325565">
+      <screen x="0" y="0" width="1920" height="1040" />
+    </state>
+    <state x="573" y="88" width="908" height="864" key="CommitChangelistDialog2/0.0.1920.1040@0.0.1920.1040" timestamp="1587979325565" />
+    <state x="251" y="86" key="DiffContextDialog" timestamp="1587979316856">
+      <screen x="0" y="0" width="1920" height="1040" />
+    </state>
+    <state x="251" y="86" key="DiffContextDialog/0.0.1920.1040@0.0.1920.1040" timestamp="1587979316856" />
+    <state x="740" y="274" key="FileChooserDialogImpl" timestamp="1587978392757">
+      <screen x="0" y="0" width="1920" height="1040" />
+    </state>
+    <state x="740" y="274" key="FileChooserDialogImpl/0.0.1920.1040@0.0.1920.1040" timestamp="1587978392757" />
     <state width="1877" height="280" key="GridCell.Tab.0.bottom" timestamp="1587922683912">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
@@ -102,10 +187,22 @@
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state width="1877" height="280" key="GridCell.Tab.0.right/0.0.1920.1040@0.0.1920.1040" timestamp="1587922683912" />
-    <state x="461" y="162" key="SettingsEditor" timestamp="1587923248200">
+    <state x="716" y="240" key="RollbackChangesDialog" timestamp="1587979258938">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
-    <state x="461" y="162" key="SettingsEditor/0.0.1920.1040@0.0.1920.1040" timestamp="1587923248200" />
+    <state x="716" y="240" key="RollbackChangesDialog/0.0.1920.1040@0.0.1920.1040" timestamp="1587979258938" />
+    <state x="461" y="162" key="SettingsEditor" timestamp="1587979029665">
+      <screen x="0" y="0" width="1920" height="1040" />
+    </state>
+    <state x="461" y="162" key="SettingsEditor/0.0.1920.1040@0.0.1920.1040" timestamp="1587979029665" />
+    <state x="552" y="252" key="Vcs.Push.Dialog.v2" timestamp="1587979343506">
+      <screen x="0" y="0" width="1920" height="1040" />
+    </state>
+    <state x="552" y="252" key="Vcs.Push.Dialog.v2/0.0.1920.1040@0.0.1920.1040" timestamp="1587979343506" />
+    <state x="769" y="433" key="com.intellij.openapi.vcs.update.UpdateOrStatusOptionsDialogupdate-v2" timestamp="1587979211944">
+      <screen x="0" y="0" width="1920" height="1040" />
+    </state>
+    <state x="769" y="433" key="com.intellij.openapi.vcs.update.UpdateOrStatusOptionsDialogupdate-v2/0.0.1920.1040@0.0.1920.1040" timestamp="1587979211944" />
   </component>
   <component name="com.intellij.coverage.CoverageDataManagerImpl">
     <SUITE FILE_PATH="coverage/document_scanner$scan.coverage" NAME="scan Coverage Results" MODIFIED="1587922594706" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
