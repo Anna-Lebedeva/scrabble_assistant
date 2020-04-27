@@ -19,10 +19,8 @@
     <select />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="49a95eec-acf6-43d4-8b86-dd30a4773c88" name="Default" comment="w">
-      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/scrabble-board-recognition.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/scrabble-board-recognition.iml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+    <list default="true" id="49a95eec-acf6-43d4-8b86-dd30a4773c88" name="Default" comment="New py">
+      <change beforePath="$PROJECT_DIR$/scanner.py" beforeDir="false" afterPath="$PROJECT_DIR$/scanner.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -45,7 +43,9 @@
     <option name="defaultAccountId" value="cfdd2766-5932-413e-8178-901a78b563d5" />
   </component>
   <component name="ProjectId" id="1b4U4wrz9ogitmS4l4rSAJAK4cJ" />
-  <component name="ProjectLevelVcsManager" settingsEditedManually="true" />
+  <component name="ProjectLevelVcsManager" settingsEditedManually="true">
+    <ConfirmationsSetting value="2" id="Add" />
+  </component>
   <component name="ProjectViewState">
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
@@ -55,18 +55,19 @@
     <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
     <property name="WebServerToolWindowFactoryState" value="false" />
     <property name="ignore.virus.scanning.warn.message" value="true" />
-    <property name="last_opened_file_path" value="$PROJECT_DIR$/images" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$" />
     <property name="settings.editor.selected.configurable" value="vcs.Git" />
   </component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
+      <recent name="C:\Users\ex10se\PycharmProjects\scrabble-board-recognition" />
       <recent name="C:\Users\ex10se\PycharmProjects\scrabble-board-recognition\images" />
     </key>
     <key name="MoveFile.RECENT_KEYS">
       <recent name="C:\Users\Pavel\PycharmProjects\document-scanner\images" />
     </key>
   </component>
-  <component name="RunManager">
+  <component name="RunManager" selected="Python.scanner">
     <configuration name="scan" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="scrabble-board-recognition" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -89,8 +90,31 @@
       <option name="INPUT_FILE" value="" />
       <method v="2" />
     </configuration>
+    <configuration name="scanner" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+      <module name="scrabble-board-recognition" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/scanner.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
     <recent_temporary>
       <list>
+        <item itemvalue="Python.scanner" />
         <item itemvalue="Python.scan" />
       </list>
     </recent_temporary>
@@ -109,7 +133,7 @@
       <workItem from="1587922361043" duration="321000" />
       <workItem from="1587922785601" duration="67000" />
       <workItem from="1587923192360" duration="281000" />
-      <workItem from="1587978361204" duration="990000" />
+      <workItem from="1587978361204" duration="1477000" />
     </task>
     <task id="LOCAL-00001" summary="w">
       <created>1587979166633</created>
@@ -125,11 +149,42 @@
       <option name="project" value="LOCAL" />
       <updated>1587979326112</updated>
     </task>
-    <option name="localTasksCounter" value="3" />
+    <task id="LOCAL-00003" summary="New file">
+      <created>1587979453376</created>
+      <option name="number" value="00003" />
+      <option name="presentableId" value="LOCAL-00003" />
+      <option name="project" value="LOCAL" />
+      <updated>1587979453376</updated>
+    </task>
+    <task id="LOCAL-00004" summary="Rename">
+      <created>1587979604131</created>
+      <option name="number" value="00004" />
+      <option name="presentableId" value="LOCAL-00004" />
+      <option name="project" value="LOCAL" />
+      <updated>1587979604131</updated>
+    </task>
+    <task id="LOCAL-00005" summary="New py">
+      <created>1587979764136</created>
+      <option name="number" value="00005" />
+      <option name="presentableId" value="LOCAL-00005" />
+      <option name="project" value="LOCAL" />
+      <updated>1587979764136</updated>
+    </task>
+    <option name="localTasksCounter" value="6" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
     <option name="version" value="2" />
+  </component>
+  <component name="Vcs.Log.History.Properties">
+    <option name="COLUMN_ORDER">
+      <list>
+        <option value="0" />
+        <option value="2" />
+        <option value="3" />
+        <option value="1" />
+      </list>
+    </option>
   </component>
   <component name="Vcs.Log.Tabs.Properties">
     <option name="TAB_STATES">
@@ -143,8 +198,12 @@
     </option>
   </component>
   <component name="VcsManagerConfiguration">
+    <option name="CHECK_NEW_TODO" value="false" />
     <MESSAGE value="w" />
-    <option name="LAST_COMMIT_MESSAGE" value="w" />
+    <MESSAGE value="New file" />
+    <MESSAGE value="Rename" />
+    <MESSAGE value="New py" />
+    <option name="LAST_COMMIT_MESSAGE" value="New py" />
   </component>
   <component name="WindowStateProjectService">
     <state x="619" y="178" key="#Deployment" timestamp="1587979275242">
@@ -159,10 +218,10 @@
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state x="679" y="134" key="#scan/0.0.1920.1040@0.0.1920.1040" timestamp="1587890686607" />
-    <state x="573" y="88" width="908" height="864" key="CommitChangelistDialog2" timestamp="1587979325565">
+    <state x="573" y="88" width="908" height="864" key="CommitChangelistDialog2" timestamp="1587979763580">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
-    <state x="573" y="88" width="908" height="864" key="CommitChangelistDialog2/0.0.1920.1040@0.0.1920.1040" timestamp="1587979325565" />
+    <state x="573" y="88" width="908" height="864" key="CommitChangelistDialog2/0.0.1920.1040@0.0.1920.1040" timestamp="1587979763580" />
     <state x="251" y="86" key="DiffContextDialog" timestamp="1587979316856">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
@@ -195,10 +254,10 @@
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state x="461" y="162" key="SettingsEditor/0.0.1920.1040@0.0.1920.1040" timestamp="1587979029665" />
-    <state x="552" y="252" key="Vcs.Push.Dialog.v2" timestamp="1587979343506">
+    <state x="552" y="252" key="Vcs.Push.Dialog.v2" timestamp="1587979622832">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
-    <state x="552" y="252" key="Vcs.Push.Dialog.v2/0.0.1920.1040@0.0.1920.1040" timestamp="1587979343506" />
+    <state x="552" y="252" key="Vcs.Push.Dialog.v2/0.0.1920.1040@0.0.1920.1040" timestamp="1587979622832" />
     <state x="769" y="433" key="com.intellij.openapi.vcs.update.UpdateOrStatusOptionsDialogupdate-v2" timestamp="1587979211944">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
@@ -206,5 +265,6 @@
   </component>
   <component name="com.intellij.coverage.CoverageDataManagerImpl">
     <SUITE FILE_PATH="coverage/document_scanner$scan.coverage" NAME="scan Coverage Results" MODIFIED="1587922594706" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/scrabble_board_recognition$scanner.coverage" NAME="scanner Coverage Results" MODIFIED="1587979893918" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
   </component>
 </project>
