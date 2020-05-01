@@ -39,9 +39,6 @@
     </option>
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
-  <component name="GithubDefaultAccount">
-    <option name="defaultAccountId" value="cfdd2766-5932-413e-8178-901a78b563d5" />
-  </component>
   <component name="JupyterTrust" id="62bc9b20-8b2a-4892-bf9a-b001c2e64a89" />
   <component name="ProjectId" id="1b4U4wrz9ogitmS4l4rSAJAK4cJ" />
   <component name="ProjectLevelVcsManager" settingsEditedManually="true">
@@ -59,7 +56,7 @@
     <property name="WebServerToolWindowFactoryState" value="false" />
     <property name="ignore.virus.scanning.warn.message" value="true" />
     <property name="last_opened_file_path" value="$PROJECT_DIR$" />
-    <property name="settings.editor.selected.configurable" value="preferences.general" />
+    <property name="settings.editor.selected.configurable" value="com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable" />
   </component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
@@ -70,7 +67,29 @@
       <recent name="C:\Users\Pavel\PycharmProjects\document-scanner\images" />
     </key>
   </component>
-  <component name="RunManager" selected="Python.scanner">
+  <component name="RunManager" selected="Python.hint_search">
+    <configuration name="hint_search" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+      <module name="scrabble-board-recognition" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/hint_search.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
     <configuration name="scan" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="scrabble-board-recognition" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -117,8 +136,9 @@
     </configuration>
     <recent_temporary>
       <list>
-        <item itemvalue="Python.scanner" />
+        <item itemvalue="Python.hint_search" />
         <item itemvalue="Python.scan" />
+        <item itemvalue="Python.scanner" />
       </list>
     </recent_temporary>
   </component>
@@ -140,6 +160,7 @@
       <workItem from="1588247093176" duration="431000" />
       <workItem from="1588331286591" duration="19000" />
       <workItem from="1588331333238" duration="394000" />
+      <workItem from="1588347612290" duration="4728000" />
     </task>
     <task id="LOCAL-00001" summary="w">
       <created>1587979166633</created>
@@ -187,7 +208,7 @@
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
-    <option name="version" value="2" />
+    <option name="version" value="1" />
   </component>
   <component name="Vcs.Log.History.Properties">
     <option name="COLUMN_ORDER">
@@ -204,12 +225,13 @@
       <map>
         <entry key="MAIN">
           <value>
-            <State />
+            <State>
+              <option name="COLUMN_ORDER" />
+            </State>
           </value>
         </entry>
       </map>
     </option>
-    <option name="oldMeFiltersMigrated" value="true" />
   </component>
   <component name="VcsManagerConfiguration">
     <option name="CHECK_NEW_TODO" value="false" />
@@ -244,34 +266,38 @@
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state x="740" y="274" key="FileChooserDialogImpl/0.0.1920.1040@0.0.1920.1040" timestamp="1588247117135" />
-    <state width="938" height="282" key="GridCell.Tab.0.bottom" timestamp="1587979985581">
+    <state width="1877" height="206" key="GridCell.Tab.0.bottom" timestamp="1588351446768">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
-    <state width="938" height="282" key="GridCell.Tab.0.bottom/0.0.1920.1040@0.0.1920.1040" timestamp="1587979985581" />
-    <state width="938" height="282" key="GridCell.Tab.0.center" timestamp="1587979985581">
+    <state width="1877" height="206" key="GridCell.Tab.0.bottom/0.0.1920.1040@0.0.1920.1040" timestamp="1588351446768" />
+    <state width="1877" height="206" key="GridCell.Tab.0.center" timestamp="1588351446768">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
-    <state width="938" height="282" key="GridCell.Tab.0.center/0.0.1920.1040@0.0.1920.1040" timestamp="1587979985581" />
-    <state width="938" height="282" key="GridCell.Tab.0.left" timestamp="1587979985581">
+    <state width="1877" height="206" key="GridCell.Tab.0.center/0.0.1920.1040@0.0.1920.1040" timestamp="1588351446768" />
+    <state width="1877" height="206" key="GridCell.Tab.0.left" timestamp="1588351446768">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
-    <state width="938" height="282" key="GridCell.Tab.0.left/0.0.1920.1040@0.0.1920.1040" timestamp="1587979985581" />
-    <state width="938" height="282" key="GridCell.Tab.0.right" timestamp="1587979985581">
+    <state width="1877" height="206" key="GridCell.Tab.0.left/0.0.1920.1040@0.0.1920.1040" timestamp="1588351446768" />
+    <state width="1877" height="206" key="GridCell.Tab.0.right" timestamp="1588351446768">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
-    <state width="938" height="282" key="GridCell.Tab.0.right/0.0.1920.1040@0.0.1920.1040" timestamp="1587979985581" />
-    <state x="716" y="240" key="RollbackChangesDialog" timestamp="1587979258938">
+    <state width="1877" height="206" key="GridCell.Tab.0.right/0.0.1920.1040@0.0.1920.1040" timestamp="1588351446768" />
+    <state x="716" y="240" key="RollbackChangesDialog" timestamp="1588348656223">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
-    <state x="716" y="240" key="RollbackChangesDialog/0.0.1920.1040@0.0.1920.1040" timestamp="1587979258938" />
-    <state x="461" y="162" key="SettingsEditor" timestamp="1588331304489">
+    <state x="716" y="240" key="RollbackChangesDialog/0.0.1920.1040@0.0.1920.1040" timestamp="1588348656223" />
+    <state x="461" y="162" key="SettingsEditor" timestamp="1588347619019">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
-    <state x="461" y="162" key="SettingsEditor/0.0.1920.1040@0.0.1920.1040" timestamp="1588331304489" />
+    <state x="461" y="162" key="SettingsEditor/0.0.1920.1040@0.0.1920.1040" timestamp="1588347619019" />
     <state x="552" y="252" key="Vcs.Push.Dialog.v2" timestamp="1587979928775">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state x="552" y="252" key="Vcs.Push.Dialog.v2/0.0.1920.1040@0.0.1920.1040" timestamp="1587979928775" />
+    <state x="48" y="173" width="1736" height="856" key="com.intellij.history.integration.ui.views.DirectoryHistoryDialog" timestamp="1588348781132">
+      <screen x="0" y="0" width="1920" height="1040" />
+    </state>
+    <state x="48" y="173" width="1736" height="856" key="com.intellij.history.integration.ui.views.DirectoryHistoryDialog/0.0.1920.1040@0.0.1920.1040" timestamp="1588348781132" />
     <state x="769" y="433" key="com.intellij.openapi.vcs.update.UpdateOrStatusOptionsDialogupdate-v2" timestamp="1588247109134">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
@@ -287,5 +313,9 @@
         </line-breakpoint>
       </breakpoints>
     </breakpoint-manager>
+  </component>
+  <component name="com.intellij.coverage.CoverageDataManagerImpl">
+    <SUITE FILE_PATH="coverage/scrabble_board_recognition$scan.coverage" NAME="scan Coverage Results" MODIFIED="1588347781850" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/scrabble_board_recognition$hint_search.coverage" NAME="hint_search Coverage Results" MODIFIED="1588351376992" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
   </component>
 </project>
