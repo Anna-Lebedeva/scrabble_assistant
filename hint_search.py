@@ -1,3 +1,4 @@
+import numpy as np
 import json
 from pathlib import Path
 
@@ -10,26 +11,108 @@ def get_best_hint(board: [[str]], letters: dict) -> [[str]]:
     :return: символьный двумерный массив с буквами подсказки
     """
 
+    # разметка ценности полей доски:
+    # 0 - обычное поле
+    # 1 - х2 за букву
+    # 2 - х3 за букву
+    # 3 - х2 за слово
+    # 4 - х3 за слово
+    # 5 - стартовое поле
+    board_values = [[4, 0, 0, 1, 0, 0, 0, 4, 0, 0, 0, 1, 0, 0, 4],
+                    [0, 3, 0, 0, 0, 2, 0, 0, 0, 2, 0, 0, 0, 3, 0],
+                    [0, 0, 3, 0, 0, 0, 1, 0, 1, 0, 0, 0, 3, 0, 0],
+                    [1, 0, 0, 3, 0, 0, 0, 1, 0, 0, 0, 3, 0, 0, 1],
+                    [0, 0, 0, 0, 3, 0, 0, 0, 0, 0, 3, 0, 0, 0, 0],
+                    [0, 2, 0, 0, 0, 2, 0, 0, 0, 2, 0, 0, 0, 2, 0],
+                    [0, 0, 1, 0, 0, 0, 1, 0, 1, 0, 0, 0, 1, 0, 0],
+                    [4, 0, 0, 1, 0, 0, 0, 5, 0, 0, 0, 1, 0, 0, 4],  # центр
+                    [0, 0, 1, 0, 0, 0, 1, 0, 1, 0, 0, 0, 1, 0, 0],
+                    [0, 2, 0, 0, 0, 2, 0, 0, 0, 2, 0, 0, 0, 2, 0],
+                    [0, 0, 0, 0, 3, 0, 0, 0, 0, 0, 3, 0, 0, 0, 0],
+                    [1, 0, 0, 3, 0, 0, 0, 1, 0, 0, 0, 3, 0, 0, 1],
+                    [0, 0, 3, 0, 0, 0, 1, 0, 1, 0, 0, 0, 3, 0, 0],
+                    [0, 3, 0, 0, 0, 2, 0, 0, 0, 2, 0, 0, 0, 3, 0],
+                    [4, 0, 0, 1, 0, 0, 0, 4, 0, 0, 0, 1, 0, 0, 4],
+                    ]
 
-def get_vertical_by_index(board: [[str]], index: int) -> [str]:
+
+def mark_blocked_cells(board_letters: [[str]]) -> [[str]]:
     """
-    Возвращает вертикаль со специальными символами в заблокированных клетках
+    Помечает клетки, в которых не может быть букв знаком '#'.
+
+    :param board_letters: принимает распознанную символьную сетку
+    :return: возвращает распознанную символьную сетку с помеченными заблокированными клетками
+    """
+
+    # пример распознаной доски, переданной на вход:
+    board_letters = [
+        ['', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
+        ['', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
+        ['', '', '', '', '', '', '', '', '', 'т', '', '', '', '', ''],
+        ['', '', '', '', '', '', '', '', '', 'о', '', '', '', '', ''],
+        ['', '', '', 'п', 'о', 'c', 'е', 'л', 'о', 'к', '', '', '', '', ''],
+        ['', '', '', 'а', '', 'а', '', '', '', '', '', 'р', '', '', ''],
+        ['', '', '', 'п', '', 'д', 'о', 'м', '', 'я', '', 'е', '', '', ''],
+        ['', '', '', 'а', '', '', '', 'а', 'з', 'б', 'у', 'к', 'а', '', ''],
+        ['', '', '', '', '', 'с', 'о', 'м', '', 'л', '', 'а', '', '', ''],
+        ['', '', '', 'я', 'м', 'а', '', 'а', '', 'о', '', '', '', '', ''],
+        ['', '', '', '', '', 'л', '', '', '', 'к', 'и', 'т', '', '', ''],
+        ['', '', '', '', 'с', 'о', 'л', 'ь', '', 'о', '', '', '', '', ''],
+        ['', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
+        ['', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
+        ['', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
+    ]
+
+    for ver_char in range(15):
+        for hor_char in range(15):
+            if not board_letters[ver_char][hor_char]:  # находит пустую клетку
+
+                if hor_char > 0 and ver_char > 0:
+                    if board_letters[ver_char][hor_char - 1] and \
+                            board_letters[ver_char - 1][hor_char]:  # если есть слева-сверху
+                        if board_letters[ver_char][hor_char - 1] != '#' and \
+                                board_letters[ver_char - 1][hor_char] != '#':
+                            board_letters[ver_char][hor_char] = '#'
+                            continue
+
+                if hor_char < 14 and ver_char > 0:
+                    if board_letters[ver_char][hor_char + 1] and \
+                            board_letters[ver_char - 1][hor_char]:  # если есть справа-сверху
+                        if board_letters[ver_char][hor_char + 1] != '#' and \
+                                board_letters[ver_char - 1][hor_char] != '#':
+                            board_letters[ver_char][hor_char] = '#'
+                            continue
+
+                if ver_char < 14 and hor_char < 14:
+                    if board_letters[ver_char + 1][hor_char] and \
+                            board_letters[ver_char][hor_char + 1]:  # если есть снизу-справа
+                        if board_letters[ver_char - 1][hor_char] != '#' and \
+                                board_letters[ver_char][hor_char + 1] != '#':
+                            board_letters[ver_char][hor_char] = '#'
+                            continue
+
+                if ver_char < 14 and hor_char > 0:
+                    if board_letters[ver_char + 1][hor_char] and \
+                            board_letters[ver_char][hor_char - 1]:  # если есть снизу-слева
+                        if board_letters[ver_char + 1][hor_char] != '#' and \
+                                board_letters[ver_char][hor_char - 1] != '#':
+                            board_letters[ver_char][hor_char] = '#'
+    return board_letters
+
+
+def get_horizontal_from_vertical(board: [[str]]) -> [[str]]:
+    """
+    Искать слова убоднее в строке, а не в столбце. Переводит столбцы в строки.
+
     :param board: символьный двумерный массив доски
-    :param index: индекс нужной вертикали
-    :return: одномерный массив
+    :return: массив вертикалей, переведенный в массив горизонталей (транспонированную матрицу)
     """
 
-
-def get_horizontal_by_index(board: [[str]], index: int) -> [str]:
-    """
-    Возвращает горизонталь со специальными символами в заблокированных клетках
-    :param board: символьный двумерный массив доски
-    :param index: индекс нужной вертикали
-    :return: одномерный массив
-    """
+    return np.array(board).transpose()
 
 
-def is_word_fits(line: [str], word: str, start_position: int, end_position: int) -> bool:
+def is_word_fits(line: [str], word: str, start_position: int,
+                 end_position: int) -> bool:
     """
     Проверяет подходит ли слово в линию
     :param line: символьный одномерный массив со специальными символами в заблокированных клетках
@@ -40,41 +123,11 @@ def is_word_fits(line: [str], word: str, start_position: int, end_position: int)
     """
 
 
-# def clean_file(filename_in: str, filename_out: str, n: int) -> None:
-#     """
-#     Очищает txt словарь от слов, где более n символов
-#     path_in и path_out могут быть равны
-#     :param filename_in: имя файла на вход
-#     :param filename_out: имя файла на выход
-#     :param n: максимально допустимая длина слова
-#     """
-#
-#     if filename_in == filename_out:
-#         words = []
-#         f = open(filename_in, "r")
-#         for i in f.readlines():
-#             if len(i) <= n + 1:  # "\n" тоже учитывается, поэтому +1
-#                 words.append(i)
-#         f.close()
-#         f = open(filename_in, "w")
-#         for i in words:
-#             f.write(i)
-#     else:
-#         f_in = open(filename_in, "r")
-#         f_out = open(filename_out, "w")
-#
-#         for i in f_in.readlines():
-#             if len(i) <= n + 1:  # "\n" тоже учитывается, поэтому +1
-#                 f_out.write(i)
-#         f_in.close()
-#         f_out.close()
-
-
 def read_json(filename: str) -> dict:
     """
     Считывает json-файл в dict
     :param filename: имя json-файла
-    :return: dict
+    :return: считанный словарь
     """
 
     with open(file=Path(Path.cwd() / filename), mode='r', encoding='utf-8') as file:
@@ -99,3 +152,20 @@ def calculate_word_value(word: str, json_filename: str) -> int:
 
 if __name__ == "__main__":
     print(calculate_word_value("собака", "letters_values.json"))
+    print(mark_blocked_cells([
+        ['', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
+        ['', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
+        ['', '', '', '', '', '', '', '', '', 'т', '', '', '', '', ''],
+        ['', '', '', '', '', '', '', '', '', 'о', '', '', '', '', ''],
+        ['', '', '', 'п', 'о', 'c', 'е', 'л', 'о', 'к', '', '', '', '', ''],
+        ['', '', '', 'а', '', 'а', '', '', '', '', '', 'р', '', '', ''],
+        ['', '', '', 'п', '', 'д', 'о', 'м', '', 'я', '', 'е', '', '', ''],
+        ['', '', '', 'а', '', '', '', 'а', 'з', 'б', 'у', 'к', 'а', '', ''],
+        ['', '', '', '', '', 'с', 'о', 'м', '', 'л', '', 'а', '', '', ''],
+        ['', '', '', 'я', 'м', 'а', '', 'а', '', 'о', '', '', '', '', ''],
+        ['', '', '', '', '', 'л', '', '', '', 'к', 'и', 'т', '', '', ''],
+        ['', '', '', '', 'с', 'о', 'л', 'ь', '', 'о', '', '', '', '', ''],
+        ['', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
+        ['', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
+        ['', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
+    ]))
