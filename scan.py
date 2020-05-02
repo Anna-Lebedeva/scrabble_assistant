@@ -62,9 +62,13 @@ def cut_by_external_contour(path: str) -> numpy.ndarray:
     return warped
 
 def cut_by_internal_contour(image) -> numpy.ndarray:
+	#получаем изображение и переводим его в HSV
+	#короче у меня появился план. Суть в том что найти контуры по цветам намного легче и надежнее.
+	# Можно обрезать доску по красным X3 полям. Для поиска цветов и нужно переводить в HSV.
     image = imutils.resize(image, height=550)
     img_hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
 
+	#диапозон красных оттенков в HSV
     mask1 = cv2.inRange(img_hsv, (0, 50, 100), (10, 255, 255))
     mask2 = cv2.inRange(img_hsv, (160, 50, 100), (179, 255, 255))
 
@@ -78,9 +82,13 @@ def cut_by_internal_contour(image) -> numpy.ndarray:
     cv2.imshow("mask", mask)
     cv2.imshow("croped", croped)
     cv2.waitKey()
-
+	
+	#Ищем контуры 
+	#должно найти только красные квадратики
     counters=cv2.findContours(mask,cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)
     # Нужно еще убрать все мелкие контуры
+	#Проблема в том, что в mask есть мелкие точки, которые тоже находит как контуры.
+	#Миша написал штуку, которая отфильтровыет это, но не залил в мастер как я понял.
 
     #print(len(counters))
     #cv2.drawContours(image, counters, -1, (0, 255, 0), 2)
@@ -89,6 +97,9 @@ def cut_by_internal_contour(image) -> numpy.ndarray:
     #cv2.destroyAllWindows()
 
     # Далее надо найти самые левые, правые и тд точки в контурах и по ним обрезать
+	#Собсна тут все пока и крашнулось, но суть в том, что мы находим самые левые, правые и т.д. точки в каждом контуре.
+	#Среди этих точек находим самые самые правые, левые и т.д.
+	#делаем обрезку по ним т.к. после нахождения перспективы в 1 функции доска расположена как квадрат.
     for i in counters:
         extLeft = tuple(i[i[:, :, 0].argmin()][0])
         extRight = tuple(i[i[:, :, 0].argmax()][0])
@@ -102,9 +113,11 @@ def cut_by_internal_contour(image) -> numpy.ndarray:
         cv2.imshow("Image", image)
         cv2.waitKey(0)
 
+	#Просто плейсхолдер для ретурна
     return warped
 
 #Обрезка конкретно нашей доски на черный день
+#Просто отрезает определенное пространство на изображении
 def MISHINA_OBREZKA_NA_CHERNY_DEN(img):
     height, width = img.shape[:2]
     cropped = img[33:height, 33:width]
