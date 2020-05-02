@@ -79,14 +79,44 @@ def cut_by_internal_contour(image) -> numpy.ndarray:
     cv2.imshow("croped", croped)
     cv2.waitKey()
 
-    counters=cv2.findContours(mask,cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)[0]
-    print(len(counters))
-    cv2.drawContours(image, counters, -1, (0, 255, 0), 2)
-    cv2.imshow("Outline", image)
-    cv2.waitKey(0)
-    cv2.destroyAllWindows()
+    counters=cv2.findContours(mask,cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)
+    # Нужно еще убрать все мелкие контуры
+
+    #print(len(counters))
+    #cv2.drawContours(image, counters, -1, (0, 255, 0), 2)
+    #cv2.imshow("Outline", image)
+    #cv2.waitKey(0)
+    #cv2.destroyAllWindows()
+
+    # Далее надо найти самые левые, правые и тд точки в контурах и по ним обрезать
+    for i in counters:
+        extLeft = tuple(i[i[:, :, 0].argmin()][0])
+        extRight = tuple(i[i[:, :, 0].argmax()][0])
+        extTop = tuple(i[i[:, :, 1].argmin()][0])
+        extBot = tuple(i[i[:, :, 1].argmax()][0])
+        cv2.circle(image, extLeft, 8, (0, 0, 255), -1)
+        cv2.circle(image, extRight, 8, (0, 255, 0), -1)
+        cv2.circle(image, extTop, 8, (255, 0, 0), -1)
+        cv2.circle(image, extBot, 8, (255, 255, 0), -1)
+        # show the output image
+        cv2.imshow("Image", image)
+        cv2.waitKey(0)
 
     return warped
+
+#Обрезка конкретно нашей доски на черный день
+def MISHINA_OBREZKA_NA_CHERNY_DEN(img):
+    height, width = img.shape[:2]
+    cropped = img[33:height, 33:width]
+
+    height, width = cropped.shape[:2]
+    cropped = cropped[0:height - 10, 0:width - 10]
+
+    cv2.imshow("cropped", cropped)
+    print("Высота: " + str(height))
+    print("Ширина: " + str(width))
+    cv2.waitKey(0)
+    cv2.destroyAllWindows()
 
 if __name__ == "__main__":
     warped=cut_by_external_contour("images_real/Clear3.jpg")
