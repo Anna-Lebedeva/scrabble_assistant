@@ -61,8 +61,35 @@ def cut_by_external_contour(path: str) -> numpy.ndarray:
 
     return warped
 
+def cut_by_internal_contour(image) -> numpy.ndarray:
+    image = imutils.resize(image, height=550)
+    img_hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
+
+    mask1 = cv2.inRange(img_hsv, (0, 50, 100), (10, 255, 255))
+    mask2 = cv2.inRange(img_hsv, (160, 50, 100), (179, 255, 255))
+
+
+    ## Merge the mask and crop the red regions
+    mask = cv2.bitwise_or(mask1, mask2)
+    croped = cv2.bitwise_and(image, image, mask=mask)
+
+
+    ## Display
+    cv2.imshow("mask", mask)
+    cv2.imshow("croped", croped)
+    cv2.waitKey()
+
+    counters=cv2.findContours(mask,cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)[0]
+    print(len(counters))
+    cv2.drawContours(image, counters, -1, (0, 255, 0), 2)
+    cv2.imshow("Outline", image)
+    cv2.waitKey(0)
+    cv2.destroyAllWindows()
+
+    return warped
 
 if __name__ == "__main__":
-    cv2.imshow("External contour", imutils.resize(cut_by_external_contour("images/scrabble_board1.jpg"), height=750))
+    warped=cut_by_external_contour("images_real/Clear3.jpg")
+    cv2.imshow("Internal contour", imutils.resize(cut_by_internal_contour(warped), height=750))
     cv2.waitKey(0)
     cv2.destroyAllWindows()
