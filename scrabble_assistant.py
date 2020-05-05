@@ -117,7 +117,7 @@ def read_json(json_filename: str) -> dict:
         return dict(json.load(file))
 
 
-def calculate_word_value(word: str, json_filename: str, cell_bonuses_filepath: str) -> int:
+def calculate_word_value(word: str, json_filename: str, cell_bonuses_filepath=0) -> int:
     # start_pos=: int, end_pos: int) -> int:
     """
     Считает ценность слова
@@ -159,7 +159,7 @@ def calculate_word_value(word: str, json_filename: str, cell_bonuses_filepath: s
     return sum([letters_values[letter] for letter in word])
 
 
-def generate_regexs(row: [str]) -> [re.Pattern]:
+def get_regex_patterns(row: [str]) -> [re.Pattern]:
     """
     Получает строку, возвращает паттерны, соответствующие этой строке, для поиска подходящих
     слов в словаре по этому паттерну
@@ -198,34 +198,32 @@ def generate_regexs(row: [str]) -> [re.Pattern]:
 
     return patterns
 
-    # test
-    """res = []
-    for pattern in patterns:
-        res.append(pattern.findall('''арка regd vbevu vy
-                                   bjjk vbjjnk vbjki аркан'''))"""
 
-# def is_word_correct(word: str, json_filename: str) -> bool:
-#     """
-#     Проверяет слово на корректность - не содержит ли оно неожиданных символов,
-#     не содержит ли оно больше букв, чем есть в игре.
-#     :param word: слово
-#     :param json_filename: имя json-словаря с ценностью букв
-#     :return: переданное слово не содержит неожиданных символов
-#     """
-#     word = word.lower()
-#     alphabet = set(
-#         read_json(json_filename).keys())  # множество букв, для которых указана стоимость
-#     for letter in word:
-#         if letter not in alphabet:
-#             return False
-#
-#     letters_sum = read_json('letters_amount.json')
-#     word_letters = Counter(word)
-#
-#     for letter in word:
-#         if word_letters[letter] > letters_sum[letter]:
-#             return False
-#     return True
+def is_word_correct(word: str, json_filename: str) -> bool:
+    """
+    Проверяет слово на корректность - не содержит ли оно неожиданных символов,
+    не содержит ли оно больше букв, чем есть в игре.
+    :param word: слово
+    :param json_filename: имя json-словаря с ценностью букв
+    :return: переданное слово не содержит неожиданных символов
+    """
+    # todo: добавить поправку на бонусы
+
+    word = word.lower()
+    alphabet = set(
+        read_json(json_filename).keys())  # множество букв, для которых указана стоимость
+
+    for letter in word:
+        if letter not in alphabet:
+            return False
+
+    letters_sum = read_json('letters_amount.json')
+    word_letters = Counter(word)
+
+    for letter in word:
+        if word_letters[letter] > letters_sum[letter]:
+            return False
+    return True
 
 
 def is_word_available(letters: Counter, word: str) -> bool:
