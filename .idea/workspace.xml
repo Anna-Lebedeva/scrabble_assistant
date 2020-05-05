@@ -21,6 +21,9 @@
   <component name="ChangeListManager">
     <list default="true" id="49a95eec-acf6-43d4-8b86-dd30a4773c88" name="Default" comment="New py">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/letters_number.json" beforeDir="false" afterPath="$PROJECT_DIR$/jsons/letters_number.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/letters_values.json" beforeDir="false" afterPath="$PROJECT_DIR$/jsons/letters_values.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/scrabble_assistant.py" beforeDir="false" afterPath="$PROJECT_DIR$/scrabble_assistant.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -39,7 +42,7 @@
     </option>
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
-  <component name="JupyterTrust" id="62bc9b20-8b2a-4892-bf9a-b001c2e64a89" />
+  <component name="JupyterTrust" id="0689a2b3-08db-494c-a158-622d9ff1ad2b" />
   <component name="ProjectId" id="1b4U4wrz9ogitmS4l4rSAJAK4cJ" />
   <component name="ProjectLevelVcsManager" settingsEditedManually="true">
     <OptionsSetting value="false" id="Update" />
@@ -59,15 +62,16 @@
     <property name="settings.editor.selected.configurable" value="com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable" />
   </component>
   <component name="RecentsManager">
+    <key name="MoveFile.RECENT_KEYS">
+      <recent name="C:\Users\mtovt\PROJECT\scrabble-board-recognition\jsons" />
+      <recent name="C:\Users\Pavel\PycharmProjects\document-scanner\images" />
+    </key>
     <key name="CopyFile.RECENT_KEYS">
       <recent name="C:\Users\ex10se\PycharmProjects\scrabble-board-recognition" />
       <recent name="C:\Users\ex10se\PycharmProjects\scrabble-board-recognition\images" />
     </key>
-    <key name="MoveFile.RECENT_KEYS">
-      <recent name="C:\Users\Pavel\PycharmProjects\document-scanner\images" />
-    </key>
   </component>
-  <component name="RunManager" selected="Python.hint_search">
+  <component name="RunManager" selected="Python.scrabble_assistant">
     <configuration name="hint_search" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="scrabble-board-recognition" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -134,8 +138,31 @@
       <option name="INPUT_FILE" value="" />
       <method v="2" />
     </configuration>
+    <configuration name="scrabble_assistant" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+      <module name="scrabble-board-recognition" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="C:\Program Files (x86)\Python38-32\python.exe" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
+      <option name="IS_MODULE_SDK" value="false" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/scrabble_assistant.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
     <recent_temporary>
       <list>
+        <item itemvalue="Python.scrabble_assistant" />
         <item itemvalue="Python.hint_search" />
         <item itemvalue="Python.scan" />
         <item itemvalue="Python.scanner" />
@@ -161,6 +188,7 @@
       <workItem from="1588331286591" duration="19000" />
       <workItem from="1588331333238" duration="394000" />
       <workItem from="1588347612290" duration="4728000" />
+      <workItem from="1588673449857" duration="189000" />
     </task>
     <task id="LOCAL-00001" summary="w">
       <created>1587979166633</created>
@@ -208,7 +236,7 @@
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
-    <option name="version" value="1" />
+    <option name="version" value="2" />
   </component>
   <component name="Vcs.Log.History.Properties">
     <option name="COLUMN_ORDER">
@@ -225,13 +253,12 @@
       <map>
         <entry key="MAIN">
           <value>
-            <State>
-              <option name="COLUMN_ORDER" />
-            </State>
+            <State />
           </value>
         </entry>
       </map>
     </option>
+    <option name="oldMeFiltersMigrated" value="true" />
   </component>
   <component name="VcsManagerConfiguration">
     <option name="CHECK_NEW_TODO" value="false" />
@@ -254,6 +281,10 @@
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state x="679" y="134" key="#scan/0.0.1920.1040@0.0.1920.1040" timestamp="1587890686607" />
+    <state x="484" y="8" key="#scrabble_assistant" timestamp="1588673635051">
+      <screen x="0" y="0" width="1536" height="824" />
+    </state>
+    <state x="484" y="8" key="#scrabble_assistant/0.0.1536.824/1920.0.1920.1040@0.0.1536.824" timestamp="1588673635051" />
     <state x="573" y="88" width="908" height="864" key="CommitChangelistDialog2" timestamp="1587979926018">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
@@ -317,5 +348,6 @@
   <component name="com.intellij.coverage.CoverageDataManagerImpl">
     <SUITE FILE_PATH="coverage/scrabble_board_recognition$scan.coverage" NAME="scan Coverage Results" MODIFIED="1588347781850" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/scrabble_board_recognition$hint_search.coverage" NAME="hint_search Coverage Results" MODIFIED="1588351376992" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/scrabble_board_recognition$scrabble_assistant.coverage" NAME="scrabble_assistant Coverage Results" MODIFIED="1588673635114" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
   </component>
 </project>
