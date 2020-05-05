@@ -20,8 +20,23 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="49a95eec-acf6-43d4-8b86-dd30a4773c88" name="Default" comment="New py">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/scrabble_assistant.py" beforeDir="false" afterPath="$PROJECT_DIR$/scrabble_assistant.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/images_real/Clear1.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/images_real/Clear2.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/images_real/Clear3.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/images_real/Clear4.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/images_real/Clear5.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/images_real/Clear6.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/images_real/Words1.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/images_real/Words10.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/images_real/Words11.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/images_real/Words2.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/images_real/Words3.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/images_real/Words4.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/images_real/Words5.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/images_real/Words6.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/images_real/Words7.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/images_real/Words8.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/images_real/Words9.jpg" beforeDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -186,7 +201,7 @@
       <workItem from="1588331286591" duration="19000" />
       <workItem from="1588331333238" duration="394000" />
       <workItem from="1588347612290" duration="4728000" />
-      <workItem from="1588673449857" duration="861000" />
+      <workItem from="1588673449857" duration="1474000" />
     </task>
     <task id="LOCAL-00001" summary="w">
       <created>1587979166633</created>
