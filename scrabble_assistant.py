@@ -75,17 +75,16 @@ def read_json(json_filename: str) -> dict:
     :return: считанный словарь
     """
 
-    with open(file=Path(Path.cwd() / json_filename), mode='r', encoding='utf-8') as file:
+    with open(file=Path(Path.cwd() / 'jsons' / json_filename), mode='r', encoding='utf-8') as file:
         return dict(json.load(file))
 
 
-def calculate_word_value(word: str, letters_values_json_path: str, cell_bonuses_filepath: str) -> int:
-    # start_x=: int, start_y: int,
-    # end_x: int, end_y: int) -> int:
+def calculate_word_value(word: str, json_filename: str, cell_bonuses_filepath: str) -> int:
+    # start_pos=: int, end_pos: int) -> int:
     """
     Считает ценность слова
     :param word: слово в виде строки
-    :param letters_values_json_path: путь к json-словарю с ценностью букв
+    :param json_filename: путь к json-словарю с ценностью букв
     :param cell_bonuses_filepath: путь к файлу с бонусами клеток
     # :param start_position: индекс позиции начала слова
     # :param end_position: индекс позиции конца слова
@@ -117,7 +116,7 @@ def calculate_word_value(word: str, letters_values_json_path: str, cell_bonuses_
                     [4, 0, 0, 1, 0, 0, 0, 4, 0, 0, 0, 1, 0, 0, 4],
                     ]
 
-    letter_values = read_json(letters_values_json_path)
+    letter_values = read_json(json_filename)
     word = word.lower()  # перевод в нижний регистр
     value = 0
     for char in word:
@@ -186,3 +185,7 @@ def is_word_available(letters: Counter, word: str) -> bool:
 #
 #     for s in test_board:
 #         print(s)
+
+
+
+print(read_json('letters_values.json'))
