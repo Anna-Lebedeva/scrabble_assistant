@@ -185,7 +185,3 @@ def is_word_available(letters: Counter, word: str) -> bool:
 #
 #     for s in test_board:
 #         print(s)
-
-
-
-print(read_json('letters_values.json'))
