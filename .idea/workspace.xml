@@ -21,8 +21,6 @@
   <component name="ChangeListManager">
     <list default="true" id="49a95eec-acf6-43d4-8b86-dd30a4773c88" name="Default" comment="New py">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/letters_number.json" beforeDir="false" afterPath="$PROJECT_DIR$/jsons/letters_number.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/letters_values.json" beforeDir="false" afterPath="$PROJECT_DIR$/jsons/letters_values.json" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/scrabble_assistant.py" beforeDir="false" afterPath="$PROJECT_DIR$/scrabble_assistant.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -188,7 +186,7 @@
       <workItem from="1588331286591" duration="19000" />
       <workItem from="1588331333238" duration="394000" />
       <workItem from="1588347612290" duration="4728000" />
-      <workItem from="1588673449857" duration="189000" />
+      <workItem from="1588673449857" duration="861000" />
     </task>
     <task id="LOCAL-00001" summary="w">
       <created>1587979166633</created>
