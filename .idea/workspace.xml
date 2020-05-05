@@ -20,23 +20,11 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="49a95eec-acf6-43d4-8b86-dd30a4773c88" name="Default" comment="New py">
-      <change beforePath="$PROJECT_DIR$/images_real/Clear1.jpg" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/images_real/Clear2.jpg" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/images_real/Clear3.jpg" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/images_real/Clear4.jpg" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/images_real/Clear5.jpg" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/images_real/Clear6.jpg" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/images_real/Words1.jpg" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/images_real/Words10.jpg" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/images_real/Words11.jpg" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/images_real/Words2.jpg" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/images_real/Words3.jpg" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/images_real/Words4.jpg" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/images_real/Words5.jpg" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/images_real/Words6.jpg" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/images_real/Words7.jpg" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/images_real/Words8.jpg" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/images_real/Words9.jpg" beforeDir="false" />
+      <change afterPath="$PROJECT_DIR$/jsons/letters_amount.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/jsons/letters_number.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/scrabble_assistant.py" beforeDir="false" afterPath="$PROJECT_DIR$/scrabble_assistant.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -72,7 +60,7 @@
     <property name="WebServerToolWindowFactoryState" value="false" />
     <property name="ignore.virus.scanning.warn.message" value="true" />
     <property name="last_opened_file_path" value="$PROJECT_DIR$" />
-    <property name="settings.editor.selected.configurable" value="com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable" />
+    <property name="settings.editor.selected.configurable" value="preferences.pluginManager" />
   </component>
   <component name="RecentsManager">
     <key name="MoveFile.RECENT_KEYS">
@@ -201,7 +189,9 @@
       <workItem from="1588331286591" duration="19000" />
       <workItem from="1588331333238" duration="394000" />
       <workItem from="1588347612290" duration="4728000" />
-      <workItem from="1588673449857" duration="1474000" />
+      <workItem from="1588673449857" duration="2150000" />
+      <workItem from="1588676790704" duration="3869000" />
+      <workItem from="1588681124850" duration="10359000" />
     </task>
     <task id="LOCAL-00001" summary="w">
       <created>1587979166633</created>
@@ -310,29 +300,34 @@
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state x="740" y="274" key="FileChooserDialogImpl/0.0.1920.1040@0.0.1920.1040" timestamp="1588247117135" />
-    <state width="1877" height="206" key="GridCell.Tab.0.bottom" timestamp="1588351446768">
-      <screen x="0" y="0" width="1920" height="1040" />
+    <state width="1493" height="2" key="GridCell.Tab.0.bottom" timestamp="1588681115039">
+      <screen x="0" y="0" width="1536" height="824" />
     </state>
+    <state width="1493" height="2" key="GridCell.Tab.0.bottom/0.0.1536.824/1920.0.1920.1040@0.0.1536.824" timestamp="1588681115039" />
     <state width="1877" height="206" key="GridCell.Tab.0.bottom/0.0.1920.1040@0.0.1920.1040" timestamp="1588351446768" />
-    <state width="1877" height="206" key="GridCell.Tab.0.center" timestamp="1588351446768">
-      <screen x="0" y="0" width="1920" height="1040" />
+    <state width="1493" height="2" key="GridCell.Tab.0.center" timestamp="1588681115039">
+      <screen x="0" y="0" width="1536" height="824" />
     </state>
+    <state width="1493" height="2" key="GridCell.Tab.0.center/0.0.1536.824/1920.0.1920.1040@0.0.1536.824" timestamp="1588681115039" />
     <state width="1877" height="206" key="GridCell.Tab.0.center/0.0.1920.1040@0.0.1920.1040" timestamp="1588351446768" />
-    <state width="1877" height="206" key="GridCell.Tab.0.left" timestamp="1588351446768">
-      <screen x="0" y="0" width="1920" height="1040" />
+    <state width="1493" height="2" key="GridCell.Tab.0.left" timestamp="1588681115038">
+      <screen x="0" y="0" width="1536" height="824" />
     </state>
+    <state width="1493" height="2" key="GridCell.Tab.0.left/0.0.1536.824/1920.0.1920.1040@0.0.1536.824" timestamp="1588681115038" />
     <state width="1877" height="206" key="GridCell.Tab.0.left/0.0.1920.1040@0.0.1920.1040" timestamp="1588351446768" />
-    <state width="1877" height="206" key="GridCell.Tab.0.right" timestamp="1588351446768">
-      <screen x="0" y="0" width="1920" height="1040" />
+    <state width="1493" height="2" key="GridCell.Tab.0.right" timestamp="1588681115039">
+      <screen x="0" y="0" width="1536" height="824" />
     </state>
+    <state width="1493" height="2" key="GridCell.Tab.0.right/0.0.1536.824/1920.0.1920.1040@0.0.1536.824" timestamp="1588681115039" />
     <state width="1877" height="206" key="GridCell.Tab.0.right/0.0.1920.1040@0.0.1920.1040" timestamp="1588351446768" />
     <state x="716" y="240" key="RollbackChangesDialog" timestamp="1588348656223">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state x="716" y="240" key="RollbackChangesDialog/0.0.1920.1040@0.0.1920.1040" timestamp="1588348656223" />
-    <state x="461" y="162" key="SettingsEditor" timestamp="1588347619019">
-      <screen x="0" y="0" width="1920" height="1040" />
+    <state x="369" y="115" key="SettingsEditor" timestamp="1588681111926">
+      <screen x="0" y="0" width="1536" height="824" />
     </state>
+    <state x="369" y="115" key="SettingsEditor/0.0.1536.824/1920.0.1920.1040@0.0.1536.824" timestamp="1588681111926" />
     <state x="461" y="162" key="SettingsEditor/0.0.1920.1040@0.0.1920.1040" timestamp="1588347619019" />
     <state x="552" y="252" key="Vcs.Push.Dialog.v2" timestamp="1587979928775">
       <screen x="0" y="0" width="1920" height="1040" />
@@ -361,6 +356,6 @@
   <component name="com.intellij.coverage.CoverageDataManagerImpl">
     <SUITE FILE_PATH="coverage/scrabble_board_recognition$scan.coverage" NAME="scan Coverage Results" MODIFIED="1588347781850" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/scrabble_board_recognition$hint_search.coverage" NAME="hint_search Coverage Results" MODIFIED="1588351376992" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
-    <SUITE FILE_PATH="coverage/scrabble_board_recognition$scrabble_assistant.coverage" NAME="scrabble_assistant Coverage Results" MODIFIED="1588673635114" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/scrabble_board_recognition$scrabble_assistant.coverage" NAME="scrabble_assistant Coverage Results" MODIFIED="1588680474065" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
   </component>
 </project>

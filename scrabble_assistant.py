@@ -1,5 +1,6 @@
 import numpy as np
 import json
+import re
 from pathlib import Path
 from collections import Counter
 
@@ -13,7 +14,7 @@ def get_best_hint(board: [[str]], letters: dict) -> [[str]]:
     """
 
 
-def mark_blocked_cells(board: [[str]]) -> [[str]]:
+def mark_blocked_cells(board: [[str]]) -> [str]:
     """
     Помечает клетки, в которых не может быть букв знаком '#'.
     Если рядом с клеткой по вертикали и горизонтали есть буквы, то клетка заблокирована
@@ -28,17 +29,21 @@ def mark_blocked_cells(board: [[str]]) -> [[str]]:
                 y_block = False  # заблокирована ли клетка по вертикали
 
                 if y_index > 0:  # если есть пространство сверху
-                    if not board[y_index - 1][x_index] and board[y_index - 1][x_index] != '#':
+                    if not board[y_index - 1][x_index] and \
+                            board[y_index - 1][x_index] != '#':
                         y_block = True
                 if y_index < 14:  # если есть пространство снизу
-                    if not board[y_index + 1][x_index] and board[y_index + 1][x_index] != '#':
+                    if not board[y_index + 1][x_index] and \
+                            board[y_index + 1][x_index] != '#':
                         y_block = True
 
                 if x_index > 0:  # если есть пространство слева
-                    if not board[y_index][x_index - 1] and board[y_index][x_index - 1] != '#':
+                    if not board[y_index][x_index - 1] and \
+                            board[y_index][x_index - 1] != '#':
                         x_block = True
                 if x_index < 14:  # если есть пространство справа
-                    if not board[y_index][x_index + 1] and board[y_index][x_index + 1] != '#':
+                    if not board[y_index][x_index + 1] and \
+                            board[y_index][x_index + 1] != '#':
                         x_block = True
 
                 if x_block and y_block:
@@ -54,7 +59,7 @@ def transpose_board(board: [[str]]) -> [[str]]:
     :return: транспонированная матрица
     """
 
-    return np.array(board).transpose()
+    return list(np.array(board).transpose())
 
 
 def is_word_fits(vector: [str], word: str, start_position: int, end_position: int) -> bool:
@@ -75,7 +80,8 @@ def read_json(json_filename: str) -> dict:
     :return: считанный словарь
     """
 
-    with open(file=Path(Path.cwd() / 'jsons' / json_filename), mode='r', encoding='utf-8') as file:
+    with open(file=Path(Path.cwd() / 'jsons' / json_filename), mode='r',
+              encoding='utf-8') as file:
         return dict(json.load(file))
 
 
@@ -116,13 +122,55 @@ def calculate_word_value(word: str, json_filename: str, cell_bonuses_filepath: s
                     [4, 0, 0, 1, 0, 0, 0, 4, 0, 0, 0, 1, 0, 0, 4],
                     ]
 
-    letter_values = read_json(json_filename)
-    word = word.lower()  # перевод в нижний регистр
-    value = 0
-    for char in word:
-        value += letter_values[char]
-    return value
+    letters_values = read_json(json_filename)
+    word = word.lower()  # перевод в нижний регист
+    return sum([letters_values[letter] for letter in word])
 
+
+def generate_regexs(row: [str]) -> [re.Pattern]:
+    """
+    Получает строку, возвращает паттерны, соответствующие этой строке, для поиска подходящих
+    слов в словаре по этому паттерну
+    :param s:
+    :return: шаблон, по которому можно найти подходящие слова
+    """
+    patterns = []
+    test_row = ['', '', '', 'а', '#', 'а', '#', '#', '#', '#', '', 'р', '', '', '']
+
+    for cell in range(len(row)):
+        if not row[cell]:  # если клетка пустая
+            row[cell] = ' '
+
+    row = ''.join(row).split('#')  # соединяем в строку и нарезаем на подстроки по '#'
+
+    for i in range(len(row)):
+        if len(row[i]) > 1:
+            patterns.append(row[i])  # отбираем подстроки длинее 1 символа
+
+    for i in range(len(patterns)):
+        patterns[i] = patterns[i].replace(' ', '[а-я]{,1}')
+    # в пустое место можно вписать любую букву букву а-я или не писать ничего
+    # todo: Можно переписать регулярку c помощью одних фигурных скобок
+
+    for i in range(len(patterns)):
+        if patterns[i][0] != '[':  # если начинается с буквы
+            patterns[i] = '^' + patterns[i]
+        if patterns[i][-1] != '}':  # если заканчивается буквой
+            patterns[i] += '$'
+    # чтобы регулярка не хватала слова, которые удовлетворяют, но выходят за рамки
+    # работает, только если проверям строку из одного слова.
+
+    for i in range(len(patterns)):
+        patterns[i] = re.compile(patterns[i])
+    # компилируем каждый паттерн в регулярное выражение
+
+    return patterns
+
+    # test
+    """res = []
+    for pattern in patterns:
+        res.append(pattern.findall('''арка regd vbevu vy
+                                   bjjk vbjjnk vbjki аркан'''))"""
 
 # def is_word_correct(word: str, json_filename: str) -> bool:
 #     """
