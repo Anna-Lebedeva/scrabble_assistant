@@ -13,38 +13,31 @@ def get_best_hint(board: [[str]], letters: dict) -> [[str]]:
     """
 
 
-def mark_blocked_cells(board: [[str]]) -> [[str]]:
+def get_marked_row(board: [[str]], index: int) -> [str]:
     """
-    Помечает клетки, в которых не может быть букв знаком '#'.
-    Если рядом с клеткой по вертикали и горизонтали есть буквы, то клетка заблокирована
+    Извлекает i-тый вектор из доски, помечая заблокированные клетки знаком #
+    Если у клетки есть символы сверху или снизу, то клетка заблокирована
     :param board: символьный двумерный массив доски
-    :return: тот же массив с помеченными заблокированными клетками
+    :param index: индекс строки в массиве
+    :return: одномерный массив символов(строка) с заблокированными клетками
     """
 
-    for y_index in range(15):
-        for x_index in range(15):
-            if not board[y_index][x_index]:  # если клетка пуста
-                x_block = False  # заблокирована ли клетка по горизонтали
-                y_block = False  # заблокирована ли клетка по вертикали
+    row = board[index].copy()  # i-тая строка доски
+    for i in range(len(row)):
+        up_block = False  # заблокировано ли сверху
+        down_block = False  # заблокировано ли снизу
 
-                if y_index > 0:  # если есть пространство сверху
-                    if not board[y_index - 1][x_index] and board[y_index - 1][x_index] != '#':
-                        y_block = True
-                if y_index < 14:  # если есть пространство снизу
-                    if not board[y_index + 1][x_index] and board[y_index + 1][x_index] != '#':
-                        y_block = True
+        if not row[i]:  # если в клетке пусто
+            if index > 0:
+                if board[index - 1][i]:
+                    up_block = True
+            if index < 14:
+                if board[index + 1][i]:
+                    down_block = True
+            if up_block or down_block:
+                row[i] = '#'
 
-                if x_index > 0:  # если есть пространство слева
-                    if not board[y_index][x_index - 1] and board[y_index][x_index - 1] != '#':
-                        x_block = True
-                if x_index < 14:  # если есть пространство справа
-                    if not board[y_index][x_index + 1] and board[y_index][x_index + 1] != '#':
-                        x_block = True
-
-                if x_block and y_block:
-                    board[y_index][x_index] = '#'
-
-    return board
+    return row
 
 
 def transpose_board(board: [[str]]) -> [[str]]:
@@ -139,7 +132,7 @@ def calculate_word_value(word: str, json_filename: str, cell_bonuses_filepath: s
 #         if letter not in alphabet:
 #             return False
 #
-#     letters_sum = read_json('letters_number.json')
+#     letters_sum = read_json('letters_amount.json')
 #     word_letters = Counter(word)
 #
 #     for letter in word:
@@ -156,32 +149,32 @@ def is_word_available(letters: Counter, word: str) -> bool:
     :return: можно ли составить из переданных букв переданое слово
     """
 
-    word_letters = Counter(word)
+    word_letters = Counter(word)  # счетчик букв
     for letter in word_letters.keys():
         if letters[letter] < word_letters[letter]:
             return False
     return True
 
-# if __name__ == "__main__":
-#     print(calculate_word_value("собака", "letters_values.json"))
-#
-#     test_board = mark_blocked_cells([
-#         ['', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
-#         ['', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
-#         ['', '', '', '', '', '', '', '', '', 'т', '', '', '', '', ''],
-#         ['', '', '', '', '', '', '', '', '', 'о', '', '', '', '', ''],
-#         ['', '', '', 'п', 'о', 'c', 'е', 'л', 'о', 'к', '', '', '', '', ''],
-#         ['', '', '', 'а', '', 'а', '', '', '', '', '', 'р', '', '', ''],
-#         ['', '', '', 'п', '', 'д', 'о', 'м', '', 'я', '', 'е', '', '', ''],
-#         ['', '', '', 'а', '', '', '', 'а', 'з', 'б', 'у', 'к', 'а', '', ''],
-#         ['', '', '', '', '', 'с', 'о', 'м', '', 'л', '', 'а', '', '', ''],
-#         ['', '', '', 'я', 'м', 'а', '', 'а', '', 'о', '', '', '', '', ''],
-#         ['', '', '', '', '', 'л', '', '', '', 'к', 'и', 'т', '', '', ''],
-#         ['', '', '', '', 'с', 'о', 'л', 'ь', '', 'о', '', '', '', '', ''],
-#         ['', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
-#         ['', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
-#         ['', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
-#     ])
-#
-#     for s in test_board:
-#         print(s)
+
+if __name__ == "__main__":
+    test_board = [
+        ['', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
+        ['', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
+        ['', '', '', '', '', '', '', '', '', 'т', '', '', '', '', ''],
+        ['', '', '', '', '', '', '', '', '', 'о', '', '', '', '', ''],
+        ['', '', '', 'п', 'о', 'c', 'е', 'л', 'о', 'к', '', '', '', '', ''],
+        ['', '', '', 'а', '', 'а', '', '', '', '', '', 'р', '', '', ''],
+        ['', '', '', 'п', '', 'д', 'о', 'м', '', 'я', '', 'е', '', '', ''],
+        ['', '', '', 'а', '', '', '', 'а', 'з', 'б', 'у', 'к', 'а', '', ''],
+        ['', '', '', '', '', 'с', 'о', 'м', '', 'л', '', 'а', '', '', ''],
+        ['', '', '', 'я', 'м', 'а', '', 'а', '', 'о', '', '', '', '', ''],
+        ['', '', '', '', '', 'л', '', '', '', 'к', 'и', 'т', '', '', ''],
+        ['', '', '', '', 'с', 'о', 'л', 'ь', '', 'о', '', '', '', '', ''],
+        ['', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
+        ['', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
+        ['', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
+    ]
+
+    for j in range(14):
+        print(get_marked_row(test_board, j))
+    # print(get_marked_vector(test_board, 6))
