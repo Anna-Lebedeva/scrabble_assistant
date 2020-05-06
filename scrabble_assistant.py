@@ -5,13 +5,34 @@ from pathlib import Path
 from collections import Counter
 
 
-def get_best_hint(board: [[str]], letters: dict) -> [[str]]:
+def get_best_hint(board: [[str]], letters: Counter) -> [[str]]:
     """
     Дает лучшую подсказку слова на доске
     :param board: символьный двумерный массив доски
-    :param letters: dict с набором букв
+    :param letters: набор букв игрока
     :return: символьный двумерный массив с буквами подсказки
     """
+    LETTERS_VALUES_FILENAME = "letters_values.json"
+    LETTERS_AMOUNT_FILENAME = "letters_amount.json"
+    BOARD_BONUSES_FILENAME = "board_bonuses.json"
+    DICTIONARY_FILENAME = "dictionary.txt"
+
+    best_hint = board.copy()  # подсказка - отдельная доска
+
+    # очищаем доску-подсказку
+    for best_hint_y_index in range(len(best_hint)):
+        for best_hint_x_index in range(len(best_hint[best_hint_y_index])):
+            best_hint[best_hint_y_index][best_hint_x_index] = ''
+
+    for row in get_marked_rows(board):
+        # идем по строкам
+        pass
+
+    for row in get_marked_rows(transpose_board(board)):
+        # идем по столбцам
+        pass
+
+    return best_hint
 
 
 def get_marked_rows(board: [[str]]) -> [[str]]:
@@ -63,13 +84,13 @@ def get_marked_rows(board: [[str]]) -> [[str]]:
                     for j in range(row_index):
                         row[j] = '#'
                     last_sharp_index = row_index
-                # если уже встречали # и до между текущим # и прошлым не было
+                # если уже встречали # и до этого между текущим # и прошлым не было
                 # символов, помечаем # все клетки между ними
                 else:
                     for j in range(last_sharp_index + 1, row_index):
                         row[j] = '#'
                     last_sharp_index = row_index
-            # если нашли какой-то символ, сбрасываем счетчик
+            # если нашли какой-то символ, но не #, сбрасываем счетчик
             elif row[row_index] != '':
                 last_sharp_index = -1
 
@@ -86,23 +107,12 @@ def get_marked_rows(board: [[str]]) -> [[str]]:
 
 def transpose_board(board: [[str]]) -> [[str]]:
     """
-    Искать слова удобнее в строке, а не в столбце. Переводит столбцы в строки.
+    Транспонирует двумерный массив
     :param board: символьный двумерный массив доски
-    :return: транспонированная матрица
+    :return: транспонированный двумерный массив
     """
 
     return list(np.array(board).transpose())
-
-
-def is_word_fits(vector: [str], word: str, start_position: int, end_position: int) -> bool:
-    """
-    Проверяет подходит ли слово в линию
-    :param vector: символьный одномерный массив со специальными символами в заблокированных клетках
-    :param word: слово в виде строки
-    :param start_position: индекс позиции начала слова
-    :param end_position: индекс позиции конца слова
-    :return: true - слово подходит, false - слово не подходит
-    """
 
 
 def read_json(json_filename: str) -> dict:
@@ -111,7 +121,6 @@ def read_json(json_filename: str) -> dict:
     :param json_filename: имя json-файла
     :return: считанный словарь
     """
-
     with open(file=Path(Path.cwd() / 'jsons' / json_filename), mode='r',
               encoding='utf-8') as file:
         return dict(json.load(file))
@@ -122,10 +131,10 @@ def calculate_word_value(word: str, json_filename: str, board_bonuses_filename=0
     """
     Считает ценность слова
     :param word: слово в виде строки
-    :param json_filename: путь к json-словарю с ценностью букв
-    :param cell_bonuses_filepath: путь к файлу с бонусами клеток
-    # :param start_position: индекс позиции начала слова
-    # :param end_position: индекс позиции конца слова
+    :param letters_values_filename: путь к json-файлу с ценностью букв
+    :param board_bonuses_filename: путь к json-файлу с бонусами клеток
+    :param start_position: позиция начала слова [y, x]
+    :param end_position: позиция конца слова [y, x]
     :return: ценность слова
     """
 
@@ -137,24 +146,9 @@ def calculate_word_value(word: str, json_filename: str, board_bonuses_filename=0
     # 4 - х3 за слово
     # 5 - стартовое поле
 
-    board_values = [[4, 0, 0, 1, 0, 0, 0, 4, 0, 0, 0, 1, 0, 0, 4],
-                    [0, 3, 0, 0, 0, 2, 0, 0, 0, 2, 0, 0, 0, 3, 0],
-                    [0, 0, 3, 0, 0, 0, 1, 0, 1, 0, 0, 0, 3, 0, 0],
-                    [1, 0, 0, 3, 0, 0, 0, 1, 0, 0, 0, 3, 0, 0, 1],
-                    [0, 0, 0, 0, 3, 0, 0, 0, 0, 0, 3, 0, 0, 0, 0],
-                    [0, 2, 0, 0, 0, 2, 0, 0, 0, 2, 0, 0, 0, 2, 0],
-                    [0, 0, 1, 0, 0, 0, 1, 0, 1, 0, 0, 0, 1, 0, 0],
-                    [4, 0, 0, 1, 0, 0, 0, 5, 0, 0, 0, 1, 0, 0, 4],  # центр
-                    [0, 0, 1, 0, 0, 0, 1, 0, 1, 0, 0, 0, 1, 0, 0],
-                    [0, 2, 0, 0, 0, 2, 0, 0, 0, 2, 0, 0, 0, 2, 0],
-                    [0, 0, 0, 0, 3, 0, 0, 0, 0, 0, 3, 0, 0, 0, 0],
-                    [1, 0, 0, 3, 0, 0, 0, 1, 0, 0, 0, 3, 0, 0, 1],
-                    [0, 0, 3, 0, 0, 0, 1, 0, 1, 0, 0, 0, 3, 0, 0],
-                    [0, 3, 0, 0, 0, 2, 0, 0, 0, 2, 0, 0, 0, 3, 0],
-                    [4, 0, 0, 1, 0, 0, 0, 4, 0, 0, 0, 1, 0, 0, 4],
-                    ]
+    # todo: добавить поправку на бонусы
 
-    letters_values = read_json(json_filename)
+    letters_values = read_json(letters_values_filename)
     word = word.lower()  # перевод в нижний регист
     return sum([letters_values[letter] for letter in word])
 
@@ -168,7 +162,7 @@ def get_regex_patterns(row: [str]) -> [re.Pattern]:
     """
     prepared_row = []
     patterns = []
-    test_row = ['', '', '', 'а', '#', 'а', '#', '#', '#', '#', '', 'р', '', '', '']
+    # test_row = ['', '', '', 'а', '#', 'а', '#', '#', '#', '#', '', 'р', '', '', '']
 
     for cell in range(len(row)):
         if row[cell]:  # если в клетке есть символ
@@ -203,29 +197,24 @@ def get_regex_patterns(row: [str]) -> [re.Pattern]:
     return patterns
 
 
-def is_word_correct(word: str, json_filename: str) -> bool:
+def is_word_correct(word: str, letters_amount_filename: str) -> bool:
     """
     Проверяет слово на корректность - не содержит ли оно неожиданных символов,
     не содержит ли оно больше букв, чем есть в игре.
     :param word: слово
-    :param json_filename: имя json-словаря с ценностью букв
-    :return: переданное слово не содержит неожиданных символов
+    :param letters_amount_filename: имя json-файла с количеством букв
+    :return: true = переданное слово не содержит неожиданных символов
     """
-    # todo: добавить поправку на бонусы
 
     word = word.lower()
-    alphabet = set(
-        read_json(json_filename).keys())  # множество букв, для которых указана стоимость
+    # alphabet = set(
+    #     read_json(letters_amount_filename).keys())  # множество букв, для которых указана стоимость
 
-    for letter in word:
-        if letter not in alphabet:
-            return False
-
-    letters_sum = read_json('letters_amount.json')
+    letters_amount = read_json(letters_amount_filename)
     word_letters = Counter(word)
 
     for letter in word:
-        if word_letters[letter] > letters_sum[letter]:
+        if word_letters[letter] > letters_amount[letter]:
             return False
     return True
 
