@@ -117,7 +117,7 @@ def read_json(json_filename: str) -> dict:
         return dict(json.load(file))
 
 
-def calculate_word_value(word: str, json_filename: str, cell_bonuses_filepath=0) -> int:
+def calculate_word_value(word: str, json_filename: str, board_bonuses_filename=0) -> int:
     # start_pos=: int, end_pos: int) -> int:
     """
     Считает ценность слова
@@ -162,22 +162,26 @@ def calculate_word_value(word: str, json_filename: str, cell_bonuses_filepath=0)
 def get_regex_patterns(row: [str]) -> [re.Pattern]:
     """
     Получает строку, возвращает паттерны, соответствующие этой строке, для поиска подходящих
-    слов в словаре по этому паттерну
-    :param s:
+    слов в словаре по этому паттерну.
+    :param row: размеченный '#' ряд
     :return: шаблон, по которому можно найти подходящие слова
     """
+    prepared_row = []
     patterns = []
     test_row = ['', '', '', 'а', '#', 'а', '#', '#', '#', '#', '', 'р', '', '', '']
 
     for cell in range(len(row)):
-        if not row[cell]:  # если клетка пустая
-            row[cell] = ' '
+        if row[cell]:  # если в клетке есть символ
+            prepared_row[cell] = row[cell]
+        else:  # если клетка пустая
+            prepared_row[cell] = ' '
 
-    row = ''.join(row).split('#')  # соединяем в строку и нарезаем на подстроки по '#'
+    prepared_row = ''.join(prepared_row).split('#')
+    # соединяем в строку и нарезаем на подстроки по '#'
 
-    for i in range(len(row)):
-        if len(row[i]) > 1:
-            patterns.append(row[i])  # отбираем подстроки длинее 1 символа
+    for i in range(len(prepared_row)):
+        if len(prepared_row[i]) > 1:
+            patterns.append(prepared_row[i])  # отбираем подстроки длинее 1 символа
 
     for i in range(len(patterns)):
         patterns[i] = patterns[i].replace(' ', '[а-я]{,1}')
@@ -189,8 +193,8 @@ def get_regex_patterns(row: [str]) -> [re.Pattern]:
             patterns[i] = '^' + patterns[i]
         if patterns[i][-1] != '}':  # если заканчивается буквой
             patterns[i] += '$'
-    # чтобы регулярка не хватала слова, которые удовлетворяют, но выходят за рамки
-    # работает, только если проверям строку из одного слова.
+    # Чтобы регулярка не хватала слова, которые удовлетворяют, но выходят за рамки.
+    # Работает корректно, только если в строке одно слово.
 
     for i in range(len(patterns)):
         patterns[i] = re.compile(patterns[i])
