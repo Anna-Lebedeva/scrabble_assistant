@@ -70,49 +70,64 @@ def cut_by_internal_contour(image) -> numpy.ndarray:
     img_hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
 
     # диапозон красных оттенков в HSV
-    mask1 = cv2.inRange(img_hsv, (0, 50, 100), (10, 255, 255))
-    mask2 = cv2.inRange(img_hsv, (160, 50, 100), (179, 255, 255))
+    mask1 = cv2.inRange(img_hsv, (0, 65, 100), (10, 255, 255))
+    mask2 = cv2.inRange(img_hsv, (160, 65, 100), (179, 255, 255))
 
     ## Merge the mask and crop the red regions
     mask = cv2.bitwise_or(mask1, mask2)
     croped = cv2.bitwise_and(image, image, mask=mask)
 
     ## Display
-    cv2.imshow("mask", mask)
-    cv2.imshow("croped", croped)
-    cv2.waitKey()
+    # cv2.imshow("mask", mask)
+    # cv2.imshow("croped", croped)
+    # cv2.waitKey()
 
     # Ищем контуры
     # должно найти только красные квадратики
-    counters = cv2.findContours(mask, cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)
+    counters = cv2.findContours(mask, cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)[0]
     # Нужно еще убрать все мелкие контуры
-    # Проблема в том, что в mask есть мелкие точки, которые тоже находит как контуры.
-    # Миша написал штуку, которая отфильтровыет это, но не залил в мастер как я понял.
+    # Соритируем контуры по размерам
+    sort = sorted(counters, key=cv2.contourArea, reverse=True)
 
     # print(len(counters))
-    # cv2.drawContours(image, counters, -1, (0, 255, 0), 2)
+    # cv2.drawContours(image, sort[:8], -1, (0, 255, 0), 2)
     # cv2.imshow("Outline", image)
     # cv2.waitKey(0)
     # cv2.destroyAllWindows()
 
-    # Далее надо найти самые левые, правые и тд точки в контурах и по ним обрезать
-    # Собсна тут все пока и крашнулось, но суть в том, что мы находим самые левые, правые и т.д. точки в каждом контуре.
+    # Мы находим самые левые, правые и т.д. точки в каждом контуре.
     # Среди этих точек находим самые самые правые, левые и т.д.
     # делаем обрезку по ним т.к. после нахождения перспективы в 1 функции доска расположена как квадрат.
-    for i in counters:
+    most_left=9001
+    most_right=0
+    most_top=9001
+    most_bot=0
+    for i in sort[:8]:
         ext_left = tuple(i[i[:, :, 0].argmin()][0])
-        ext_right = tuple(i[i[:, :, 0].argmax()][0])
-        ext_top = tuple(i[i[:, :, 1].argmin()][0])
-        ext_bot = tuple(i[i[:, :, 1].argmax()][0])
-        cv2.circle(image, ext_left, 8, (0, 0, 255), -1)
-        cv2.circle(image, ext_right, 8, (0, 255, 0), -1)
-        cv2.circle(image, ext_top, 8, (255, 0, 0), -1)
-        cv2.circle(image, ext_bot, 8, (255, 255, 0), -1)
-        # show the output image
-        cv2.imshow("Image", image)
-        cv2.waitKey(0)
+        if ext_left[0] < most_left: most_left=ext_left[0]
 
-    # Просто плейсхолдер для ретурна
+        ext_right = tuple(i[i[:, :, 0].argmax()][0])
+        if ext_right[0] > most_right: most_right = ext_right[0]
+
+        ext_top = tuple(i[i[:, :, 1].argmin()][0])
+        if ext_top[1] < most_top: most_top = ext_top[1]
+
+        ext_bot = tuple(i[i[:, :, 1].argmax()][0])
+        if ext_bot[1] > most_bot: most_bot = ext_bot[1]
+
+        # cv2.circle(image, ext_left, 8, (0, 0, 255), -1)
+        # cv2.circle(image, array_of_right[temp], 8, (0, 255, 0), -1)
+        # cv2.circle(image, array_of_top[temp], 8, (255, 0, 0), -1)
+        # cv2.circle(image, array_of_bot[temp], 8, (255, 255, 0), -1)
+
+        # show the output image
+        # cv2.imshow("Image", image)
+        # cv2.waitKey(0)
+    # Обрезаем изначальное фото по полученным координатам
+    warped=image[most_top:most_bot, most_left:most_right]
+    # cv2.imshow("Outline", warped)
+    # cv2.waitKey(0)
+    # cv2.destroyAllWindows()
     return warped
 
 
@@ -159,11 +174,15 @@ def MISHINA_SETKA_NA_CHERNY_DEN(img):
 
 
 if __name__ == "__main__":
-    warped = cut_by_external_contour("images_real/a1.jpg")
+    warped = cut_by_external_contour("images_real/e1.jpg")
+    # cv2.imshow("Outline",warped)
+    # cv2.waitKey()
+    # cv2.destroyAllWindows()
+    warped=cut_by_internal_contour(warped)
     # cv2.imshow("Internal contour", imutils.resize(cut_by_internal_contour(warped), height=750))
-    warped = MISHINA_OBREZKA_NA_CHERNY_DEN(warped)
+    # warped = MISHINA_OBREZKA_NA_CHERNY_DEN(warped)
 
-    cv2.imshow("", imutils.resize(MISHINA_SETKA_NA_CHERNY_DEN(warped), height=750))
+    cv2.imshow("", imutils.resize(MISHINA_SETKA_NA_CHERNY_DEN(warped), height=550))
 
     cv2.waitKey()
     cv2.destroyAllWindows()
