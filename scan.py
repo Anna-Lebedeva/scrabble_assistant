@@ -61,63 +61,63 @@ def cut_by_external_contour(path: str) -> numpy.ndarray:
 
     return warped
 
+
 def cut_by_internal_contour(image) -> numpy.ndarray:
-	#получаем изображение и переводим его в HSV
-	#короче у меня появился план. Суть в том что найти контуры по цветам намного легче и надежнее.
-	# Можно обрезать доску по красным X3 полям. Для поиска цветов и нужно переводить в HSV.
+    # получаем изображение и переводим его в HSV
+    # короче у меня появился план. Суть в том что найти контуры по цветам намного легче и надежнее.
+    # Можно обрезать доску по красным X3 полям. Для поиска цветов и нужно переводить в HSV.
     image = imutils.resize(image, height=550)
     img_hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
 
-	#диапозон красных оттенков в HSV
+    # диапозон красных оттенков в HSV
     mask1 = cv2.inRange(img_hsv, (0, 50, 100), (10, 255, 255))
     mask2 = cv2.inRange(img_hsv, (160, 50, 100), (179, 255, 255))
-
 
     ## Merge the mask and crop the red regions
     mask = cv2.bitwise_or(mask1, mask2)
     croped = cv2.bitwise_and(image, image, mask=mask)
 
-
     ## Display
     cv2.imshow("mask", mask)
     cv2.imshow("croped", croped)
     cv2.waitKey()
-	
-	#Ищем контуры 
-	#должно найти только красные квадратики
-    counters=cv2.findContours(mask,cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)
-    # Нужно еще убрать все мелкие контуры
-	#Проблема в том, что в mask есть мелкие точки, которые тоже находит как контуры.
-	#Миша написал штуку, которая отфильтровыет это, но не залил в мастер как я понял.
 
-    #print(len(counters))
-    #cv2.drawContours(image, counters, -1, (0, 255, 0), 2)
-    #cv2.imshow("Outline", image)
-    #cv2.waitKey(0)
-    #cv2.destroyAllWindows()
+    # Ищем контуры
+    # должно найти только красные квадратики
+    counters = cv2.findContours(mask, cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)
+    # Нужно еще убрать все мелкие контуры
+    # Проблема в том, что в mask есть мелкие точки, которые тоже находит как контуры.
+    # Миша написал штуку, которая отфильтровыет это, но не залил в мастер как я понял.
+
+    # print(len(counters))
+    # cv2.drawContours(image, counters, -1, (0, 255, 0), 2)
+    # cv2.imshow("Outline", image)
+    # cv2.waitKey(0)
+    # cv2.destroyAllWindows()
 
     # Далее надо найти самые левые, правые и тд точки в контурах и по ним обрезать
-	#Собсна тут все пока и крашнулось, но суть в том, что мы находим самые левые, правые и т.д. точки в каждом контуре.
-	#Среди этих точек находим самые самые правые, левые и т.д.
-	#делаем обрезку по ним т.к. после нахождения перспективы в 1 функции доска расположена как квадрат.
+    # Собсна тут все пока и крашнулось, но суть в том, что мы находим самые левые, правые и т.д. точки в каждом контуре.
+    # Среди этих точек находим самые самые правые, левые и т.д.
+    # делаем обрезку по ним т.к. после нахождения перспективы в 1 функции доска расположена как квадрат.
     for i in counters:
-        extLeft = tuple(i[i[:, :, 0].argmin()][0])
-        extRight = tuple(i[i[:, :, 0].argmax()][0])
-        extTop = tuple(i[i[:, :, 1].argmin()][0])
-        extBot = tuple(i[i[:, :, 1].argmax()][0])
-        cv2.circle(image, extLeft, 8, (0, 0, 255), -1)
-        cv2.circle(image, extRight, 8, (0, 255, 0), -1)
-        cv2.circle(image, extTop, 8, (255, 0, 0), -1)
-        cv2.circle(image, extBot, 8, (255, 255, 0), -1)
+        ext_left = tuple(i[i[:, :, 0].argmin()][0])
+        ext_right = tuple(i[i[:, :, 0].argmax()][0])
+        ext_top = tuple(i[i[:, :, 1].argmin()][0])
+        ext_bot = tuple(i[i[:, :, 1].argmax()][0])
+        cv2.circle(image, ext_left, 8, (0, 0, 255), -1)
+        cv2.circle(image, ext_right, 8, (0, 255, 0), -1)
+        cv2.circle(image, ext_top, 8, (255, 0, 0), -1)
+        cv2.circle(image, ext_bot, 8, (255, 255, 0), -1)
         # show the output image
         cv2.imshow("Image", image)
         cv2.waitKey(0)
 
-	#Просто плейсхолдер для ретурна
+    # Просто плейсхолдер для ретурна
     return warped
 
-#Обрезка конкретно нашей доски на черный день
-#Просто отрезает определенное пространство на изображении
+
+# Обрезка конкретно нашей доски на черный день
+# Просто отрезает определенное пространство на изображении
 def MISHINA_OBREZKA_NA_CHERNY_DEN(img):
     height, width = img.shape[:2]
     cropped = img[33:height, 33:width]
@@ -125,14 +125,45 @@ def MISHINA_OBREZKA_NA_CHERNY_DEN(img):
     height, width = cropped.shape[:2]
     cropped = cropped[0:height - 10, 0:width - 10]
 
-    cv2.imshow("cropped", cropped)
-    print("Высота: " + str(height))
-    print("Ширина: " + str(width))
-    cv2.waitKey(0)
-    cv2.destroyAllWindows()
+    # cv2.imshow("cropped", cropped)
+    # cv2.waitKey(0)
+    # cv2.destroyAllWindows()
+    # print("Высота: " + str(height))
+    # print("Ширина: " + str(width))
+    return cropped
+
+
+# Налепливание сетки на изображение
+def MISHINA_SETKA_NA_CHERNY_DEN(img):
+    height, width = img.shape[:2]
+
+    # заполнение массивов координат X(Y) вертикальных(горизонтальных) линий
+    x_array_for_vertical = [round(width / 15 * j) for j in range(16)]
+    y_array_for_horizontal = [round(height / 15 * i) for i in range(16)]
+
+    # толщина линий
+    line_thickness = 2
+
+    # рисовалка
+    for X in x_array_for_vertical:
+        start_point = (X, 0)
+        end_point = (X, height)
+        cv2.line(img, start_point, end_point, color=(0, 255, 0), thickness=line_thickness)
+
+    for Y in y_array_for_horizontal:
+        start_point = (0, Y)
+        end_point = (width, Y)
+        cv2.line(img, start_point, end_point, color=(0, 255, 0), thickness=line_thickness)
+
+    return img
+
 
 if __name__ == "__main__":
-    warped=cut_by_external_contour("images_real/Clear3.jpg")
-    cv2.imshow("Internal contour", imutils.resize(cut_by_internal_contour(warped), height=750))
-    cv2.waitKey(0)
+    warped = cut_by_external_contour("images_real/a1.jpg")
+    # cv2.imshow("Internal contour", imutils.resize(cut_by_internal_contour(warped), height=750))
+    warped = MISHINA_OBREZKA_NA_CHERNY_DEN(warped)
+
+    cv2.imshow("", imutils.resize(MISHINA_SETKA_NA_CHERNY_DEN(warped), height=750))
+
+    cv2.waitKey()
     cv2.destroyAllWindows()
