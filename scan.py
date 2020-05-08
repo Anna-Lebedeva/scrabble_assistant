@@ -172,6 +172,20 @@ def MISHINA_SETKA_NA_CHERNY_DEN(img):
 
     return img
 
+# Нарезка на массив квадратов
+def MISHINA_NAREZKA_NA_CVADRATI_NA_CHERNY_DEN(image):
+    height, width = image.shape[:2]
+
+    X_array_for_vertical = [round(width / 15 * j) for j in range(16)]
+    Y_array_for_horizontal = [round(height / 15 * i) for i in range(16)]
+
+    squares_array = []
+    for y in range(1, 16):
+        for x in range(1, 16):
+            cropped = image[Y_array_for_horizontal[y - 1]:Y_array_for_horizontal[y],
+                      X_array_for_vertical[x - 1]:X_array_for_vertical[x]]
+            squares_array.append(cropped)
+    return squares_array
 
 if __name__ == "__main__":
     warped = cut_by_external_contour("images_real/e1.jpg")
@@ -182,7 +196,11 @@ if __name__ == "__main__":
     # cv2.imshow("Internal contour", imutils.resize(cut_by_internal_contour(warped), height=750))
     # warped = MISHINA_OBREZKA_NA_CHERNY_DEN(warped)
 
-    cv2.imshow("", imutils.resize(MISHINA_SETKA_NA_CHERNY_DEN(warped), height=550))
+    # cv2.imshow("", imutils.resize(MISHINA_SETKA_NA_CHERNY_DEN(warped), height=550))
+    # cv2.waitKey()
+    # cv2.destroyAllWindows()
 
+    squares_array=MISHINA_NAREZKA_NA_CVADRATI_NA_CHERNY_DEN(warped)
+    cv2.imshow("1", squares_array[15])
     cv2.waitKey()
     cv2.destroyAllWindows()
