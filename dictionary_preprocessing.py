@@ -1,11 +1,8 @@
-import re
+import numpy as np
+import pandas as pd
+from pathlib import Path
 from collections import Counter
-from scrabble_assistant import read_json, get_marked_rows
-
-LETTERS_VALUES_FILENAME = "letters_values.json"
-LETTERS_AMOUNT_FILENAME = "letters_amount.json"
-BOARD_BONUSES_FILENAME = "board_bonuses.json"
-DICTIONARY_FILENAME = "dictionary.txt"
+import scrabble_assistant as sa
 
 
 def is_word_correct(word: str) -> bool:
@@ -17,14 +14,14 @@ def is_word_correct(word: str) -> bool:
     """
 
     word = word.lower()
-    alphabet = set(read_json(LETTERS_AMOUNT_FILENAME).keys())
+    alphabet = set(sa.read_json(sa.LETTERS_AMOUNT_FILENAME).keys())
     # множество букв, для которых указана стоимость
 
     for letter in word:
         if letter not in alphabet:
             return False
 
-    letters_amount = read_json(LETTERS_AMOUNT_FILENAME)
+    letters_amount = sa.read_json(sa.LETTERS_AMOUNT_FILENAME)
     word_letters = Counter(word)
 
     for letter in word:
@@ -61,67 +58,55 @@ def is_word_available(letters: Counter, word: str) -> bool:
     return True
 
 
-def calculate_word_value(word: str, start_pos: int = None, end_pos: int = None) -> int:
+def drop_incorrect_words():
     """
-    Считает ценность слова
-    :param start_pos: позиция начала слова [y, x]
-    :param end_pos: позиция конца слова [y, x]
-    :param word: слово в виде строки
-    :return: ценность слова
+    Выполняется 1 раз, для  предобработки словаря.
+    Выкидывает из словаря слова, содержащие более 15 букв. И слова с неожиданными символами.
+    Перезаписывает предобработанный словарь на место исходного.
+    :return:
     """
+    dictionary_data = pd.read_csv(sa.DICTIONARY_FILENAME, header=None, names=['word'])
+    # Считываем словарь в датафрейм
 
-    # разметка ценности полей доски:
-    # 0 - обычное поле
-    # 1 - х2 за букву
-    # 2 - х3 за букву
-    # 3 - х2 за слово
-    # 4 - х3 за слово
-    # 5 - стартовое поле
+    dictionary_data['length'] = dictionary_data.word.apply(lambda x: len(x))
+    # Добавляем колонку с длиной слова
 
-    # todo: добавить поправку на бонусы
+    dictionary_data = dictionary_data.query('length <= 15')
+    # Убираем слова длинее 15 букв
 
-    letters_values = read_json(LETTERS_VALUES_FILENAME)
-    return sum([letters_values[letter] for letter in word.lower()])
+    dictionary_data['is_correct'] = dictionary_data.word.apply(lambda x: is_word_correct(x))
+    dictionary_data = dictionary_data.query('is_correct == True')
+    dictionary_data = dictionary_data.drop('is_correct', axis=1)  # больше не нужна
+    # Убираем слова с неожиданными символами и содержащие больше букв, чем есть в игре.
+    # fixme: Выполняется долго! Можно переписать.
+
+    np.savetxt(fname=sa.DICTIONARY_FILENAME, X=dictionary_data.word, fmt='%s',
+               encoding='utf-8')  # Перезаписываем почищенный словарь
 
 
-def get_regex_patterns(sharped_row: [str]) -> [re.Pattern]:
+def make_sub_dictionaries():
     """
-    Получает строку, возвращает паттерны, соответствующие этой строке, для поиска подходящих
-    слов в словаре по этому паттерну.
-    :param sharped_row: размеченный '#' ряд
-    :return: шаблон, по которому можно найти подходящие слова
+    Выполняется 1 раз, для  получения под-словарей, содержащих определенную букву.
+    Считывает алфавит. Разбивает исходный словарь на N словарей,
+    где N - количество букв в алфавите. Записывает подсловари в папку sub-dictionaries
+    :return:
     """
-    prepared_row = []
-    patterns = []
-    # test_row = ['', '', '', 'а', '#', 'а', '#', '#', '#', '#', '', 'р', '', '', '']
+    dictionary_data = pd.read_csv(sa.DICTIONARY_FILENAME, header=None, names=['word'])
+    # Считываем словарь в датафрейм
 
-    for cell in range(len(sharped_row)):
-        if sharped_row[cell]:  # если в клетке есть символ
-            prepared_row.append(sharped_row[cell])
-        else:  # если клетка пустая
-            prepared_row.append(' ')
+    alphabet = sa.read_json(sa.LETTERS_AMOUNT_FILENAME)
+    alphabet.pop('*')
+    alphabet = list(alphabet.keys())
+    # Считываем буквы, по которым будем разбивать словари
 
-    prepared_row = ''.join(prepared_row).split('#')
-    # соединяем в строку и нарезаем на подстроки по '#'
+    for letter in alphabet:
+        dictionary_data['contains_letter'] = dictionary_data.word.str.contains(letter)
+        # Ставим флаг - содержит ли слово искомую букву
 
-    for i in range(len(prepared_row)):
-        if len(prepared_row[i]) > 1:
-            patterns.append(prepared_row[i])  # отбираем подстроки длинее 1 символа
+        words_contains_letter = dictionary_data.query("contains_letter == True")
+        # Создаем датафрейм из слов, которые содержат искомую букву
 
-    for i in range(len(patterns)):
-        patterns[i] = patterns[i].replace(' ', '[а-я]?')
-    # в пустое место можно вписать любую букву букву а-я или не писать ничего
-    # todo: Можно переписать регулярку c помощью одних фигурных скобок
-
-    for i in range(len(patterns)):
-        patterns[i] = '^(' + patterns[i] + ')$'
-    # Чтобы регулярка не хватала слова, которые удовлетворяют, но выходят за рамки.
-
-    # for i in range(len(patterns)):
-    #    patterns[i] = re.compile(patterns[i])
-    # компилируем каждый паттерн в регулярное выражение
-    # upd. компиляция не понадобится. Но пока не удалять
-
-    return patterns
-
-
+        np.savetxt(fname=(
+            Path(Path.cwd() / 'sub-dictionaries' / (letter + '-containing-sub-dict.txt'))),
+            X=words_contains_letter.word, fmt='%s', encoding='utf-8')
+        # Записываем подсловарь
