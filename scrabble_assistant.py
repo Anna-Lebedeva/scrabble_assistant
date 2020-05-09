@@ -35,6 +35,70 @@ def get_best_hint(board: [[str]], letters: Counter) -> [[str]]:
     return best_hint
 
 
+def get_regex_patterns(sharped_row: [str]) -> [str]:
+    """
+    Получает строку, возвращает паттерны, соответствующие этой строке, для поиска подходящих
+    слов в словаре по этому паттерну.
+    :param sharped_row: размеченный '#' ряд
+    :return: шаблон, по которому можно найти подходящие слова
+    """
+    prepared_row = []
+    patterns = []
+    # test_row = ['', '', '', 'а', '#', 'а', '#', '#', '#', '#', '', 'р', '', '', '']
+
+    for cell in range(len(sharped_row)):
+        if sharped_row[cell]:  # если в клетке есть символ
+            prepared_row.append(sharped_row[cell])
+        else:  # если клетка пустая
+            prepared_row.append(' ')
+
+    prepared_row = ''.join(prepared_row).split('#')
+    # соединяем в строку и нарезаем на подстроки по '#'
+
+    for i in range(len(prepared_row)):
+        if len(prepared_row[i]) > 1:
+            patterns.append(prepared_row[i])  # отбираем подстроки длинее 1 символа
+
+    for i in range(len(patterns)):
+        patterns[i] = patterns[i].replace(' ', '[а-я]?')
+    # в пустое место можно вписать любую букву букву а-я или не писать ничего
+    # todo: Можно переписать регулярку c помощью одних фигурных скобок
+
+    for i in range(len(patterns)):
+        patterns[i] = '^(' + patterns[i] + ')$'
+    # Чтобы регулярка не хватала слова, которые удовлетворяют, но выходят за рамки.
+
+    # for i in range(len(patterns)):
+    #    patterns[i] = re.compile(patterns[i])
+    # компилируем каждый паттерн в регулярное выражение
+    # upd. компиляция не понадобится. Но пока не удалять
+
+    return patterns
+
+
+def calculate_word_value(word: str, start_pos: int = None, end_pos: int = None) -> int:
+    """
+    Считает ценность слова
+    :param start_pos: позиция начала слова [y, x]
+    :param end_pos: позиция конца слова [y, x]
+    :param word: слово в виде строки
+    :return: ценность слова
+    """
+
+    # разметка ценности полей доски:
+    # 0 - обычное поле
+    # 1 - х2 за букву
+    # 2 - х3 за букву
+    # 3 - х2 за слово
+    # 4 - х3 за слово
+    # 5 - стартовое поле
+
+    # todo: добавить поправку на бонусы
+
+    letters_values = read_json(LETTERS_VALUES_FILENAME)
+    return sum([letters_values[letter] for letter in word.lower()])
+
+
 def get_marked_rows(board: [[str]]) -> [[str]]:
     """
     Меняет доску, помечая заблокированные клетки знаком #
