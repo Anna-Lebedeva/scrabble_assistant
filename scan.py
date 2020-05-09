@@ -26,10 +26,6 @@ def cut_by_external_contour(path: str) -> numpy.ndarray:
     kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (7, 7))
     edged = cv2.morphologyEx(edged, cv2.MORPH_CLOSE, kernel)
 
-    # cv2.imshow("Edged", edged)
-    # cv2.waitKey(0)
-    # cv2.destroyAllWindows()
-
     contours = cv2.findContours(edged.copy(), cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)  # массив всех контуров
     contours = imutils.grab_contours(contours)  # ?
     contours = sorted(contours, key=cv2.contourArea, reverse=True)[:5]  # сортировка контуров по убыванию площади
@@ -48,91 +44,121 @@ def cut_by_external_contour(path: str) -> numpy.ndarray:
         if len(approx) == 4:
             screen_cnt = approx
             break
+    warped = four_point_transform(orig, screen_cnt.reshape(4, 2) * ratio)  # меняем перспективу на вид сверху
+    return warped
 
-    # cv2.drawContours(image, [screen_cnt], -1, (0, 255, 0), 2)
+
+def cut_by_internal_contour(image) -> numpy.ndarray:
+    # получаем изображение и переводим его в HSV
+    # короче у меня появился план. Суть в том что найти контуры по цветам намного легче и надежнее.
+    # Можно обрезать доску по красным X3 полям. Для поиска цветов и нужно переводить в HSV.
+    image = imutils.resize(image, height=550)
+    img_hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
+
+    # диапозон красных оттенков в HSV
+    mask1 = cv2.inRange(img_hsv, (0, 65, 100), (10, 255, 255))
+    mask2 = cv2.inRange(img_hsv, (160, 65, 100), (179, 255, 255))
+
+    # Merge the mask and crop the red regions
+    mask = cv2.bitwise_or(mask1, mask2)
+    croped = cv2.bitwise_and(image, image, mask=mask)
+
+    # Ищем контуры
+    # должно найти только красные квадратики
+    counters = cv2.findContours(mask, cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)[0]
+    # Нужно еще убрать все мелкие контуры
+    # Соритируем контуры по размерам
+    sort = sorted(counters, key=cv2.contourArea, reverse=True)
+
+    # print(len(counters))
+    # cv2.drawContours(image, sort[:8], -1, (0, 255, 0), 2)
     # cv2.imshow("Outline", image)
     # cv2.waitKey(0)
     # cv2.destroyAllWindows()
 
-    warped = four_point_transform(orig, screen_cnt.reshape(4, 2) * ratio)  # меняем перспективу на вид сверху
+    # Мы находим самые левые, правые и т.д. точки в каждом контуре.
+    # Среди этих точек находим самые самые правые, левые и т.д.
+    # делаем обрезку по ним т.к. после нахождения перспективы в 1 функции доска расположена как квадрат.
+    most_left = 9001
+    most_right = 0
+    most_top = 9001
+    most_bot = 0
+    for i in sort[:8]:
+        ext_left = tuple(i[i[:, :, 0].argmin()][0])
+        if ext_left[0] < most_left: most_left = ext_left[0]
 
-    # cv2.imshow("Scanned", imutils.resize(warped, height=750))
-    # cv2.waitKey(0)
+        ext_right = tuple(i[i[:, :, 0].argmax()][0])
+        if ext_right[0] > most_right: most_right = ext_right[0]
 
-    return warped
+        ext_top = tuple(i[i[:, :, 1].argmin()][0])
+        if ext_top[1] < most_top: most_top = ext_top[1]
 
-def cut_by_internal_contour(image) -> numpy.ndarray:
-	#получаем изображение и переводим его в HSV
-	#короче у меня появился план. Суть в том что найти контуры по цветам намного легче и надежнее.
-	# Можно обрезать доску по красным X3 полям. Для поиска цветов и нужно переводить в HSV.
-    image = imutils.resize(image, height=550)
-    img_hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
+        ext_bot = tuple(i[i[:, :, 1].argmax()][0])
+        if ext_bot[1] > most_bot: most_bot = ext_bot[1]
 
-	#диапозон красных оттенков в HSV
-    mask1 = cv2.inRange(img_hsv, (0, 50, 100), (10, 255, 255))
-    mask2 = cv2.inRange(img_hsv, (160, 50, 100), (179, 255, 255))
+        # cv2.circle(image, ext_left, 8, (0, 0, 255), -1)
+        # cv2.circle(image, array_of_right[temp], 8, (0, 255, 0), -1)
+        # cv2.circle(image, array_of_top[temp], 8, (255, 0, 0), -1)
+        # cv2.circle(image, array_of_bot[temp], 8, (255, 255, 0), -1)
 
-
-    ## Merge the mask and crop the red regions
-    mask = cv2.bitwise_or(mask1, mask2)
-    croped = cv2.bitwise_and(image, image, mask=mask)
-
-
-    ## Display
-    cv2.imshow("mask", mask)
-    cv2.imshow("croped", croped)
-    cv2.waitKey()
-	
-	#Ищем контуры 
-	#должно найти только красные квадратики
-    counters=cv2.findContours(mask,cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)
-    # Нужно еще убрать все мелкие контуры
-	#Проблема в том, что в mask есть мелкие точки, которые тоже находит как контуры.
-	#Миша написал штуку, которая отфильтровыет это, но не залил в мастер как я понял.
-
-    #print(len(counters))
-    #cv2.drawContours(image, counters, -1, (0, 255, 0), 2)
-    #cv2.imshow("Outline", image)
-    #cv2.waitKey(0)
-    #cv2.destroyAllWindows()
-
-    # Далее надо найти самые левые, правые и тд точки в контурах и по ним обрезать
-	#Собсна тут все пока и крашнулось, но суть в том, что мы находим самые левые, правые и т.д. точки в каждом контуре.
-	#Среди этих точек находим самые самые правые, левые и т.д.
-	#делаем обрезку по ним т.к. после нахождения перспективы в 1 функции доска расположена как квадрат.
-    for i in counters:
-        extLeft = tuple(i[i[:, :, 0].argmin()][0])
-        extRight = tuple(i[i[:, :, 0].argmax()][0])
-        extTop = tuple(i[i[:, :, 1].argmin()][0])
-        extBot = tuple(i[i[:, :, 1].argmax()][0])
-        cv2.circle(image, extLeft, 8, (0, 0, 255), -1)
-        cv2.circle(image, extRight, 8, (0, 255, 0), -1)
-        cv2.circle(image, extTop, 8, (255, 0, 0), -1)
-        cv2.circle(image, extBot, 8, (255, 255, 0), -1)
         # show the output image
-        cv2.imshow("Image", image)
-        cv2.waitKey(0)
-
-	#Просто плейсхолдер для ретурна
+        # cv2.imshow("Image", image)
+        # cv2.waitKey(0)
+    # Обрезаем изначальное фото по полученным координатам
+    warped = image[most_top:most_bot, most_left:most_right]
+    # cv2.imshow("Outline", warped)
+    # cv2.waitKey(0)
+    # cv2.destroyAllWindows()
     return warped
 
-#Обрезка конкретно нашей доски на черный день
-#Просто отрезает определенное пространство на изображении
+
+# Обрезка конкретно нашей доски на черный день
+# Просто отрезает определенное пространство на изображении
 def MISHINA_OBREZKA_NA_CHERNY_DEN(img):
     height, width = img.shape[:2]
-    cropped = img[33:height, 33:width]
+    cropped = img[33:height - 10, 33:width - 10]
+    return cropped
 
-    height, width = cropped.shape[:2]
-    cropped = cropped[0:height - 10, 0:width - 10]
 
-    cv2.imshow("cropped", cropped)
-    print("Высота: " + str(height))
-    print("Ширина: " + str(width))
-    cv2.waitKey(0)
-    cv2.destroyAllWindows()
+# Налепливание сетки на изображение - вдруг пригодится
+def MISHINA_SETKA_NA_CHERNY_DEN(img):
+    height, width = img.shape[:2]
+    # заполнение массивов координат X(Y) вертикальных(горизонтальных) линий
+    x_array_for_vertical = [round(width / 15 * j) for j in range(16)]
+    y_array_for_horizontal = [round(height / 15 * i) for i in range(16)]
+    # рисовалка
+    for X in x_array_for_vertical:
+        start_point = (X, 0)
+        end_point = (X, height)
+        cv2.line(img, start_point, end_point, color=(0, 255, 0), thickness=2)
+    for Y in y_array_for_horizontal:
+        start_point = (0, Y)
+        end_point = (width, Y)
+        cv2.line(img, start_point, end_point, color=(0, 255, 0), thickness=2)
+    return img
+
+
+# Нарезка на массив из квадратов
+def MISHINA_NAREZKA_NA_CVADRATI_NA_CHERNY_DEN(image):
+    height, width = image.shape[:2]
+    # заполнение массивов координат X(Y) вертикальных(горизонтальных) линий
+    X_array_for_vertical = [round(width / 15 * j) for j in range(16)]
+    Y_array_for_horizontal = [round(height / 15 * i) for i in range(16)]
+    squares_array = []
+    # вырезание квадрата
+    for y in range(1, 16):
+        for x in range(1, 16):
+            cropped = image[Y_array_for_horizontal[y - 1]:Y_array_for_horizontal[y],
+                      X_array_for_vertical[x - 1]:X_array_for_vertical[x]]
+            squares_array.append(cropped)
+    return squares_array
+
 
 if __name__ == "__main__":
-    warped=cut_by_external_contour("images_real/Clear3.jpg")
-    cv2.imshow("Internal contour", imutils.resize(cut_by_internal_contour(warped), height=750))
-    cv2.waitKey(0)
+    warped = cut_by_external_contour("images_real/a6.jpg")
+    warped = cut_by_internal_contour(warped)
+    squares_array = MISHINA_NAREZKA_NA_CVADRATI_NA_CHERNY_DEN(warped)
+
+    cv2.imshow("Central square", squares_array[112])
+    cv2.waitKey()
     cv2.destroyAllWindows()
