@@ -2,6 +2,7 @@ from pyimagesearch.transform import four_point_transform
 import cv2
 import imutils
 import numpy
+import tensorflow
 
 
 def cut_by_external_contour(path: str) -> numpy.ndarray:
@@ -114,9 +115,11 @@ def cut_by_internal_contour(image) -> numpy.ndarray:
 
 # Обрезка конкретно нашей доски на черный день
 # Просто отрезает определенное пространство на изображении
-def MISHINA_OBREZKA_NA_CHERNY_DEN(img):
+def MISHINA_OBREZKA_NA_CHERNY_DEN(img, from_left, from_top=None):
     height, width = img.shape[:2]
-    cropped = img[33:height - 10, 33:width - 10]
+    # Условие необязательности указания обоих параметров кадрирования
+    if from_top is None: from_top = from_left
+    cropped = img[from_left:height - 10, from_top:width - 10]
     return cropped
 
 
@@ -144,21 +147,31 @@ def MISHINA_NAREZKA_NA_CVADRATI_NA_CHERNY_DEN(image):
     # заполнение массивов координат X(Y) вертикальных(горизонтальных) линий
     X_array_for_vertical = [round(width / 15 * j) for j in range(16)]
     Y_array_for_horizontal = [round(height / 15 * i) for i in range(16)]
+
     squares_array = []
-    # вырезание квадрата
+    ## вывод одномерного массива
+    # for y in range(1, 16):
+    #     for x in range(1, 16):
+    #         cropped = image[Y_array_for_horizontal[y - 1]:Y_array_for_horizontal[y],
+    #                   X_array_for_vertical[x - 1]:X_array_for_vertical[x]]
+    #         squares_array.append(cropped)
+
+    # вывод двухмерного массива
     for y in range(1, 16):
+        squares_array.append([])
         for x in range(1, 16):
             cropped = image[Y_array_for_horizontal[y - 1]:Y_array_for_horizontal[y],
                       X_array_for_vertical[x - 1]:X_array_for_vertical[x]]
-            squares_array.append(cropped)
+            squares_array[y - 1].append(cropped)
+
     return squares_array
 
 
 if __name__ == "__main__":
     warped = cut_by_external_contour("images_real/a6.jpg")
-    warped = cut_by_internal_contour(warped)
+    warped = imutils.resize(MISHINA_OBREZKA_NA_CHERNY_DEN(warped, 100), height=750)
     squares_array = MISHINA_NAREZKA_NA_CVADRATI_NA_CHERNY_DEN(warped)
 
-    cv2.imshow("Central square", squares_array[112])
+    cv2.imshow("Central square", squares_array[7][7])
     cv2.waitKey()
     cv2.destroyAllWindows()
