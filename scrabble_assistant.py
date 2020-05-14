@@ -1,7 +1,9 @@
-import numpy as np
 import json
-from pathlib import Path
 from collections import Counter
+from pathlib import Path
+
+import numpy as np
+import pandas as pd
 
 LETTERS_VALUES_FILENAME = "letters_values.json"
 LETTERS_AMOUNT_FILENAME = "letters_amount.json"
@@ -19,10 +21,8 @@ def get_best_hint(board: [[str]], letters: Counter) -> [[str]]:
 
     best_hint = board.copy()  # подсказка - отдельная доска
 
-    # очищаем доску-подсказку
-    for best_hint_y_index in range(len(best_hint)):
-        for best_hint_x_index in range(len(best_hint[best_hint_y_index])):
-            best_hint[best_hint_y_index][best_hint_x_index] = ''
+    best_hint = [[''] * len(best_hint) for _ in range(len(best_hint[0]))]
+    # очищаем доску-подсказку (заполняем ее пустыми строками)
 
     for row in get_marked_rows(board):
         # идем по строкам
@@ -33,6 +33,70 @@ def get_best_hint(board: [[str]], letters: Counter) -> [[str]]:
         pass
 
     return best_hint
+
+
+def is_word_available(letters: Counter, word: str) -> bool:
+    """
+    Проверяет возможность составить слово из переданных букв
+    :param letters: счетчик букв игрока
+    :param word: слово
+    :return: можно ли составить из переданных букв переданое слово
+    """
+    # todo: Добавить передачу паттерна, чтобы искать с учетом буквы на доске
+    word_letters = Counter(word)  # счетчик букв
+    for letter in word_letters.keys():
+        if letters[letter] < word_letters[letter]:
+            return False
+    return True
+
+
+def get_best_hint_for_empty_board(board: [[str]], letters: Counter) -> [[str]]:
+    """
+    Функция, для генерации первого хода.
+    :param board:
+    :param letters: буквы, которые есть у игрока
+    :return: доску с расположенным лучшим словом
+    """
+    best_hint = board.copy()  # Подсказка - отдельная доска
+
+    dictionary_data = pd.read_csv(DICTIONARY_FILENAME, header=None, names=['word'])
+    # Считываем словарь в датафрейм
+
+    dictionary_data['available'] = dictionary_data.word.apply(
+        lambda x: is_word_available(letters, x))
+    # Создаем колонку с флагом: можно ли составить слово
+
+    dictionary_data.query('available == True')
+    # Выбираем только те слова, которые можем составить
+
+    dictionary_data['value'] = dictionary_data.word.apply(
+        lambda x: calculate_word_value(x))  # fixme
+    # Создаем колонку с ценностью слова
+
+    dictionary_data = dictionary_data.sort_values(by='value', ascending=False)
+    # Сортируем датафрейм по ценности слова
+
+    best_word = str(list(dictionary_data['word'])[0])
+    # Берем из сортированного датафрейма самое ценное слово
+
+    best_word_len = len(best_word)
+
+    if best_word_len < 5:  # Все слова, короче 5-и букв, ставим в середину
+        center_of_board_by_y = int(len(best_hint) / 2)
+
+        word_start_index = int((len(best_hint[center_of_board_by_y]) - best_word_len) / 2)
+        # Индекс, откуда начинается слово
+
+        best_hint[center_of_board_by_y] = best_hint[center_of_board_by_y][:word_start_index] + \
+                                          list(best_word) + best_hint[center_of_board_by_y][word_start_index + best_word_len:]
+        # Заменяем серидину ряда на найденое слово
+
+    elif best_word_len is 5 or best_word_len is 6:
+        # todo:
+        #  Однозначно располагаем слово той буквой на бонус, которая дороже (по горизонтали)
+        pass
+    elif best_word_len is 7:
+        pass  # todo: Игрок выигрывает, если он тратит все свои буквы?
 
 
 def get_regex_patterns(sharped_row: [str]) -> [str]:
