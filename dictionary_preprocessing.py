@@ -1,7 +1,8 @@
+from collections import Counter
+from pathlib import Path
+
 import numpy as np
 import pandas as pd
-from pathlib import Path
-from collections import Counter
 import scrabble_assistant as sa
 
 
@@ -41,21 +42,6 @@ def is_word_correct(word: str) -> bool:
             # if pattern.findall(word).pop() == word:
             result.append(pattern.findall(word))
     return bool(result)'''
-
-
-def is_word_available(letters: Counter, word: str) -> bool:
-    """
-    Проверяет возможность составить слово из переданных букв
-    :param letters: счетчик букв игрока
-    :param word: слово
-    :return: можно ли составить из переданных букв переданое слово
-    """
-
-    word_letters = Counter(word)  # счетчик букв
-    for letter in word_letters.keys():
-        if letters[letter] < word_letters[letter]:
-            return False
-    return True
 
 
 def drop_incorrect_words():

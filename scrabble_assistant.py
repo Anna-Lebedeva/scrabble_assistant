@@ -1,7 +1,9 @@
-import numpy as np
 import json
-from pathlib import Path
 from collections import Counter
+from pathlib import Path
+
+import numpy as np
+import pandas as pd
 
 LETTERS_VALUES_FILENAME = "letters_values.json"
 LETTERS_AMOUNT_FILENAME = "letters_amount.json"
@@ -19,10 +21,8 @@ def get_best_hint(board: [[str]], letters: Counter) -> [[str]]:
 
     best_hint = board.copy()  # подсказка - отдельная доска
 
-    # очищаем доску-подсказку
-    for best_hint_y_index in range(len(best_hint)):
-        for best_hint_x_index in range(len(best_hint[best_hint_y_index])):
-            best_hint[best_hint_y_index][best_hint_x_index] = ''
+    best_hint = [[''] * len(best_hint) for _ in range(len(best_hint[0]))]
+    # очищаем доску-подсказку (заполняем ее пустыми строками)
 
     for row in get_marked_rows(board):
         # идем по строкам
@@ -35,16 +35,81 @@ def get_best_hint(board: [[str]], letters: Counter) -> [[str]]:
     return best_hint
 
 
+def is_word_available(letters: Counter, word: str) -> bool:
+    """
+    Проверяет возможность составить слово из переданных букв
+    :param letters: счетчик букв игрока
+    :param word: слово
+    :return: можно ли составить из переданных букв переданое слово
+    """
+    # todo: Добавить передачу паттерна, чтобы искать с учетом буквы на доске
+    word_letters = Counter(word)  # счетчик букв
+    for letter in word_letters.keys():
+        if letters[letter] < word_letters[letter]:
+            return False
+    return True
+
+
+def get_best_hint_for_empty_board(board: [[str]], letters: Counter) -> [[str]]:
+    """
+    Функция, для генерации первого хода.
+    :param board:
+    :param letters: буквы, которые есть у игрока
+    :return: доску с расположенным лучшим словом
+    """
+    best_hint = board.copy()  # Подсказка - отдельная доска
+
+    dictionary_data = pd.read_csv(DICTIONARY_FILENAME, header=None, names=['word'])
+    # Считываем словарь в датафрейм
+
+    dictionary_data['available'] = dictionary_data.word.apply(
+        lambda x: is_word_available(letters, x))
+    # Создаем колонку с флагом: можно ли составить слово
+
+    dictionary_data.query('available == True')
+    # Выбираем только те слова, которые можем составить
+
+    dictionary_data['value'] = dictionary_data.word.apply(
+        lambda x: calculate_word_value(x))  # fixme
+    # Создаем колонку с ценностью слова
+
+    dictionary_data = dictionary_data.sort_values(by='value', ascending=False)
+    # Сортируем датафрейм по ценности слова
+
+    best_word = str(list(dictionary_data['word'])[0])
+    # Берем из сортированного датафрейма самое ценное слово
+
+    best_word_len = len(best_word)
+
+    if best_word_len < 5:  # Все слова, короче 5-и букв, ставим в середину
+        center_of_board_by_y = int(len(best_hint) / 2)
+
+        word_start_index = int((len(best_hint[center_of_board_by_y]) - best_word_len) / 2)
+        # Индекс, откуда начинается слово
+
+        best_hint[center_of_board_by_y] = best_hint[center_of_board_by_y][:word_start_index] + \
+                                          list(best_word) + best_hint[center_of_board_by_y][word_start_index + best_word_len:]
+        # Заменяем серидину ряда на найденое слово
+
+    elif best_word_len is 5 or best_word_len is 6:
+        # todo:
+        #  Однозначно располагаем слово той буквой на бонус, которая дороже (по горизонтали)
+        pass
+    elif best_word_len is 7:
+        pass  # todo: Игрок выигрывает, если он тратит все свои буквы?
+
+
 def get_regex_patterns(sharped_row: [str]) -> [str]:
     """
-    Получает строку, возвращает паттерны, соответствующие этой строке, для поиска подходящих
-    слов в словаре по этому паттерну.
+    Получает строку, возвращает паттерны, соответствующие этой строке,
+    для поиска подходящих слов в словаре по этому паттерну.
     :param sharped_row: размеченный '#' ряд
     :return: шаблон, по которому можно найти подходящие слова
     """
     prepared_row = []
     patterns = []
-    # test_row = ['', '', '', 'а', '#', 'а', '#', '#', '#', '#', '', 'р', '', '', '']
+    # test_row = ['', '', '', 'а', '#', 'а', '#',
+    #             '#', '#', '#', '', 'р', '', '', '']
 
     for cell in range(len(sharped_row)):
         if sharped_row[cell]:  # если в клетке есть символ
@@ -57,7 +122,8 @@ def get_regex_patterns(sharped_row: [str]) -> [str]:
 
     for i in range(len(prepared_row)):
         if len(prepared_row[i]) > 1:
-            patterns.append(prepared_row[i])  # отбираем подстроки длинее 1 символа
+            # отбираем подстроки длинее 1 символа
+            patterns.append(prepared_row[i])
 
     for i in range(len(patterns)):
         patterns[i] = patterns[i].replace(' ', '[а-я]?')
@@ -66,7 +132,8 @@ def get_regex_patterns(sharped_row: [str]) -> [str]:
 
     for i in range(len(patterns)):
         patterns[i] = '^(' + patterns[i] + ')$'
-    # Чтобы регулярка не хватала слова, которые удовлетворяют, но выходят за рамки.
+    # Чтобы регулярка не хватала слова, которые удовлетворяют,
+    # но выходят за рамки.
 
     # for i in range(len(patterns)):
     #    patterns[i] = re.compile(patterns[i])
@@ -76,27 +143,54 @@ def get_regex_patterns(sharped_row: [str]) -> [str]:
     return patterns
 
 
-def calculate_word_value(word: str, start_pos: int = None, end_pos: int = None) -> int:
+def calculate_word_value(word: str, line_index: int, start_pos: int) -> int:
     """
-    Считает ценность слова
-    :param start_pos: позиция начала слова [y, x]
-    :param end_pos: позиция конца слова [y, x]
+    Считает ценность слова, расположенного на доске
+    Учитывает стоимость буквы и бонусы на доске в любых кол-вах
     :param word: слово в виде строки
+    :param line_index: индекс строки, в которой стоит слово
+    :param start_pos: индекс начала слова в строке
     :return: ценность слова
     """
 
     # разметка ценности полей доски:
-    # 0 - обычное поле
-    # 1 - х2 за букву
-    # 2 - х3 за букву
-    # 3 - х2 за слово
-    # 4 - х3 за слово
-    # 5 - стартовое поле
+    # 00 - обычное поле
+    # x2 - х2 за букву
+    # x3 - х3 за букву
+    # X2 - х2 за слово
+    # X3 - х3 за слово
+    # ST - стартовое поле
 
-    # todo: добавить поправку на бонусы
+    # ценность букв как словарь
+    letters_values = read_json_to_dict(LETTERS_VALUES_FILENAME)
 
-    letters_values = read_json(LETTERS_VALUES_FILENAME)
-    return sum([letters_values[letter] for letter in word.lower()])
+    # бонусы на доске как массив
+    board_bonuses = read_json_to_list(BOARD_BONUSES_FILENAME)
+
+    value = 0
+    word_bonuses_2x_counter = 0  # сколько бонусов x2 слово собрали
+    word_bonuses_3x_counter = 0  # сколько бонусов x3 слово собрали
+    for i in range(len(word)):  # идем по символам слова
+        letter = word[i]
+        # изначальная ценность буквы без бонусов
+        letter_value = letters_values[letter]
+
+        # бонус на клетке, где стоит буква
+        bonus = board_bonuses[line_index][start_pos + i]
+        if bonus == "x2":
+            letter_value *= 2
+        elif bonus == "x3":
+            letter_value *= 3
+        elif bonus == "X2":
+            word_bonuses_2x_counter += 1
+        elif bonus == "X3":
+            word_bonuses_3x_counter += 1
+        value += letter_value
+    # считаем все собранные бонусы за слово
+    value = value * pow(2, word_bonuses_2x_counter)
+    value = value * pow(3, word_bonuses_3x_counter)
+
+    return value
 
 
 def get_marked_rows(board: [[str]]) -> [[str]]:
@@ -148,8 +242,8 @@ def get_marked_rows(board: [[str]]) -> [[str]]:
                     for j in range(row_index):
                         row[j] = '#'
                     last_sharp_index = row_index
-                # если уже встречали # и до этого между текущим # и прошлым не было
-                # символов, помечаем # все клетки между ними
+                # если уже встречали # и до этого между текущим #
+                # и прошлым не было # символов, помечаем # все клетки между ними
                 else:
                     for j in range(last_sharp_index + 1, row_index):
                         row[j] = '#'
@@ -178,7 +272,7 @@ def transpose_board(board: [[str]]) -> [[str]]:
     return list(np.array(board).transpose())
 
 
-def read_json(json_filename: str) -> dict:
+def read_json_to_dict(json_filename: str) -> dict:
     """
     Считывает json-файл в dict
     :param json_filename: имя json-файла
@@ -189,27 +283,40 @@ def read_json(json_filename: str) -> dict:
         return dict(json.load(file))
 
 
+def read_json_to_list(json_filename: str) -> [[str]]:
+    """
+    Считывает json-файл в list
+    :param json_filename: имя json-файла
+    :return: считанный массив
+    """
+
+    with open(file=Path(Path.cwd() / 'jsons' / json_filename), mode='r',
+              encoding='utf-8') as file:
+        return list(json.load(file))
+
+
 if __name__ == '__main__':
-    test_board = [
-        ['', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
-        ['', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
-        ['', '', '', '', '', '', '', '', '', 'т', '', '', '', '', ''],
-        ['', '', '', '', '', '', '', '', '', 'о', '', '', '', '', ''],
-        ['', '', '', 'п', 'о', 'c', 'е', 'л', 'о', 'к', '', '', '', '', ''],
-        ['', '', '', 'а', '', 'а', '', '', '', '', '', 'р', '', '', ''],
-        ['', '', '', 'п', '', 'д', 'о', 'м', '', 'я', '', 'е', '', '', ''],
-        ['', '', '', 'а', '', '', '', 'а', 'з', 'б', 'у', 'к', 'а', '', ''],
-        ['', '', '', '', '', 'с', 'о', 'м', '', 'л', '', 'а', '', '', ''],
-        ['', '', '', 'я', 'м', 'а', '', 'а', '', 'о', '', '', '', '', ''],
-        ['', '', '', '', '', 'л', '', '', '', 'к', 'и', 'т', '', '', ''],
-        ['', '', '', '', 'с', 'о', 'л', 'ь', '', 'о', '', '', '', '', ''],
-        ['', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
-        ['', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
-        ['', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
-    ]
+    # test_board = [
+    #     ['', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
+    #     ['', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
+    #     ['', '', '', '', '', '', '', '', '', 'т', '', '', '', '', ''],
+    #     ['', '', '', '', '', '', '', '', '', 'о', '', '', '', '', ''],
+    #     ['', '', '', 'п', 'о', 'c', 'е', 'л', 'о', 'к', '', '', '', '', ''],
+    #     ['', '', '', 'а', '', 'а', '', '', '', '', '', 'р', '', '', ''],
+    #     ['', '', '', 'п', '', 'д', 'о', 'м', '', 'я', '', 'е', '', '', ''],
+    #     ['', '', '', 'а', '', '', '', 'а', 'з', 'б', 'у', 'к', 'а', '', ''],
+    #     ['', '', '', '', '', 'с', 'о', 'м', '', 'л', '', 'а', '', '', ''],
+    #     ['', '', '', 'я', 'м', 'а', '', 'а', '', 'о', '', '', '', '', ''],
+    #     ['', '', '', '', '', 'л', '', '', '', 'к', 'и', 'т', '', '', ''],
+    #     ['', '', '', '', 'с', 'о', 'л', 'ь', '', 'о', '', '', '', '', ''],
+    #     ['', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
+    #     ['', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
+    #     ['', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
+    # ]
     # test_board = transpose_board(test_board)
 
-    test_marked_board = get_marked_rows(test_board)
-    for i in range(len(test_marked_board)):
-        print(test_marked_board[i])
+    # test_marked_board = get_marked_rows(test_board)
+    # for iii in range(len(test_marked_board)):
+    #     print(test_marked_board[iii])
     # print(get_marked_row(test_board, 12))
+    print(calculate_word_value("сахар", 5, 5))
