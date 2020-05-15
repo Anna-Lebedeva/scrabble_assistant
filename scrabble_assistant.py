@@ -149,6 +149,7 @@ def calculate_word_value(word: str, board: [[str]], line_index: int,
     Считает ценность слова, расположенного на доске
     Учитывает стоимость буквы и бонусы на доске в любых кол-вах
     Не учитывает бонусы, которые уже были использованы
+    Если игрок доложил 7 букв - добавляет 15 баллов
     :param word: слово в виде строки
     :param board: доска, на которой ведется игра
     :param line_index: индекс строки, в которой стоит слово
@@ -184,7 +185,7 @@ def calculate_word_value(word: str, board: [[str]], line_index: int,
         # бонусы учитываются только в том случае,
         # если они не были использованы ранее
 
-        # бонус использован, если на его месте есть буква
+        # бонус использован, если на его месте уже есть буква
         if not board[line_index][start_pos + i]:
             new_letters_counter += 1
             if bonus == "x2":
@@ -201,6 +202,7 @@ def calculate_word_value(word: str, board: [[str]], line_index: int,
     value = value * pow(2, word_bonuses_2x_counter)
     value = value * pow(3, word_bonuses_3x_counter)
 
+    # выложил разом 7 букв - получи 15 баллов
     if new_letters_counter == 7:
         value += 15
 
