@@ -89,7 +89,7 @@ def get_best_hint_for_empty_board(board: [[str]], letters: Counter) -> [[str]]:
 
         best_hint[center_of_board_by_y] = best_hint[center_of_board_by_y][:word_start_index] + \
                                           list(best_word) + best_hint[center_of_board_by_y][word_start_index + best_word_len:]
-        # Заменяем серидину ряда на найденое слово
+        # Заменяем середину ряда на найденое слово
 
     elif best_word_len is 5 or best_word_len is 6:
         # todo:
@@ -143,11 +143,14 @@ def get_regex_patterns(sharped_row: [str]) -> [str]:
     return patterns
 
 
-def calculate_word_value(word: str, line_index: int, start_pos: int) -> int:
+def calculate_word_value(word: str, board: [[str]], line_index: int,
+                         start_pos: int) -> int:
     """
     Считает ценность слова, расположенного на доске
     Учитывает стоимость буквы и бонусы на доске в любых кол-вах
+    Не учитывает бонусы, которые уже были использованы
     :param word: слово в виде строки
+    :param board: доска, на которой ведется игра
     :param line_index: индекс строки, в которой стоит слово
     :param start_pos: индекс начала слова в строке
     :return: ценность слова
@@ -168,6 +171,7 @@ def calculate_word_value(word: str, line_index: int, start_pos: int) -> int:
     board_bonuses = read_json_to_list(BOARD_BONUSES_FILENAME)
 
     value = 0
+    new_letters_counter = 0
     word_bonuses_2x_counter = 0  # сколько бонусов x2 слово собрали
     word_bonuses_3x_counter = 0  # сколько бонусов x3 слово собрали
     for i in range(len(word)):  # идем по символам слова
@@ -177,18 +181,28 @@ def calculate_word_value(word: str, line_index: int, start_pos: int) -> int:
 
         # бонус на клетке, где стоит буква
         bonus = board_bonuses[line_index][start_pos + i]
-        if bonus == "x2":
-            letter_value *= 2
-        elif bonus == "x3":
-            letter_value *= 3
-        elif bonus == "X2":
-            word_bonuses_2x_counter += 1
-        elif bonus == "X3":
-            word_bonuses_3x_counter += 1
+        # бонусы учитываются только в том случае,
+        # если они не были использованы ранее
+
+        # бонус использован, если на его месте есть буква
+        if not board[line_index][start_pos + i]:
+            new_letters_counter += 1
+            if bonus == "x2":
+                letter_value *= 2
+            elif bonus == "x3":
+                letter_value *= 3
+            elif bonus == "X2":
+                word_bonuses_2x_counter += 1
+            elif bonus == "X3":
+                word_bonuses_3x_counter += 1
+
         value += letter_value
     # считаем все собранные бонусы за слово
     value = value * pow(2, word_bonuses_2x_counter)
     value = value * pow(3, word_bonuses_3x_counter)
+
+    if new_letters_counter == 7:
+        value += 15
 
     return value
 
@@ -296,27 +310,30 @@ def read_json_to_list(json_filename: str) -> [[str]]:
 
 
 if __name__ == '__main__':
-    # test_board = [
-    #     ['', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
-    #     ['', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
-    #     ['', '', '', '', '', '', '', '', '', 'т', '', '', '', '', ''],
-    #     ['', '', '', '', '', '', '', '', '', 'о', '', '', '', '', ''],
-    #     ['', '', '', 'п', 'о', 'c', 'е', 'л', 'о', 'к', '', '', '', '', ''],
-    #     ['', '', '', 'а', '', 'а', '', '', '', '', '', 'р', '', '', ''],
-    #     ['', '', '', 'п', '', 'д', 'о', 'м', '', 'я', '', 'е', '', '', ''],
-    #     ['', '', '', 'а', '', '', '', 'а', 'з', 'б', 'у', 'к', 'а', '', ''],
-    #     ['', '', '', '', '', 'с', 'о', 'м', '', 'л', '', 'а', '', '', ''],
-    #     ['', '', '', 'я', 'м', 'а', '', 'а', '', 'о', '', '', '', '', ''],
-    #     ['', '', '', '', '', 'л', '', '', '', 'к', 'и', 'т', '', '', ''],
-    #     ['', '', '', '', 'с', 'о', 'л', 'ь', '', 'о', '', '', '', '', ''],
-    #     ['', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
-    #     ['', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
-    #     ['', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
-    # ]
-    # test_board = transpose_board(test_board)
+    test_board = [
+        ['', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
+        ['', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
+        ['', '', '', '', '', '', '', '', '', 'т', '', '', '', '', ''],
+        ['', '', '', '', '', '', '', '', '', 'о', '', '', '', '', ''],
+        ['', '', '', 'п', 'о', 'c', 'е', 'л', 'о', 'к', '', '', '', '', ''],
+        ['', '', '', 'а', '', 'а', '', '', '', '', '', 'р', '', '', ''],
+        ['', '', '', 'п', '', 'д', 'о', 'м', '', 'я', '', 'е', '', '', ''],
+        ['', '', '', 'а', '', '', '', 'а', 'з', 'б', 'у', 'к', 'а', '', ''],
+        ['', '', '', '', '', 'с', 'о', 'м', '', 'л', '', 'а', '', '', ''],
+        ['', '', '', 'я', 'м', 'а', '', 'а', '', 'о', '', '', '', '', ''],
+        ['', '', '', '', '', 'л', '', '', '', 'к', 'и', 'т', '', '', ''],
+        ['', '', '', '', 'с', 'о', 'л', 'ь', '', 'о', '', '', '', '', ''],
+        ['', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
+        ['', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
+        ['', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
+    ]
+    test_board = transpose_board(test_board)
 
-    # test_marked_board = get_marked_rows(test_board)
-    # for iii in range(len(test_marked_board)):
-    #     print(test_marked_board[iii])
+    test_marked_board = get_marked_rows(test_board)
+    for iii in range(len(test_marked_board)):
+        for jjj in range(len(test_marked_board[iii])):
+            if test_marked_board[iii][jjj] == "":
+                test_marked_board[iii][jjj] = " "
+        print(test_marked_board[iii])
     # print(get_marked_row(test_board, 12))
-    print(calculate_word_value("сахар", 5, 5))
+    print(calculate_word_value("аеъапапа", test_board, 3, 0))
