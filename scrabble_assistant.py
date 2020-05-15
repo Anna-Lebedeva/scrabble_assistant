@@ -143,13 +143,16 @@ def get_regex_patterns(sharped_row: [str]) -> [str]:
     return patterns
 
 
-def calculate_word_value(word: str, board: [[str]], line_index: int,
-                         start_pos: int) -> int:
+def calculate_word_value(word: str, board: [[str]] = None,
+                         line_index: int = None, start_pos: int = None) -> int:
     """
     Считает ценность слова, расположенного на доске
     Учитывает стоимость буквы и бонусы на доске в любых кол-вах
     Не учитывает бонусы, которые уже были использованы
     Если игрок доложил 7 букв - добавляет 15 баллов
+
+    Если указан только первый аргумент, возвращает ценность слова без бонусов
+
     :param word: слово в виде строки
     :param board: доска, на которой ведется игра
     :param line_index: индекс строки, в которой стоит слово
@@ -157,24 +160,32 @@ def calculate_word_value(word: str, board: [[str]], line_index: int,
     :return: ценность слова
     """
 
-    # разметка ценности полей доски:
-    # 00 - обычное поле
-    # x2 - х2 за букву
-    # x3 - х3 за букву
-    # X2 - х2 за слово
-    # X3 - х3 за слово
-    # ST - стартовое поле
-
     # ценность букв как словарь
     letters_values = read_json_to_dict(LETTERS_VALUES_FILENAME)
 
+    # если нет аргументов, кроме word
+    # просто посчитать стоимость слова без бонусов
+    if not board and not line_index and not start_pos:
+        # суммируем стоимость всех букв в слове
+        value = sum([letters_values[letter] for letter in word])
+
+        return value
+
     # бонусы на доске как массив
     board_bonuses = read_json_to_list(BOARD_BONUSES_FILENAME)
+    # разметка ценности полей доски:
+    # 00 - обычное поле
+    # x2 - *2 за букву
+    # x3 - *3 за букву
+    # X2 - *2 за слово
+    # X3 - *3 за слово
+    # ST - стартовое поле
 
     value = 0
     new_letters_counter = 0
     word_bonuses_2x_counter = 0  # сколько бонусов x2 слово собрали
     word_bonuses_3x_counter = 0  # сколько бонусов x3 слово собрали
+
     for i in range(len(word)):  # идем по символам слова
         letter = word[i]
         # изначальная ценность буквы без бонусов
@@ -339,3 +350,4 @@ if __name__ == '__main__':
         print(test_marked_board[iii])
     # print(get_marked_row(test_board, 12))
     print(calculate_word_value("аеъапапа", test_board, 3, 0))
+    print(calculate_word_value("аеъапапа"))
