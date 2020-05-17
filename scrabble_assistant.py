@@ -245,6 +245,13 @@ def calculate_word_value(word: str, board: [[str]],
 
     # Считываем бонусы на доске как матрицу
     board_bonuses = read_json_to_list(BOARD_BONUSES_FILENAME)
+    # разметка ценности полей доски:
+    # 00 - обычное поле
+    # x2 - *2 за букву
+    # x3 - *3 за букву
+    # X2 - *2 за слово
+    # X3 - *3 за слово
+    # ST - стартовое поле
 
     # Разметка бонусов на доске:
     # 00 - обычное поле
@@ -285,6 +292,10 @@ def calculate_word_value(word: str, board: [[str]],
     # считаем все собранные бонусы за слово
     value *= 2 ** word_bonuses_2x_counter
     value *= 3 ** word_bonuses_3x_counter
+
+    # выложил разом 7 букв - получи 15 баллов
+    if new_letters_counter == 7:
+        value += 15
 
     # выложил разом 7 букв - получи 15 баллов
     if new_letters_counter == 7:
