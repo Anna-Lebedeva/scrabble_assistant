@@ -76,9 +76,9 @@ def cut_by_internal_contour(img: numpy.ndarray,
 
     # Значения по-умолчанию
     if left_top is None:
-        left_top = 4
+        left_top = 4.3
     if right_bot is None:
-        right_bot = 1
+        right_bot = 0.3
 
     cropped = img[round(left_top * w / 100):round(h*(1-right_bot/100)),
                   round(left_top * h / 100):round(w*(1-right_bot/100))]
@@ -142,7 +142,8 @@ def cut_board_on_cells(img: numpy.ndarray) -> [numpy.ndarray]:
 
 if __name__ == "__main__":
     pass
-    external_cropped_board = cut_by_external_contour("images_real/c1.jpg")
+    external_cropped_board = imutils.resize(cut_by_external_contour(
+        "images_real/c1.jpg"), height=750)
     internal_cropped_board = imutils.resize(cut_by_internal_contour(
         external_cropped_board), height=750)
     board_squares = cut_board_on_cells(internal_cropped_board)
