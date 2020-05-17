@@ -1,10 +1,12 @@
-from scan import cut_by_external_contour
-from scan import cut_by_internal_contour
-from scan import cut_board_on_cells
+import fnmatch
+import os
+
 import cv2
 import imutils
-import numpy as np
-import os, fnmatch
+
+from scan import cut_board_on_cells
+from scan import cut_by_external_contour
+from scan import cut_by_internal_contour
 
 path = "!raw_images_to_cut/"
 images = fnmatch.filter(os.listdir(path), '*.jpg')
