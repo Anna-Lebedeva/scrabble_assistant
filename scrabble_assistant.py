@@ -72,8 +72,7 @@ def arrange_long_word_to_empty_board(word: str) -> [str]:
     available_movement = word_len - distance_to_bonus
     # На сколько слово может двигаться, оставаясь на стартовом поле
 
-    letters_available_to_bonus = word[:available_movement] + \
-                                 word[-available_movement:]
+    letters_available_to_bonus = word[:available_movement] + word[-available_movement:]
     # Буквы, которые могут быть на бонусе
 
     for letter in letters_available_to_bonus:
@@ -82,7 +81,15 @@ def arrange_long_word_to_empty_board(word: str) -> [str]:
             most_expensive_letter = letter
             # Находим самую ценную букву из доступных
 
-    most_expensive_letter_index = word.find(most_expensive_letter)
+    blocked_letters_len = word_len - len(letters_available_to_bonus)
+    word_for_indices = word[:available_movement] + '#' * blocked_letters_len + \
+                       word[-available_movement:]
+    # Создадим слово, где заблокированные буквы будут заменены на '#',
+    # чтобы не найти ложные индексы, в случае, если заблокированная буква совпадает с
+    # самой ценной буквой, которая расположена после аналогичной заблокированной.
+
+
+    most_expensive_letter_index = word_for_indices.find(most_expensive_letter)
     # Находим индекс самой ценной буквы из доступных
 
     # Бонусная буква делит слово на 2 части (бонусная буква идет во 2-ю часть)
@@ -106,15 +113,16 @@ def arrange_long_word_to_empty_board(word: str) -> [str]:
     return row_with_arranged_word
 
 
-def get_best_hint_for_empty_board(best_word: str) -> [[str]]:
+def get_best_hint_for_empty_board(letters: Counter) -> [[str]]:
     """
     Генерирует первый ход. Выдает расположение лучшего слова для 1-ого хода.
-    :param best_word: буквы, которые есть у игрока
+    :param letters: буквы, которые есть у игрока
     :return: доска с расположенным лучшим словом
     """
     best_hint = get_empty_board()  # Создаем пустую доску
     center_of_board_by_y = int(len(best_hint) / 2)
 
+    best_word = find_best_word_for_empty_board(letters)
     best_word_len = len(best_word)
 
     if best_word_len < 5:  # Все слова, которые короче 5-и букв, ставим в середину ряда
@@ -452,5 +460,6 @@ if __name__ == '__main__':
     # print(get_best_hint_for_empty_board(Counter('абвгдежзи'))[7])
     # print(get_best_hint_for_empty_board(Counter('абвгдежзи'))[7])
     # print(get_best_hint_for_empty_board(Counter('уеаояижзфцшщъыьэю'))[7])
+    #print(get_best_hint_for_empty_board(Counter('аашаш'))[7])
 
     # TIME: 1.36 s ± 21.7 ms per loop (mean ± std. dev. of 7 runs, 1 loop each)
