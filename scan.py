@@ -1,10 +1,13 @@
 from pyimagesearch.transform import four_point_transform
 import cv2
 import imutils
-import numpy
+import numpy as np
+from scipy import misc
+from keras.models import model_from_json
+import pickle
 
 
-def cut_by_external_contour(path: str) -> numpy.ndarray:
+def cut_by_external_contour(path: str) -> np.ndarray:
     """
     Обрезает внешний контур объекта на изображении
     Подходит для игральной доски
@@ -29,7 +32,7 @@ def cut_by_external_contour(path: str) -> numpy.ndarray:
     # Получение некого параметра для морфологического преобразования
     # Оптимальные параметры: (7, 7)
     # Затем само морфологическое преобразование (закрытие контуров)
-    kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (7, 7))
+    kernel = cv2.getStructuringElement(cv2.MORPH_CROSS, (7, 7))
     edged = cv2.morphologyEx(edged, cv2.MORPH_CLOSE, kernel)
 
     # Массив всех контуров
@@ -61,13 +64,16 @@ def cut_by_external_contour(path: str) -> numpy.ndarray:
     return cropped
 
 
-def cut_by_internal_contour(img: numpy.ndarray,
-                            left_top=None, right_bot=None) -> numpy.ndarray:
+def cut_by_internal_contour(img: np.ndarray,
+                            left=None, top=None,
+                            right=None, bot=None) -> np.ndarray:
     """
     Обрезает изображение с разных сторон на определённое значение
     :param img: Изображение на вход
-    :param left_top: Сколько процентов обрезать слева и сверху
-    :param right_bot: Сколько процентов обрезать справа и снизу
+    :param left: Сколько процентов обрезать слева
+    :param top: Сколько процентов обрезать сверху
+    :param right: Сколько процентов обрезать справа
+    :param bot: Сколько процентов обрезать снизу
     :return: Обрезанное изображение
     """
 
@@ -75,18 +81,22 @@ def cut_by_internal_contour(img: numpy.ndarray,
     (h, w) = img.shape[:2]
 
     # Значения по-умолчанию
-    if left_top is None:
-        left_top = 4.3
-    if right_bot is None:
-        right_bot = 0.3
+    if left is None:
+        left = 4
+    if top is None:
+        top = 4
+    if right is None:
+        right = 0
+    if bot is None:
+        bot = 0
 
-    cropped = img[round(left_top * w / 100):round(h*(1-right_bot/100)),
-                  round(left_top * h / 100):round(w*(1-right_bot/100))]
+    cropped = img[round(top * w / 100):round(h * (1 - bot / 100)),
+              round(left * h / 100):round(w * (1 - right / 100))]
 
     return cropped
 
 
-def draw_the_grid(img: numpy.ndarray) -> numpy.ndarray:
+def draw_the_grid(img: np.ndarray) -> np.ndarray:
     """
     Рисует сетку, по которой можно производить разбивку на 15x15 ячеек
     :param img: Изображение на вход
@@ -114,7 +124,7 @@ def draw_the_grid(img: numpy.ndarray) -> numpy.ndarray:
     return img
 
 
-def cut_board_on_cells(img: numpy.ndarray) -> [numpy.ndarray]:
+def cut_board_on_cells(img: np.ndarray) -> [np.ndarray]:
     """
     Делит изображение на квадраты-ячейки, создавая двухмерный массив из них
     :param img: Изображение на вход
@@ -140,14 +150,80 @@ def cut_board_on_cells(img: numpy.ndarray) -> [numpy.ndarray]:
     return squares
 
 
+def make_prediction(square: list) -> [np.ndarray]:
+    """
+
+    :param square:
+    :return:
+    """
+
+    # Отключение назойливых предупреждений
+    import tensorflow
+    import os
+    tensorflow.get_logger().setLevel('ERROR')
+    os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
+
+    # Пути до файлов модели
+    path_to_classifier = "./ML/int_to_word_out.pickle"
+    path_to_model_json = "./ML/model_face.json"
+    path_to_weights = "./ML/model_face.h5"
+
+    classifier_f = open(path_to_classifier, "rb")
+    int_to_word_out = pickle.load(classifier_f)
+    classifier_f.close()
+    # load json and create model
+    json_file = open(path_to_model_json, 'r')
+    loaded_model_json = json_file.read()
+    json_file.close()
+    loaded_model = model_from_json(loaded_model_json)
+    # load weights into new model
+    loaded_model.load_weights(path_to_weights)
+
+    from PIL import Image
+
+    predictions = []
+    for j in range(15):
+        predictions.append([])
+        for i in range(15):
+            image = square[j][i]
+            cv2.imwrite("./" + str(i) + ".jpg", image)
+            image = misc.imread("./" + str(i) + ".jpg")
+            os.remove("./" + str(i) + ".jpg")
+            image = misc.imresize(image, (64, 64))
+            image = np.array([image])
+            image = image.astype('float32')
+            image = image / 255.0
+
+            prediction = loaded_model.predict(image)
+            prediction = int_to_word_out[np.argmax(prediction)]
+            predictions[j].append(prediction)
+
+            print(prediction)
+            cv2.imshow("", square[j][i])
+            cv2.waitKey()
+
+    return predictions
+
+
 if __name__ == "__main__":
     pass
     external_cropped_board = imutils.resize(cut_by_external_contour(
-        "images_real/c1.jpg"), height=750)
+        "!raw_images_to_cut/"), height=750)
     internal_cropped_board = imutils.resize(cut_by_internal_contour(
-        external_cropped_board), height=750)
+        external_cropped_board, left=3.3, top=3.0, right=0.3, bot=1.4),
+        height=750)
     board_squares = cut_board_on_cells(internal_cropped_board)
 
-    cv2.imshow("Internal cropped board", internal_cropped_board)
-    cv2.waitKey()
-    cv2.destroyAllWindows()
+    # cv2.imshow("External cropped board", external_cropped_board)
+    # cv2.waitKey()
+    # cv2.destroyAllWindows()
+
+    # cv2.imshow("Internal cropped board", internal_cropped_board)
+    # cv2.waitKey()
+    # cv2.destroyAllWindows()
+
+    # cv2.imshow("Grid", draw_the_grid(internal_cropped_board))
+    # cv2.waitKey()
+    # cv2.destroyAllWindows()
+
+    print(make_prediction(board_squares))
