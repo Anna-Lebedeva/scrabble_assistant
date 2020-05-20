@@ -1,6 +1,7 @@
 import json
 from collections import Counter
 from pathlib import Path
+import re
 
 import numpy as np
 
@@ -114,7 +115,6 @@ def arrange_long_word_to_empty_board(word: str) -> [str]:
                        word[-available_movement:]
     # Создадим слово, где заблокированные буквы будут заменены на '#',
     # чтобы не найти ложные индексы, в случае,
-
     # если заблокированная буква совпадает с
     # самой ценной буквой, которая расположена
     # после аналогичной заблокированной.
@@ -221,23 +221,25 @@ def find_best_word_for_empty_board(letters: Counter) -> str:
     return best_word
 
 
-def get_regex_patterns(sharped_row: [str]) -> [str]:
+def get_regex_patterns(sharped_row: [str]):
     """
     Получает строку, возвращает паттерны, соответствующие этой строке,
     для поиска подходящих слов в словаре по этому паттерну.
     :param sharped_row: размеченный '#' ряд
-    :return: шаблон, по которому можно найти подходящие слова
+    :return: шаблон, по которому можно найти подходящие слова и букву из этого шаблона
     """
     prepared_row = []
     patterns = []
-    # test_row = ['', '', '', 'а', '#', 'а', '#',
-    # '#', '#', '#', '', 'р', '', '', '']
+    letters = []
+    letters_in_patterns = []
+    # test_row = ['', '', '', 'а', '#', 'а', '#', '#', '#', '#', '', 'р', '', '', '']
 
     for cell in range(len(sharped_row)):
         if sharped_row[cell]:  # Если в клетке есть символ
             prepared_row.append(sharped_row[cell])
         else:  # Если клетка пустая
             prepared_row.append(' ')
+            # fixme: переписать?
 
     prepared_row = ''.join(prepared_row).split('#')
     # Соединяем в строку и нарезаем на подстроки по '#'
@@ -246,6 +248,13 @@ def get_regex_patterns(sharped_row: [str]) -> [str]:
         if len(prepared_row[i]) > 1:
             # отбираем подстроки длинее 1 символа
             patterns.append(prepared_row[i])
+
+    for pattern in patterns:
+        for i in pattern:
+            if i.isalpha():
+                letters.append(i)
+        letters_in_patterns.append(letters)
+        letters = []
 
     for i in range(len(patterns)):
         patterns[i] = patterns[i].replace(' ', '[а-я]?')
@@ -257,12 +266,12 @@ def get_regex_patterns(sharped_row: [str]) -> [str]:
     # Чтобы регулярка не хватала слова,
     # которые удовлетворяют, но выходят за рамки.
 
-    # for i in range(len(patterns)):
-    #    patterns[i] = re.compile(patterns[i])
+    for i in range(len(patterns)):
+        patterns[i] = re.compile(patterns[i])
     # Компилируем каждый паттерн в регулярное выражение
     # Upd. компиляция не понадобится. Но пока не удалять
 
-    return patterns
+    return patterns, letters_in_patterns
 
 
 def calculate_letters_value(word: str) -> int:
@@ -436,6 +445,28 @@ def get_empty_board(y: int, x: int) -> [[str]]:
     return [[''] * y for _ in range(x)]
 
 
+def get_smallest_sub_dict(letters_in_patterns: [[str]]) -> [str]:
+    """
+
+    :param letters_in_patterns: список со списками букв для каждого паттерна
+    :return: список с названиями подсловарей наименьшего размера для каждого паттерна.
+    """
+    sub_dicts = []
+
+    for letters in letters_in_patterns:
+        min_sub_dict = ''  # название наименьшего словаря
+        min_sub_dict_size = Path(Path.cwd() / 'dictionary.txt').stat().st_size
+        for i in letters:
+            sub_dict_letter = str('letter' + str(ord(i) - 1071) + '.txt')
+            sub_dict_size = Path(Path.cwd() / 'sub-dictionaries' /
+                                 sub_dict_letter).stat().st_size
+            if sub_dict_size < min_sub_dict_size:
+                min_sub_dict = sub_dict_letter
+        sub_dicts.append(min_sub_dict)
+
+    return sub_dicts
+
+
 # ----- TESTS -----
 if __name__ == '__main__':
     pass
@@ -485,3 +516,9 @@ if __name__ == '__main__':
     # print(get_best_hint_for_empty_board(Counter('аашаш'))[7])
 
     # TIME: 1.36 s ± 21.7 ms per loop (mean ± std. dev. of 7 runs, 1 loop each)
+
+    # patterns_, letters_ = get_regex_patterns(
+        ['', '', '', 'а', '#', 'а', '#', '#', '#', '#', '', 'р', '', '', ''])
+    # print(patterns_, letters_)
+
+    # print(get_smallest_sub_dict(letters_))
