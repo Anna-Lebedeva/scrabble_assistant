@@ -33,6 +33,20 @@ def read_json_to_list(json_filename: str) -> [[str]]:
         return list(json.load(file))
 
 
+def read_txt_to_list(txt_filename: str) -> [str]:
+    """
+    Возвращает список слов, из словаря с указанным названием.
+    :param txt_filename: название словаря
+    :return: список слов, из словаря с указанным названием
+    """
+    words = []
+    with open(Path(Path.cwd() / 'dictionaries' / txt_filename), mode='r',
+              encoding='utf-8') as txt_file:
+        for line in txt_file:
+            words.append(line[:-1])
+    return words
+
+
 LETTERS_VALUES = read_json_to_dict(LETTERS_VALUES_FILENAME)
 LETTERS_AMOUNT = read_json_to_dict(LETTERS_AMOUNT_FILENAME)
 BOARD_BONUSES = read_json_to_list(BOARD_BONUSES_FILENAME)
@@ -59,6 +73,84 @@ def get_best_hint(board: [[str]], letters: Counter) -> [[str]]:
     return best_hint
 
 
+def get_best_hint_for_empty_board(board: [[str]], letters: Counter) -> [[str]]:
+    """
+    Генерирует первый ход. Выдает расположение лучшего слова для 1-ого хода.
+    :param board: доска, на которой идет игра
+    :param letters: буквы, которые есть у игрока
+    :return: доска с расположенным лучшим словом
+    """
+
+    mid_index = int(len(board) / 2)  # центральная клетка по x
+
+    # далее определяем bonus_range, используя файл с бонусами
+    # при bones_range = len(letters) и выше, бонусы не учитываются
+    # в стандартном случае при len(letters) = 7 бонусы не учтутся
+    bonus_range = 7  # расстояние между центром и бонусами
+    for i in range(mid_index + 1, len(BOARD_BONUSES[mid_index])):
+        if BOARD_BONUSES[mid_index][i] == "x2":
+            bonus_range = i - mid_index
+            break
+
+    best_word = ""  # лучшее слово
+    best_hint = get_empty_board(len(board), len(board[0]))  # лучшее слово
+    # в формате матрицы
+    best_hint_value = 0  # ценность лучшего слова
+    best_hint_start_index = mid_index  # стартовая позиция лучшего слова
+
+    dictionary = read_txt_to_list("dictionary.txt")
+
+    # идем по словарю
+    for word in dictionary:
+        # если можем составить слово из тех букв, что имеются
+        if is_word_compilable(letters, word):
+
+            # если слово слишком короткое для бонуса
+            if len(word) <= bonus_range:
+                # считаем ценность слова
+                word_value = calculate_word_value(word, board, mid_index,
+                                                  mid_index - 1)
+                # если ценность выше текущего лучшего слова,
+                # берем новое слово за самое ценное
+                if word_value >= best_hint_value:
+                    best_word = word
+                    best_hint_value = word_value
+                    best_hint_start_index = mid_index - 1
+
+            # если слово может попасть на бонус
+            else:
+                # идем по позициям слева так, чтобы зацепить бонус,
+                # но также зацепить стартовую клетку
+                for i in range(mid_index - len(word) + 1,
+                               mid_index - bonus_range + 1):
+                    # считаем ценность слова
+                    word_value = calculate_word_value(word, board, mid_index, i)
+
+                    # если ценность выше текущего лучшего слова,
+                    # берем новое слово за самое ценное
+                    if word_value >= best_hint_value:
+                        best_word = word
+                        best_hint_value = word_value
+                        best_hint_start_index = i
+
+                    # далее то же самое для симметричной позиции
+
+                    # симметричный i индекс
+                    sym_index = 2 * mid_index - i - len(word) + 1
+                    word_value = calculate_word_value(word, board, mid_index,
+                                                      sym_index)
+                    if word_value >= best_hint_value:
+                        best_word = word
+                        best_hint_value = word_value
+                        best_hint_start_index = sym_index
+
+    # записываем полученные результаты в матрицу
+    for i in range(len(best_word)):
+        best_hint[mid_index][best_hint_start_index + i] = best_word[i]
+
+    return best_hint
+
+
 def is_word_compilable(letters: Counter, word: str) -> bool:
     """
     Проверяет возможность составить слово из переданных букв.
@@ -76,163 +168,20 @@ def is_word_compilable(letters: Counter, word: str) -> bool:
     return True
 
 
-def arrange_long_word_to_empty_board(word: str) -> [str]:
-    """Располагает слово, длиной от 5 до 7 на стартовой доске наилучшим образом,
-    с учетом бонусов.
-    :param word: слово, которое располагаем
-    :return: самый ценный вариант расположения слова на пустой доске
-    """
-    most_expensive_letter_value = 0
-    most_expensive_letter = None
-
-    # bonuses = BOARD_BONUSES
-    best_hint = get_empty_board(15, 15)
-
-    center_of_board_by_y = int(len(best_hint) / 2)
-    center_of_board_by_x = int(len(best_hint[center_of_board_by_y]) / 2)
-    row_with_arranged_word = best_hint[center_of_board_by_y]
-
-    distance_to_bonus = 4  # Расстояние от стартового поля до бонуса x2
-    # todo: calculate it for each board
-
-    word_len = len(word)
-    available_movement = word_len - distance_to_bonus
-    # На сколько слово может двигаться, оставаясь на стартовом поле
-
-    letters_available_to_bonus = word[:available_movement] + \
-                                 word[-available_movement:]
-    # Буквы, которые могут быть на бонусе
-
-    for letter in letters_available_to_bonus:
-        if LETTERS_VALUES[letter] > most_expensive_letter_value:
-            most_expensive_letter_value = LETTERS_VALUES[letter]
-            most_expensive_letter = letter
-            # Находим самую ценную букву из доступных
-
-    blocked_letters_len = word_len - len(letters_available_to_bonus)
-    word_for_indices = word[:available_movement] + '#' * blocked_letters_len + \
-                       word[-available_movement:]
-    # Создадим слово, где заблокированные буквы будут заменены на '#',
-    # чтобы не найти ложные индексы, в случае,
-    # если заблокированная буква совпадает с
-    # самой ценной буквой, которая расположена
-    # после аналогичной заблокированной.
-
-    most_expensive_letter_index = word_for_indices.find(most_expensive_letter)
-    # Находим индекс самой ценной буквы из доступных
-
-    # Бонусная буква делит слово на 2 части (бонусная буква идет во 2-ю часть)
-    first_part = word[:most_expensive_letter_index]
-    first_part_len = len(first_part)
-    second_part = word[most_expensive_letter_index:]
-    second_part_len = len(second_part)
-
-    if most_expensive_letter_index < int(word_len / 2):
-        # Если самая ценная из доступных букв, находится в 1-й половине слова
-        bonus_index = center_of_board_by_x - distance_to_bonus
-
-    # Если самая ценная из доступных букв, находится во 2-й половине слова
-    else:
-        bonus_index = center_of_board_by_x + distance_to_bonus
-
-    row_with_arranged_word = row_with_arranged_word[
-                             :bonus_index - first_part_len] + list(
-        first_part) + list(second_part) + row_with_arranged_word[
-                                          bonus_index + second_part_len:]
-    # Располагаем слово в ряде наилучшим образом
-
-    return row_with_arranged_word
-
-
-def get_best_hint_for_empty_board(letters: Counter) -> [[str]]:
-    """
-    Генерирует первый ход. Выдает расположение лучшего слова для 1-ого хода.
-    :param letters: буквы, которые есть у игрока
-    :return: доска с расположенным лучшим словом
-    """
-    best_hint = get_empty_board(15, 15)  # Создаем пустую доску
-    center_of_board_by_y = int(len(best_hint) / 2)
-
-    best_word = find_best_word_for_empty_board(letters)
-    best_word_len = len(best_word)
-
-    # Все слова, которые короче 5-и букв, ставим в середину ряда
-    if best_word_len < 5:
-        word_start_index = int((len(best_hint[center_of_board_by_y]) -
-                                best_word_len) / 2)
-        # Рассчитываем индекс, откуда начинается слово
-
-        best_hint[center_of_board_by_y] = \
-            best_hint[center_of_board_by_y][:word_start_index] + \
-            list(best_word) + \
-            best_hint[center_of_board_by_y][word_start_index + best_word_len:]
-        # Заменяем середину ряда на найденое слово
-
-    else:  # Располагаем на доске слово, состоящее из 5-7 букв
-        best_hint[center_of_board_by_y] = arrange_long_word_to_empty_board(
-            best_word)
-
-    return best_hint
-
-
-def find_best_word_for_empty_board(letters: Counter) -> str:
-    """
-    Ищет лучшее слово, которое можно составить из букв игрока в начале игры.
-    :param letters: буквы, которые есть у игрока
-    :return: лучшее слово
-    """
-    best_word = ''
-    best_word_value = 0
-
-    best_hint = get_empty_board(15, 15)  # Создаем пустую доску
-    center_of_board_by_y = int(len(best_hint) / 2)
-
-    with open(DICTIONARY_FILENAME, 'r', encoding='utf-8') as dict_file:
-        for line in dict_file:  # Читаем строки из словаря
-            word = line[:-1]  # Записываем слово без '\n'
-            if is_word_compilable(letters, word):
-                # Если слово можно составить из букв игрока
-                word_len = len(word)
-
-                if word_len < 5:
-                    word_value = calculate_letters_value(word)
-                    if word_value > best_word_value:
-                        best_word = word
-                        best_word_value = word_value
-
-                elif word_len < 8:  # Если слово состоит из 5-7 букв
-                    row = arrange_long_word_to_empty_board(word)
-                    # Располагаем слово наилучшим образом
-
-                    word_start_by_x = [i for i in range(len(row)) if row[i]][0]
-                    # Находим индекс начала слова в ряду fixme: Можно быстрее
-
-                    word_value = calculate_word_value(word, best_hint,
-                                                      center_of_board_by_y,
-                                                      word_start_by_x)
-                    # Считаем ценность слова, при лучшем расположении
-
-                    if word_value > best_word_value:
-                        # Если найдено новое лучшее слово
-                        best_word = word
-                        best_word_value = word_value
-
-    return best_word
-
-
 def get_regex_patterns(sharped_row: [str]) -> ([re.Pattern], [[str]]):
     """
     Получает строку, возвращает паттерны, соответствующие этой строке,
     для поиска подходящих слов в словаре по этому паттерну.
     :param sharped_row: размеченный '#' ряд
-    :return: шаблоны, по которому можно найти подходящие слова и список для каждого шаблона,
-    где находятся буквы из этого шаблона
+    :return: шаблоны, по которому можно найти подходящие слова и список для
+    каждого шаблона, где находятся буквы из этого шаблона
     """
     prepared_row = []
     patterns = []
     letters = []
     letters_in_patterns = []
-    # test_row = ['', '', '', 'а', '#', 'а', '#', '#', '#', '#', '', 'р', '', '', '']
+    # test_row = ['', '', '', 'а', '#', 'а', '#',
+    # '#', '#', '#', '', 'р', '', '', '']
 
     for cell in range(len(sharped_row)):
         if sharped_row[cell]:  # Если в клетке есть символ
@@ -274,13 +223,13 @@ def get_regex_patterns(sharped_row: [str]) -> ([re.Pattern], [[str]]):
     return patterns, letters_in_patterns
 
 
-def calculate_letters_value(word: str) -> int:
-    """
-    Считает ценность слова, без учета бонусов.
-    :param word: слово, ценность которого нужно посчитать
-    :return: ценность слова, без учета бонусов
-    """
-    return sum([LETTERS_VALUES[letter] for letter in word])
+# def calculate_letters_value(word: str) -> int:
+#     """
+#     Считает ценность слова, без учета бонусов.
+#     :param word: слово, ценность которого нужно посчитать
+#     :return: ценность слова, без учета бонусов
+#     """
+#     return sum([LETTERS_VALUES[letter] for letter in word])
 
 
 def calculate_word_value(word: str, board: [[str]],
@@ -441,98 +390,62 @@ def get_empty_board(y: int, x: int) -> [[str]]:
     return [[''] * y for _ in range(x)]
 
 
-def get_smallest_sub_dict(letters_in_pattern: [str]) -> str:
+def get_smallest_sub_dict(letters_in_patterns: [[str]]) -> [str]:
     """
-    Выбирает из списка букв самую редкую и возвращает название подсловаря с этой буквой.
-    :param letters_in_pattern: список букв, которые есть в паттерне
-    :return: название наименьшего словаря
+    Для каждого паттерна находит подсловарь наименьшего размера,
+    где содержатся все подходящие в паттерн слова.
+    :param letters_in_patterns: список со списками букв для каждого паттерна
+    :return: список с названиями подсловарей
+    наименьшего размера для каждого паттерна.
     """
+    sub_dicts = []
 
-    min_sub_dict = ''  # Название наименьшего словаря
-    min_sub_dict_size = Path(Path.cwd() / 'dictionary.txt').stat().st_size
+    for letters in letters_in_patterns:
+        min_sub_dict = ''  # название наименьшего словаря
+        min_sub_dict_size = Path(Path.cwd() / 'dictionary.txt').stat().st_size
+        for i in letters:
+            sub_dict_letter = str('letter' + str(ord(i) - 1071) + '.txt')
+            sub_dict_size = Path(Path.cwd() / 'sub-dictionaries' /
+                                 sub_dict_letter).stat().st_size
+            if sub_dict_size < min_sub_dict_size:
+                min_sub_dict = sub_dict_letter
+                min_sub_dict_size = sub_dict_size
+        sub_dicts.append(min_sub_dict)
 
-    # Считываем название полного словаря
-    for i in letters_in_pattern:  # Идем по буквам
-        sub_dict_letter = str('letter' + str(ord(i) - 1071) + '.txt')
-        # Получаем название подсловаря
-
-        sub_dict_size = Path(Path.cwd() / 'sub-dictionaries' /
-                             sub_dict_letter).stat().st_size
-        # Получаем размер подсловаря
-
-        if sub_dict_size < min_sub_dict_size:  # Если размер подсловаря меньше минимального
-            min_sub_dict = sub_dict_letter
-            min_sub_dict_size = sub_dict_size
-
-    return min_sub_dict
-
-
-def read_txt_to_list(txt_filename: str) -> [str]:
-    """
-    Возвращает список слов, из словаря с указанным названием.
-    :param txt_filename: название словаря
-    :return: список слов, из словаря с указанным названием
-    """
-    words = []
-    with open(Path(Path.cwd() / 'dictionaries' / txt_filename), mode='r',
-              encoding='utf-8') as txt_file:
-        for line in txt_file:
-            words.append(line[:-1])
-    return words
+    return sub_dicts
 
 
 # ----- TESTS -----
 if __name__ == '__main__':
     pass
-
     # test_board = [
     #     ['', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
     #     ['', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
-    #     ['', '', '', '', '', '', '', '', '', 'т', '', '', '', '', ''],
-    #     ['', '', '', '', '', '', '', '', '', 'о', '', '', '', '', ''],
-    #     ['', '', '', 'п', 'о', 'c', 'е', 'л', 'о', 'к', '', '', '', '', ''],
-    #     ['', '', '', 'а', '', 'а', '', '', '', '', '', 'р', '', '', ''],
-    #     ['', '', '', 'п', '', 'д', 'о', 'м', '', 'я', '', 'е', '', '', ''],
-    #     ['', '', '', 'а', '', '', '', 'а', 'з', 'б', 'у', 'к', 'а', '', ''],
-    #     ['', '', '', '', '', 'с', 'о', 'м', '', 'л', '', 'а', '', '', ''],
-    #     ['', '', '', 'я', 'м', 'а', '', 'а', '', 'о', '', '', '', '', ''],
-    #     ['', '', '', '', '', 'л', '', '', '', 'к', 'и', 'т', '', '', ''],
-    #     ['', '', '', '', 'с', 'о', 'л', 'ь', '', 'о', '', '', '', '', ''],
+    #     ['', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
+    #     ['', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
+    #     ['', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
+    #     ['', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
+    #     ['', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
+    #     ['', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
+    #     ['', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
+    #     ['', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
+    #     ['', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
+    #     ['', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
     #     ['', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
     #     ['', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
     #     ['', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
     # ]
 
-    # print(20 == calculate_word_value('тотем',
-    #                                  transpose_board(test_board), 11, 10))
-    # print(8 == calculate_word_value('дуло',
-    #                                 transpose_board(test_board), 4, 1))
-    # передаем транспонированную доску, тк слово написано по вертикали
-    # если доска транспонирована - координаты меняются местами
-
-    # test_marked_board = get_marked_rows(test_board)
-    # for iii in range(len(test_marked_board)):
-    #     print(test_marked_board[iii])
-    # print(get_marked_row(test_board, 12))
-    # print(get_best_hint_for_empty_board(Counter('собака'))[7])
-    # print(get_best_hint_for_empty_board(Counter('салат'))[7])
-    # print(get_best_hint_for_empty_board(Counter('шалаш'))[7])
-    # print(get_best_hint_for_empty_board(Counter('суп'))[7])
-    # print(get_best_hint_for_empty_board(Counter('абв'))[7])
-    # print(get_best_hint_for_empty_board(Counter('абвг'))[7])
-    # print(get_best_hint_for_empty_board(Counter('абвгд'))[7])
-    # print(get_best_hint_for_empty_board(Counter('абвгде'))[7])
-    # print(get_best_hint_for_empty_board(Counter('абвгдеж'))[7])
-    # print(get_best_hint_for_empty_board(Counter('абвгдежз'))[7])
-    # print(get_best_hint_for_empty_board(Counter('абвгдежзи'))[7])
-    # print(get_best_hint_for_empty_board(Counter('абвгдежзи'))[7])
-    # print(get_best_hint_for_empty_board(Counter('уеаояижзфцшщъыьэю'))[7])
-    # print(get_best_hint_for_empty_board(Counter('аашаш'))[7])
-
-    # TIME: 1.36 s ± 21.7 ms per loop (mean ± std. dev. of 7 runs, 1 loop each)
-
-    # patterns_, letters_ = get_regex_patterns(
-    #    ['', '', 'ж', 'а', '#', 'а', '#', '#', '#', '#', '', 'р', 'ю', '', ''])
-    # print(patterns_, letters_)
-
-    # print(get_smallest_sub_dict(letters_))
+    # print(get_best_hint_for_empty_board(test_board, Counter('собака'))[7])
+    # print(get_best_hint_for_empty_board(test_board, Counter('салатик'))[7])
+    # print(get_best_hint_for_empty_board(test_board, Counter('шалаш'))[7])
+    # print(get_best_hint_for_empty_board(test_board, Counter('суп'))[7])
+    # print(get_best_hint_for_empty_board(test_board, Counter('абв'))[7])
+    # print(get_best_hint_for_empty_board(test_board, Counter('абвг'))[7])
+    # print(get_best_hint_for_empty_board(test_board, Counter('абвгд'))[7])
+    # print(get_best_hint_for_empty_board(test_board, Counter('абвгде'))[7])
+    # print(get_best_hint_for_empty_board(test_board, Counter('абвгдеж'))[7])
+    # print(get_best_hint_for_empty_board(test_board, Counter('абвгдежз'))[7])
+    # print(get_best_hint_for_empty_board(test_board, Counter('абвгдежзи'))[7])
+    # print(get_best_hint_for_empty_board(test_board,
+    # Counter('уеаояижзфцшщъыьэю'))[7])
