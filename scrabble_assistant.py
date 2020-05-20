@@ -441,28 +441,44 @@ def get_empty_board(y: int, x: int) -> [[str]]:
     return [[''] * y for _ in range(x)]
 
 
-def get_smallest_sub_dict(letters_in_patterns: [[str]]) -> [str]:
+def get_smallest_sub_dict(letters_in_pattern: [str]) -> str:
     """
-    Для каждого паттерна находит подсловарь наименьшего размера,
-    где содержатся все подходящие в паттерн слова.
-    :param letters_in_patterns: список со списками букв для каждого паттерна
-    :return: список с названиями подсловарей наименьшего размера для каждого паттерна.
+    Выбирает из списка букв самую редкую и возвращает название подсловаря с этой буквой.
+    :param letters_in_pattern: список букв, которые есть в паттерне
+    :return: название наименьшего словаря
     """
-    sub_dicts = []
 
-    for letters in letters_in_patterns:
-        min_sub_dict = ''  # название наименьшего словаря
-        min_sub_dict_size = Path(Path.cwd() / 'dictionary.txt').stat().st_size
-        for i in letters:
-            sub_dict_letter = str('letter' + str(ord(i) - 1071) + '.txt')
-            sub_dict_size = Path(Path.cwd() / 'sub-dictionaries' /
-                                 sub_dict_letter).stat().st_size
-            if sub_dict_size < min_sub_dict_size:
-                min_sub_dict = sub_dict_letter
-                min_sub_dict_size = sub_dict_size
-        sub_dicts.append(min_sub_dict)
+    min_sub_dict = ''  # Название наименьшего словаря
+    min_sub_dict_size = Path(Path.cwd() / 'dictionary.txt').stat().st_size
 
-    return sub_dicts
+    # Считываем название полного словаря
+    for i in letters_in_pattern:  # Идем по буквам
+        sub_dict_letter = str('letter' + str(ord(i) - 1071) + '.txt')
+        # Получаем название подсловаря
+
+        sub_dict_size = Path(Path.cwd() / 'sub-dictionaries' /
+                             sub_dict_letter).stat().st_size
+        # Получаем размер подсловаря
+
+        if sub_dict_size < min_sub_dict_size:  # Если размер подсловаря меньше минимального
+            min_sub_dict = sub_dict_letter
+            min_sub_dict_size = sub_dict_size
+
+    return min_sub_dict
+
+
+def read_txt_to_list(txt_filename: str) -> [str]:
+    """
+    Возвращает список слов, из словаря с указанным названием.
+    :param txt_filename: название словаря
+    :return: список слов, из словаря с указанным названием
+    """
+    words = []
+    with open(Path(Path.cwd() / 'dictionaries' / txt_filename), mode='r',
+              encoding='utf-8') as txt_file:
+        for line in txt_file:
+            words.append(line[:-1])
+    return words
 
 
 # ----- TESTS -----
