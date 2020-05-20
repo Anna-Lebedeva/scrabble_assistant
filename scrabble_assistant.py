@@ -85,7 +85,6 @@ def arrange_long_word_to_empty_board(word: str) -> [str]:
     most_expensive_letter_value = 0
     most_expensive_letter = None
 
-    letters_values = LETTERS_VALUES
     # bonuses = BOARD_BONUSES
     best_hint = get_empty_board(15, 15)
 
@@ -105,8 +104,8 @@ def arrange_long_word_to_empty_board(word: str) -> [str]:
     # Буквы, которые могут быть на бонусе
 
     for letter in letters_available_to_bonus:
-        if letters_values[letter] > most_expensive_letter_value:
-            most_expensive_letter_value = letters_values[letter]
+        if LETTERS_VALUES[letter] > most_expensive_letter_value:
+            most_expensive_letter_value = LETTERS_VALUES[letter]
             most_expensive_letter = letter
             # Находим самую ценную букву из доступных
 
@@ -221,12 +220,13 @@ def find_best_word_for_empty_board(letters: Counter) -> str:
     return best_word
 
 
-def get_regex_patterns(sharped_row: [str]):
+def get_regex_patterns(sharped_row: [str]) -> ([re.Pattern], [[str]]):
     """
     Получает строку, возвращает паттерны, соответствующие этой строке,
     для поиска подходящих слов в словаре по этому паттерну.
     :param sharped_row: размеченный '#' ряд
-    :return: шаблон, по которому можно найти подходящие слова и букву из этого шаблона
+    :return: шаблоны, по которому можно найти подходящие слова и список для каждого шаблона,
+    где находятся буквы из этого шаблона
     """
     prepared_row = []
     patterns = []
@@ -280,11 +280,7 @@ def calculate_letters_value(word: str) -> int:
     :param word: слово, ценность которого нужно посчитать
     :return: ценность слова, без учета бонусов
     """
-
-    # Считываем ценности букв
-    letters_values = LETTERS_VALUES
-
-    return sum([letters_values[letter] for letter in word])
+    return sum([LETTERS_VALUES[letter] for letter in word])
 
 
 def calculate_word_value(word: str, board: [[str]],
@@ -447,7 +443,8 @@ def get_empty_board(y: int, x: int) -> [[str]]:
 
 def get_smallest_sub_dict(letters_in_patterns: [[str]]) -> [str]:
     """
-
+    Для каждого паттерна находит подсловарь наименьшего размера,
+    где содержатся все подходящие в паттерн слова.
     :param letters_in_patterns: список со списками букв для каждого паттерна
     :return: список с названиями подсловарей наименьшего размера для каждого паттерна.
     """
@@ -462,6 +459,7 @@ def get_smallest_sub_dict(letters_in_patterns: [[str]]) -> [str]:
                                  sub_dict_letter).stat().st_size
             if sub_dict_size < min_sub_dict_size:
                 min_sub_dict = sub_dict_letter
+                min_sub_dict_size = sub_dict_size
         sub_dicts.append(min_sub_dict)
 
     return sub_dicts
@@ -518,7 +516,7 @@ if __name__ == '__main__':
     # TIME: 1.36 s ± 21.7 ms per loop (mean ± std. dev. of 7 runs, 1 loop each)
 
     # patterns_, letters_ = get_regex_patterns(
-        ['', '', '', 'а', '#', 'а', '#', '#', '#', '#', '', 'р', '', '', ''])
+    #    ['', '', 'ж', 'а', '#', 'а', '#', '#', '#', '#', '', 'р', 'ю', '', ''])
     # print(patterns_, letters_)
 
     # print(get_smallest_sub_dict(letters_))
