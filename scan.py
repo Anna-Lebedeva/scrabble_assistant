@@ -158,9 +158,9 @@ def make_prediction(square: list) -> [np.ndarray]:
     """
 
     # Отключение назойливых предупреждений
-    import tensorflow
+    import tensorflow as tf
     import os
-    tensorflow.get_logger().setLevel('ERROR')
+    tf.get_logger().setLevel('ERROR')
     os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 
     # Пути до файлов модели
@@ -187,11 +187,14 @@ def make_prediction(square: list) -> [np.ndarray]:
         for i in range(15):
             image = square[j][i]
             cv2.imwrite("./" + str(i) + ".jpg", image)
+            # image = cv2.imread("./" + str(i) + ".jpg", cv2.IMREAD_GRAYSCALE)
             image = misc.imread("./" + str(i) + ".jpg")
             os.remove("./" + str(i) + ".jpg")
             image = misc.imresize(image, (64, 64))
+            # image = image.reshape(64, 64, 1)
             image = np.array([image])
             image = image.astype('float32')
+            # image = 255 - image
             image = image / 255.0
 
             prediction = loaded_model.predict(image)
@@ -208,7 +211,7 @@ def make_prediction(square: list) -> [np.ndarray]:
 if __name__ == "__main__":
     pass
     external_cropped_board = imutils.resize(cut_by_external_contour(
-        "!raw_images_to_cut/"), height=750)
+        "images_real/a1.jpg"), height=750)
     internal_cropped_board = imutils.resize(cut_by_internal_contour(
         external_cropped_board, left=3.3, top=3.0, right=0.3, bot=1.4),
         height=750)
