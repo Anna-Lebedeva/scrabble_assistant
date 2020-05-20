@@ -5,6 +5,9 @@ import numpy as np
 from scipy import misc
 from keras.models import model_from_json
 import pickle
+import tensorflow as tf
+import os
+import json
 
 
 def cut_by_external_contour(path: str) -> np.ndarray:
@@ -157,11 +160,14 @@ def make_prediction(square: list) -> [np.ndarray]:
     :return:
     """
 
-    # Отключение назойливых предупреждений
-    import tensorflow as tf
-    import os
+    # # Отключение назойливых предупреждений
     tf.get_logger().setLevel('ERROR')
     os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
+
+    # Импорт файла для замены чисел на буквы
+    with open(file="jsons/folders_mapping.json", mode='r',
+              encoding='utf-8') as file:
+        folder_values = json.load(file)
 
     # Пути до файлов модели
     path_to_classifier = "./ML/int_to_word_out.pickle"
@@ -179,7 +185,7 @@ def make_prediction(square: list) -> [np.ndarray]:
     # load weights into new model
     loaded_model.load_weights(path_to_weights)
 
-    from PIL import Image
+    # from PIL import Image
 
     predictions = []
     for j in range(15):
@@ -201,7 +207,12 @@ def make_prediction(square: list) -> [np.ndarray]:
             prediction = int_to_word_out[np.argmax(prediction)]
             predictions[j].append(prediction)
 
-            print(prediction)
+            # замена числа на букву
+            prediction_letter = folder_values["{}".format(prediction)]
+
+            print(prediction_letter)
+            # print(prediction)
+
             cv2.imshow("", square[j][i])
             cv2.waitKey()
 
@@ -211,7 +222,7 @@ def make_prediction(square: list) -> [np.ndarray]:
 if __name__ == "__main__":
     pass
     external_cropped_board = imutils.resize(cut_by_external_contour(
-        "images_real/a1.jpg"), height=750)
+        "images_real/a3.jpg"), height=750)
     internal_cropped_board = imutils.resize(cut_by_internal_contour(
         external_cropped_board, left=3.3, top=3.0, right=0.3, bot=1.4),
         height=750)

@@ -15,11 +15,7 @@ import tensorflow
 import os
 import numpy as np
 
-# K.set_image_dim_ordering('tf')
 K.set_image_data_format('channels_last')
-
-tensorflow.get_logger().setLevel('ERROR')
-os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 
 path_to_classifier = "int_to_word_out.pickle"
 path_to_model_json = "model_face.json"
@@ -51,14 +47,16 @@ model.add(Dropout(0.5))
 model.add(Dense(num_classes, activation='softmax'))
 
 # Сборка модели
-epochs = 20
+epochs = 100
 lrate = 0.01
 decay = lrate / epochs
-batch_size = 128     # Кол-во элементов в выборке до изменения значений весов
+batch_size = 512     # Кол-во элементов в выборке до изменения значений весов
+momentum = 0  # 0.9 было
 
 
 # Создание экземпляра оптимизатора
-sgd = optimizers.SGD(lr=lrate, momentum=0.9, decay=decay, nesterov=False)
+# sgd = optimizers.SGD(lr=lrate, momentum=momentum, decay=decay, nesterov=False)
+sgd = optimizers.SGD()
 # rmsprop = optimizers.RMSprop()
 
 # Конфигурация обучения: минимизируемая функция потерь,
@@ -67,17 +65,17 @@ model.compile(loss='categorical_crossentropy', optimizer=sgd,
               metrics=['accuracy'])
 print(model.summary())
 
-# callbacks = [
-#     keras.callbacks.EarlyStopping(
-#         # Прекратить обучение если `val_loss` больше не улучшается
-#         monitor='val_loss',
-#         # "больше не улучшается" определим как "не лучше чем 1e-2 и меньше"
-#         min_delta=1e-2,
-#         # "больше не улучшается" далее определим как "как минимум в течение 2 эпох"
-#         patience=2,
-#         # печатать диагностическую информацию
-#         verbose=1)
-# ]
+callbacks = [
+    keras.callbacks.EarlyStopping(
+        # Прекратить обучение если `val_loss` больше не улучшается
+        monitor='val_loss',
+        # точность не лучше, чем столько и меньше
+        min_delta=1e-2,
+        # в течение минимум стольких эпох
+        patience=2,
+        # выводить диагностическую информацию
+        verbose=1)
+]
 
 # Обучение сети
 model.fit(X_train, y_train, epochs=epochs, batch_size=batch_size,
@@ -97,4 +95,6 @@ with open(path_to_model_json, "w") as json_file:
 # Запись данных о весах в файл
 model.save_weights(path_to_model_weights)
 
+
+# Гибернация компьютера по завершении тренировки
 # os.system("shutdown /h /f")
