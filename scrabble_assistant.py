@@ -359,7 +359,7 @@ def get_empty_board(y: int, x: int) -> [[str]]:
 
 
 # author - Matvey
-# todo: у нас изменились пути, переписать
+# fixme: у нас изменились пути, переписать
 # todo: может вернуть не имя файла, а путь к нему?
 def get_smallest_sub_dict(letters_in_pattern: [str]) -> str:
     """
