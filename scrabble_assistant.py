@@ -3,6 +3,7 @@ from pathlib import Path
 import numpy as np
 import json
 import re
+import time
 
 # пути к json файлам
 #
@@ -69,7 +70,7 @@ def get_best_hint(board: [[str]], letters: Counter) -> [[str]]:
 
 
 # author - Pavel
-def get_best_hint_for_empty_board(board: [[str]], letters: Counter) -> [[str]]:
+def get_best_hint_for_empty_board_brute_force(board: [[str]], letters: Counter) -> [[str]]:
     """
     Дает лучшую подсказку для первого хода (пустая доска)
     :param board: доска, на которой идет игра
@@ -106,6 +107,85 @@ def get_best_hint_for_empty_board(board: [[str]], letters: Counter) -> [[str]]:
 
     # записываем лучшее слово в матрицу доски
     best_hint = get_empty_board(len(board), len(board[0]))
+    for i in range(len(best_word)):
+        best_hint[mid_index][best_hint_start_index + i] = best_word[i]
+
+    return best_hint
+
+
+# author - Pavel
+def get_best_hint_for_empty_board_not_brute_force(board: [[str]], letters: Counter) -> [[str]]:
+    """
+    Генерирует первый ход. Выдает расположение лучшего слова для 1-ого хода.
+    :param board: доска, на которой идет игра
+    :param letters: буквы, которые есть у игрока
+    :return: доска с расположенным лучшим словом
+    """
+
+    mid_index = int(len(board) / 2)  # центральная клетка по x
+
+    # далее определяем bonus_range, используя файл с бонусами
+    # при bones_range = len(letters) и выше, бонусы не учитываются
+    # в стандартном случае при len(letters) = 7 бонусы не учтутся
+    bonus_range = 4  # расстояние между центром и бонусами
+    # for i in range(mid_index + 1, len(BOARD_BONUSES[mid_index])):
+    #     if BOARD_BONUSES[mid_index][i] == "x2":
+    #         bonus_range = i - mid_index
+    #         break
+
+    best_word = ""  # лучшее слово
+    best_hint = get_empty_board(len(board), len(board[0]))  # лучшее слово
+    # в формате матрицы
+    best_hint_value = 0  # ценность лучшего слова
+    best_hint_start_index = mid_index  # стартовая позиция лучшего слова
+
+    # идем по словарю
+    with open(DICTIONARY_FILENAME, 'r', encoding='utf-8') as dictionary:
+        for line in dictionary:  # Читаем строки из словаря
+            word = line[:-1]  # без \n
+            # если можем составить слово из тех букв, что имеются
+            if is_word_compilable(letters, word):
+
+                # если слово слишком короткое для бонуса
+                if len(word) <= bonus_range:
+                    # считаем ценность слова
+                    word_value = calculate_word_value(word, board, mid_index,
+                                                      mid_index - 1)
+                    # если ценность выше текущего лучшего слова,
+                    # берем новое слово за самое ценное
+                    if word_value >= best_hint_value:
+                        best_word = word
+                        best_hint_value = word_value
+                        best_hint_start_index = mid_index - 1
+
+                # если слово может попасть на бонус
+                else:
+                    # идем по позициям слева так, чтобы зацепить бонус,
+                    # но также зацепить стартовую клетку
+                    for i in range(mid_index - len(word) + 1,
+                                   mid_index - bonus_range + 1):
+                        # считаем ценность слова
+                        word_value = calculate_word_value(word, board, mid_index, i)
+
+                        # если ценность выше текущего лучшего слова,
+                        # берем новое слово за самое ценное
+                        if word_value >= best_hint_value:
+                            best_word = word
+                            best_hint_value = word_value
+                            best_hint_start_index = i
+
+                        # далее то же самое для симметричной позиции
+
+                        # симметричный i индекс
+                        sym_index = 2 * mid_index - i - len(word) + 1
+                        word_value = calculate_word_value(word, board, mid_index,
+                                                          sym_index)
+                        if word_value >= best_hint_value:
+                            best_word = word
+                            best_hint_value = word_value
+                            best_hint_start_index = sym_index
+
+    # записываем полученные результаты в матрицу
     for i in range(len(best_word)):
         best_hint[mid_index][best_hint_start_index + i] = best_word[i]
 
@@ -359,7 +439,7 @@ def get_empty_board(y: int, x: int) -> [[str]]:
 
 
 # author - Matvey
-# fixme: у нас изменились пути, переписать
+# todo: у нас изменились пути, переписать
 # todo: может вернуть не имя файла, а путь к нему?
 def get_smallest_sub_dict(letters_in_pattern: [str]) -> str:
     """
@@ -393,23 +473,23 @@ def get_smallest_sub_dict(letters_in_pattern: [str]) -> str:
 if __name__ == '__main__':
     pass
 
-    # test_board = [
-    #     ['', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
-    #     ['', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
-    #     ['', '', '', '', '', '', '', '', '', 'т', '', '', '', '', ''],
-    #     ['', '', '', '', '', '', '', '', '', 'о', '', '', '', '', ''],
-    #     ['', '', '', 'п', 'о', 'c', 'е', 'л', 'о', 'к', '', '', '', '', ''],
-    #     ['', '', '', 'а', '', 'а', '', '', '', '', '', 'р', '', '', ''],
-    #     ['', '', '', 'п', '', 'д', 'о', 'м', '', 'я', '', 'е', '', '', ''],
-    #     ['', '', '', 'а', '', '', '', 'а', 'з', 'б', 'у', 'к', 'а', '', ''],
-    #     ['', '', '', '', '', 'с', 'о', 'м', '', 'л', '', 'а', '', '', ''],
-    #     ['', '', '', 'я', 'м', 'а', '', 'а', '', 'о', '', '', '', '', ''],
-    #     ['', '', '', '', '', 'л', '', '', '', 'к', 'и', 'т', '', '', ''],
-    #     ['', '', '', '', 'с', 'о', 'л', 'ь', '', 'о', '', '', '', '', ''],
-    #     ['', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
-    #     ['', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
-    #     ['', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
-    # ]
+    test_board = [
+        ['', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
+        ['', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
+        ['', '', '', '', '', '', '', '', '', 'т', '', '', '', '', ''],
+        ['', '', '', '', '', '', '', '', '', 'о', '', '', '', '', ''],
+        ['', '', '', 'п', 'о', 'c', 'е', 'л', 'о', 'к', '', '', '', '', ''],
+        ['', '', '', 'а', '', 'а', '', '', '', '', '', 'р', '', '', ''],
+        ['', '', '', 'п', '', 'д', 'о', 'м', '', 'я', '', 'е', '', '', ''],
+        ['', '', '', 'а', '', '', '', 'а', 'з', 'б', 'у', 'к', 'а', '', ''],
+        ['', '', '', '', '', 'с', 'о', 'м', '', 'л', '', 'а', '', '', ''],
+        ['', '', '', 'я', 'м', 'а', '', 'а', '', 'о', '', '', '', '', ''],
+        ['', '', '', '', '', 'л', '', '', '', 'к', 'и', 'т', '', '', ''],
+        ['', '', '', '', 'с', 'о', 'л', 'ь', '', 'о', '', '', '', '', ''],
+        ['', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
+        ['', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
+        ['', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
+    ]
 
     # print(20 == calculate_word_value('тотем',
     #                                  transpose_board(test_board), 11, 10))
@@ -423,19 +503,26 @@ if __name__ == '__main__':
     #     print(test_marked_board[iii])
     # print(get_marked_row(test_board, 12))
 
-    # empty_board = get_empty_board(len(test_board), len(test_board[0]))
-    # print(get_best_hint_for_empty_board(empty_board, Counter('собака'))[7])
-    # print(get_best_hint_for_empty_board(empty_board, Counter('салат'))[7])
-    # print(get_best_hint_for_empty_board(empty_board, Counter('шалаш'))[7])
-    # print(get_best_hint_for_empty_board(empty_board, Counter('суп'))[7])
-    # print(get_best_hint_for_empty_board(empty_board, Counter('абв'))[7])
-    # print(get_best_hint_for_empty_board(empty_board, Counter('абвг'))[7])
-    # print(get_best_hint_for_empty_board(empty_board, Counter('абвгд'))[7])
-    # print(get_best_hint_for_empty_board(empty_board, Counter('абвгде'))[7])
-    # print(get_best_hint_for_empty_board(empty_board, Counter('абвгдеж'))[7])
-    # print(get_best_hint_for_empty_board(empty_board, Counter('абвгдежз'))[7])
-    # print(get_best_hint_for_empty_board(empty_board, Counter('абвгдежзи'))[7])
-    # print(get_best_hint_for_empty_board(empty_board,
+    empty_board = get_empty_board(len(test_board), len(test_board[0]))
+
+    t1 = time.time()
+    print(get_best_hint_for_empty_board_brute_force(empty_board, Counter('абвгдежзи'))[7])
+    print(time.time() - t1)
+    t1 = time.time()
+    print(get_best_hint_for_empty_board_not_brute_force(empty_board, Counter('абвгдежзи'))[7])
+    print(time.time() - t1)
+
+    # print(get_best_hint_for_empty_board_not_brute_force(empty_board, Counter('салат'))[7])
+    # print(get_best_hint_for_empty_board_not_brute_force(empty_board, Counter('шалаш'))[7])
+    # print(get_best_hint_for_empty_board_not_brute_force(empty_board, Counter('суп'))[7])
+    # print(get_best_hint_for_empty_board_not_brute_force(empty_board, Counter('абв'))[7])
+    # print(get_best_hint_for_empty_board_not_brute_force(empty_board, Counter('абвг'))[7])
+    # print(get_best_hint_for_empty_board_not_brute_force(empty_board, Counter('абвгд'))[7])
+    # print(get_best_hint_for_empty_board_not_brute_force(empty_board, Counter('абвгде'))[7])
+    # print(get_best_hint_for_empty_board_not_brute_force(empty_board, Counter('абвгдеж'))[7])
+    # print(get_best_hint_for_empty_board_not_brute_force(empty_board, Counter('абвгдежз'))[7])
+    # print(get_best_hint_for_empty_board_not_brute_force(empty_board, Counter('абвгдежзи'))[7])
+    # print(get_best_hint_for_empty_board_not_brute_force(empty_board,
     #                                     Counter('уеаояижзфцшщъыьэю'))[7])
     # print(get_best_hint_for_empty_board(empty_board, Counter('аашаш'))[7])
 
