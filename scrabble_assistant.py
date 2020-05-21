@@ -7,11 +7,14 @@ import time
 
 # пути к json файлам
 #
-LETTERS_VALUES_FILENAME = "jsons/letters_values.json"  # ценность букв
-LETTERS_AMOUNT_FILENAME = "jsons/letters_amount.json"  # кол-во букв
-BOARD_BONUSES_FILENAME = "jsons/board_bonuses.json"  # бонусы на доске
+LETTERS_VALUES_FILE_PATH = "jsons/letters_values.json"  # ценность букв
+LETTERS_AMOUNT_FILE_PATH = "jsons/letters_amount.json"  # кол-во букв
+BOARD_BONUSES_FILE_PATH = "jsons/board_bonuses.json"  # бонусы на доске
 
-DICTIONARY_FILENAME = "dictionaries/dictionary.txt"  # путь к основному словарю
+# путь к основному словарю
+DICTIONARY_FILE_PATH = "dictionaries/dictionary.txt"
+# путь к словарю из 7 и менее букв
+DICTIONARY_MAX_7_LETTERS_FILE_PATH = "dictionaries/dictionary_max_7_letters.txt"
 
 
 # author - Matvey
@@ -39,11 +42,11 @@ def read_json_to_list(json_filename: str) -> [[str]]:
 
 
 # словарь с ценностью букв
-LETTERS_VALUES = read_json_to_dict(LETTERS_VALUES_FILENAME)
+LETTERS_VALUES = read_json_to_dict(LETTERS_VALUES_FILE_PATH)
 # словарь с кол-вом букв в игре
-LETTERS_AMOUNT = read_json_to_dict(LETTERS_AMOUNT_FILENAME)
+LETTERS_AMOUNT = read_json_to_dict(LETTERS_AMOUNT_FILE_PATH)
 # список бонусов доски в виде матрицы
-BOARD_BONUSES = read_json_to_list(BOARD_BONUSES_FILENAME)
+BOARD_BONUSES = read_json_to_list(BOARD_BONUSES_FILE_PATH)
 
 
 # authors - Pavel and Matvey
@@ -87,7 +90,7 @@ def get_best_hint_for_empty_board_brute_force(board: [[str]], letters: Counter) 
     best_hint_start_index = mid_index  # стартовый индекс
 
     # открываем словарь
-    with open(DICTIONARY_FILENAME, 'r', encoding='utf-8') as dictionary:
+    with open(DICTIONARY_MAX_7_LETTERS_FILE_PATH, 'r', encoding='utf-8') as dictionary:
         for line in dictionary:  # Читаем строки из словаря
             word = line[:-1]  # без \n
             # если слово нельзя собрать - пропускаем его
@@ -114,6 +117,22 @@ def get_best_hint_for_empty_board_brute_force(board: [[str]], letters: Counter) 
 
 
 # author - Pavel
+def is_word_compilable(letters: Counter, word: str) -> bool:
+    """
+    Проверяет возможность составить слово из переданных букв.
+    :param letters: счетчик букв игрока
+    :param word: слово
+    :return: можно ли составить из переданных букв переданое слово
+    """
+
+    word_letters = Counter(word)  # Счетчик букв для слова
+    for letter in word_letters.keys():
+        if letters[letter] < word_letters[letter]:
+            # Если количество букв у игрока меньше, чем букв в слове
+            return False
+    return True
+
+
 def get_best_hint_for_empty_board_not_brute_force(board: [[str]], letters: Counter) -> [[str]]:
     """
     Генерирует первый ход. Выдает расположение лучшего слова для 1-ого хода.
@@ -140,7 +159,7 @@ def get_best_hint_for_empty_board_not_brute_force(board: [[str]], letters: Count
     best_hint_start_index = mid_index  # стартовая позиция лучшего слова
 
     # идем по словарю
-    with open(DICTIONARY_FILENAME, 'r', encoding='utf-8') as dictionary:
+    with open(DICTIONARY_MAX_7_LETTERS_FILE_PATH, 'r', encoding='utf-8') as dictionary:
         for line in dictionary:  # Читаем строки из словаря
             word = line[:-1]  # без \n
             # если можем составить слово из тех букв, что имеются
@@ -190,23 +209,7 @@ def get_best_hint_for_empty_board_not_brute_force(board: [[str]], letters: Count
         best_hint[mid_index][best_hint_start_index + i] = best_word[i]
 
     return best_hint
-
-
 # author - Matvey
-def is_word_compilable(letters: Counter, word: str) -> bool:
-    """
-    Проверяет возможность составить слово из переданных букв.
-    :param letters: счетчик букв игрока
-    :param word: слово
-    :return: можно ли составить из переданных букв переданое слово
-    """
-
-    word_letters = Counter(word)  # Счетчик букв для слова
-    for letter in word_letters.keys():
-        if letters[letter] < word_letters[letter]:
-            # Если количество букв у игрока меньше, чем букв в слове
-            return False
-    return True
 
 
 # author - Matvey
@@ -266,14 +269,13 @@ def get_regex_patterns(sharped_row: [str]) -> ([re.Pattern], [[str]]):
 
 
 # author - Matvey
-# todo: удалить?
-# def calculate_letters_value(word: str) -> int:
-#     """
-#     Считает ценность слова, без учета бонусов.
-#     :param word: слово, ценность которого нужно посчитать
-#     :return: ценность слова, без учета бонусов
-#     """
-#     return sum([LETTERS_VALUES[letter] for letter in word])
+def calculate_letters_value(word: str) -> int:
+    """
+    Считает ценность слова, без учета бонусов.
+    :param word: слово, ценность которого нужно посчитать
+    :return: ценность слова, без учета бонусов
+    """
+    return sum([LETTERS_VALUES[letter] for letter in word])
 
 
 # author - Pavel
@@ -473,23 +475,23 @@ def get_smallest_sub_dict(letters_in_pattern: [str]) -> str:
 if __name__ == '__main__':
     pass
 
-    test_board = [
-        ['', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
-        ['', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
-        ['', '', '', '', '', '', '', '', '', 'т', '', '', '', '', ''],
-        ['', '', '', '', '', '', '', '', '', 'о', '', '', '', '', ''],
-        ['', '', '', 'п', 'о', 'c', 'е', 'л', 'о', 'к', '', '', '', '', ''],
-        ['', '', '', 'а', '', 'а', '', '', '', '', '', 'р', '', '', ''],
-        ['', '', '', 'п', '', 'д', 'о', 'м', '', 'я', '', 'е', '', '', ''],
-        ['', '', '', 'а', '', '', '', 'а', 'з', 'б', 'у', 'к', 'а', '', ''],
-        ['', '', '', '', '', 'с', 'о', 'м', '', 'л', '', 'а', '', '', ''],
-        ['', '', '', 'я', 'м', 'а', '', 'а', '', 'о', '', '', '', '', ''],
-        ['', '', '', '', '', 'л', '', '', '', 'к', 'и', 'т', '', '', ''],
-        ['', '', '', '', 'с', 'о', 'л', 'ь', '', 'о', '', '', '', '', ''],
-        ['', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
-        ['', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
-        ['', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
-    ]
+    # test_board = [
+    #     ['', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
+    #     ['', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
+    #     ['', '', '', '', '', '', '', '', '', 'т', '', '', '', '', ''],
+    #     ['', '', '', '', '', '', '', '', '', 'о', '', '', '', '', ''],
+    #     ['', '', '', 'п', 'о', 'c', 'е', 'л', 'о', 'к', '', '', '', '', ''],
+    #     ['', '', '', 'а', '', 'а', '', '', '', '', '', 'р', '', '', ''],
+    #     ['', '', '', 'п', '', 'д', 'о', 'м', '', 'я', '', 'е', '', '', ''],
+    #     ['', '', '', 'а', '', '', '', 'а', 'з', 'б', 'у', 'к', 'а', '', ''],
+    #     ['', '', '', '', '', 'с', 'о', 'м', '', 'л', '', 'а', '', '', ''],
+    #     ['', '', '', 'я', 'м', 'а', '', 'а', '', 'о', '', '', '', '', ''],
+    #     ['', '', '', '', '', 'л', '', '', '', 'к', 'и', 'т', '', '', ''],
+    #     ['', '', '', '', 'с', 'о', 'л', 'ь', '', 'о', '', '', '', '', ''],
+    #     ['', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
+    #     ['', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
+    #     ['', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
+    # ]
 
     # print(20 == calculate_word_value('тотем',
     #                                  transpose_board(test_board), 11, 10))
@@ -503,7 +505,7 @@ if __name__ == '__main__':
     #     print(test_marked_board[iii])
     # print(get_marked_row(test_board, 12))
 
-    empty_board = get_empty_board(len(test_board), len(test_board[0]))
+    empty_board = get_empty_board(15, 15)
 
     t1 = time.time()
     print(get_best_hint_for_empty_board_brute_force(empty_board, Counter('абвгдежзи'))[7])
