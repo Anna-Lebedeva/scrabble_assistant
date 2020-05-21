@@ -9,7 +9,7 @@ from scan import cut_board_on_cells
 from scan import cut_by_external_contour
 from scan import cut_by_internal_contour
 
-path_to_raw = "../!raw_images_to_cut/"
+path_to_raw = "../../!raw_images_to_cut/"
 path_to_train = "../dataset_image/"
 
 str1 = [1, 16, 0]  # Начало, конец+1, номер строки, номер столбца
@@ -23,6 +23,7 @@ white = [98, 99, 7, 7]
 yellow = [77, 78, 5, 1]
 empty = [78, 79, 5]
 all_types = [str1, str2, str3, asterisk, red, blue, green, white, yellow, empty]
+
 
 for a in range(len(all_types)):
     current = all_types[a]
@@ -54,13 +55,25 @@ for a in range(len(all_types)):
             b = bukva
             x = bukva - current[0]
 
+        # Для создания с нуля
         shutil.rmtree(path_to_train + str(b), ignore_errors=True)
         os.mkdir(path_to_train + str(b))
 
-        for i in range(1, len((os.listdir(path_to_raw)))+1):
-            warped = cut_by_external_contour(path_to_raw + str(i) + ".jpg")
+        for i, file in enumerate(os.listdir(path_to_raw), 1):
+
+            # Отлов плохих фоток, которые не получится обработать
+            # Нужно отключить внешний цикл
+            # errors = []
+            # print(i, file)
+            # try:
+            #     warped = cut_by_external_contour(path_to_raw + file)
+            # except AttributeError:
+            #     errors.append(i)
+            # print(errors)
+
+            warped = cut_by_external_contour(path_to_raw + file)
             warped = imutils.resize(cut_by_internal_contour(warped, left=3.3, top=3.0, right=0.3, bot=1.4), height=750)
             squares_array = cut_board_on_cells(warped)
 
-            cv2.imwrite(path_to_train + str(b) + "/" + str(len(os.listdir(path_to_train + str(b) + "")) + 1) + ".jpg", squares_array[current[2]][x])
-            print(str(b) + ": " + str(i) + "/" + str(len(os.listdir(path_to_raw))) + " :" + str(round(i*100/len(os.listdir(path_to_raw)), 1)) + "%")
+            cv2.imwrite(path_to_train + str(b) + "/" + file, squares_array[current[2]][x])
+            print(str(b) + ": " + file + " : " + str(round(i*100/len(os.listdir(path_to_raw)), 1)) + "%")
