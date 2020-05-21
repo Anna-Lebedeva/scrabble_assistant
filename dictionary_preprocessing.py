@@ -6,6 +6,7 @@ import pandas as pd
 import scrabble_assistant as sa
 
 
+# author - Matvey
 def is_word_correct(word: str) -> bool:
     """
     Проверяет слово на корректность - не содержит ли оно неожиданных символов,
@@ -32,6 +33,7 @@ def is_word_correct(word: str) -> bool:
 
 
 # не удалять пока
+# author - Matvey
 # def is_word_fits_in_pattern(sharped_row: [str], word: str) -> bool:
 #     result = []
 #     patterns = get_regex_patterns(sharped_row)
@@ -44,6 +46,7 @@ def is_word_correct(word: str) -> bool:
 #     return bool(result)
 
 
+# author - Matvey
 def drop_incorrect_words():
     """
     Выполняется 1 раз, для  предобработки словаря.
@@ -75,6 +78,7 @@ def drop_incorrect_words():
                encoding='utf-8')  # Перезаписываем почищенный словарь
 
 
+# author - Matvey
 def make_sub_dictionaries():
     """
     Выполняется 1 раз, для  получения подсловарей,

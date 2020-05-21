@@ -10,6 +10,7 @@ import os
 import json
 
 
+# authors - Pavel, Mikhail and Sergei
 def cut_by_external_contour(path: str) -> np.ndarray:
     """
     Обрезает внешний контур объекта на изображении
@@ -67,9 +68,12 @@ def cut_by_external_contour(path: str) -> np.ndarray:
     return cropped
 
 
+# todo: указать авторство
 def cut_by_internal_contour(img: np.ndarray,
-                            left=None, top=None,
-                            right=None, bot=None) -> np.ndarray:
+                            left: float = None,
+                            top: float = None,
+                            right: float = None,
+                            bot: float = None) -> np.ndarray:
     """
     Обрезает изображение с разных сторон на определённое значение
     :param img: Изображение на вход
@@ -94,11 +98,12 @@ def cut_by_internal_contour(img: np.ndarray,
         bot = 0
 
     cropped = img[round(top * w / 100):round(h * (1 - bot / 100)),
-              round(left * h / 100):round(w * (1 - right / 100))]
+                  round(left * h / 100):round(w * (1 - right / 100))]
 
     return cropped
 
 
+# todo: указать авторство
 def draw_the_grid(img: np.ndarray) -> np.ndarray:
     """
     Рисует сетку, по которой можно производить разбивку на 15x15 ячеек
@@ -127,6 +132,7 @@ def draw_the_grid(img: np.ndarray) -> np.ndarray:
     return img
 
 
+# todo: указать авторство
 def cut_board_on_cells(img: np.ndarray) -> [np.ndarray]:
     """
     Делит изображение на квадраты-ячейки, создавая двухмерный массив из них
@@ -153,6 +159,7 @@ def cut_board_on_cells(img: np.ndarray) -> [np.ndarray]:
     return squares
 
 
+# todo: указать авторство
 def make_prediction(square: list) -> [np.ndarray]:
     """
 
@@ -221,12 +228,12 @@ def make_prediction(square: list) -> [np.ndarray]:
 
 if __name__ == "__main__":
     pass
-    external_cropped_board = imutils.resize(cut_by_external_contour(
-        "images_real/a3.jpg"), height=750)
-    internal_cropped_board = imutils.resize(cut_by_internal_contour(
-        external_cropped_board, left=3.3, top=3.0, right=0.3, bot=1.4),
-        height=750)
-    board_squares = cut_board_on_cells(internal_cropped_board)
+    # external_cropped_board = imutils.resize(cut_by_external_contour(
+    #     "images_real/a3.jpg"), height=750)
+    # internal_cropped_board = imutils.resize(cut_by_internal_contour(
+    #     external_cropped_board, left=3.3, top=3.0, right=0.3, bot=1.4),
+    #     height=750)
+    # board_squares = cut_board_on_cells(internal_cropped_board)
 
     # cv2.imshow("External cropped board", external_cropped_board)
     # cv2.waitKey()
@@ -240,4 +247,4 @@ if __name__ == "__main__":
     # cv2.waitKey()
     # cv2.destroyAllWindows()
 
-    print(make_prediction(board_squares))
+    # print(make_prediction(board_squares))
