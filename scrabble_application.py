@@ -3,6 +3,7 @@ from PyQt5.QtWidgets import QApplication, QWidget, QPushButton
 from PyQt5.QtGui import QIcon
 
 
+# author - Pavel
 class ScrabbleApplication(QWidget):
 
     # resolution of the window
