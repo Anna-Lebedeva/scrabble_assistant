@@ -47,8 +47,7 @@ LETTERS_AMOUNT = read_json_to_dict(LETTERS_AMOUNT_FILE_PATH)
 BOARD_BONUSES = read_json_to_list(BOARD_BONUSES_FILE_PATH)
 
 
-# authors - Pavel and Matvey
-# todo: не завершено
+# author - Pavel
 def get_best_hint(board: [[str]], letters: Counter) -> [[str]]:
     """
     Дает лучшую подсказку слова на доске.
@@ -57,15 +56,30 @@ def get_best_hint(board: [[str]], letters: Counter) -> [[str]]:
     :return: символьный двумерный массив с буквами подсказки
     """
 
+    mid_index = int(len(board[0]) / 2)  # 7 for standard board
+
+    # параметры лучшей подсказки
+    best_word = ""  # слово
+    best_hint_value = 0  # цена
+    best_hint_start_index = mid_index  # стартовый индекс
     best_hint = get_empty_board(15, 15)  # Создаем пустую доску
 
     for row in get_marked_rows(board):
-        # Идем по строкам
-        pass
+        with open(DICTIONARY_MAX_7_LETTERS_FILE_PATH, 'r',
+                  encoding='utf-8') as dictionary:
+            for line in dictionary:  # Читаем строки из словаря
+                word = line[:-1]  # без \n
+                for index in get_word_possible_positions_in_row(word, row):
+                    pass
 
     for row in get_marked_rows(transpose_board(board)):
         # Идем по столбцам
         pass
+
+    # записываем лучшее слово в матрицу доски
+    best_hint = get_empty_board(len(board), len(board[0]))
+    for i in range(len(best_word)):
+        best_hint[mid_index][best_hint_start_index + i] = best_word[i]
 
     return best_hint
 
@@ -87,23 +101,22 @@ def get_best_hint_for_empty_board(board: [[str]], letters: Counter) -> [[str]]:
     best_hint_start_index = mid_index  # стартовый индекс
 
     # открываем словарь
-    with open(DICTIONARY_MAX_7_LETTERS_FILE_PATH, 'r', encoding='utf-8') as dictionary:
+    with open(DICTIONARY_MAX_7_LETTERS_FILE_PATH, 'r',
+              encoding='utf-8') as dictionary:
         for line in dictionary:  # Читаем строки из словаря
             word = line[:-1]  # без \n
-            # если слово нельзя собрать - пропускаем его
-            if not is_word_compilable(letters, word):
-                continue
-
-            # размещаем слово по всем разрешенным позициям
-            for i in range(mid_index - len(word) + 1, mid_index + 1):
-                # считаем его ценность
-                value = calculate_word_value(word, board, mid_index, i)
-                # если ценность выше, чем у максимального,
-                # меняем лучшее слово и все его параметры на найденое
-                if value >= best_hint_value:
-                    best_word = word
-                    best_hint_value = value
-                    best_hint_start_index = i
+            # если слово можно собрать - пропускаем его
+            if is_word_compilable(word, letters):
+                # размещаем слово по всем разрешенным позициям
+                for i in range(mid_index - len(word) + 1, mid_index + 1):
+                    # считаем его ценность
+                    value = calculate_word_value(word, board, mid_index, i)
+                    # если ценность выше, чем у максимального,
+                    # меняем лучшее слово и все его параметры на найденое
+                    if value >= best_hint_value:
+                        best_word = word
+                        best_hint_value = value
+                        best_hint_start_index = i
 
     # записываем лучшее слово в матрицу доски
     best_hint = get_empty_board(len(board), len(board[0]))
@@ -113,12 +126,12 @@ def get_best_hint_for_empty_board(board: [[str]], letters: Counter) -> [[str]]:
     return best_hint
 
 
-# author - Pavel
-def is_word_compilable(letters: Counter, word: str) -> bool:
+# author - Matvey
+def is_word_compilable(word: str, letters: Counter) -> bool:
     """
     Проверяет возможность составить слово из переданных букв.
-    :param letters: счетчик букв игрока
     :param word: слово
+    :param letters: счетчик букв игрока
     :return: можно ли составить из переданных букв переданое слово
     """
 
@@ -164,16 +177,25 @@ def get_word_possible_positions_in_row(word: str, row: [str]) -> [int]:
         # флаг, показывающий, все ли буквы могут поместиться в строку
         is_word_fit = True
 
+        # счетчик совпадений по буквам
+        same_letters_counter = 0
+
         # идем по слову
         for j in range(len(word)):
-            # если буквы не совпадают и клетка в строке непуста
-            if word[j] != row[i + j] and row[i + j] != "":
+            # если буквы не совпадают и клетка в строке не пуста
+            if word[j] == row[i + j]:
+                same_letters_counter += 1
+            elif row[i + j] == "":
+                pass
+            else:
                 # игнорируем данную позицию, идем дальше
                 is_word_fit = False
                 break
 
         # если все буквы подошли
-        if is_word_fit:
+        # и слово прикрепилось к хотя бы одной букве
+        # но слово не дублирует уже написанное
+        if is_word_fit and 0 < same_letters_counter < len(word):
             # предыдущий символ
             previous_sym = None
             if i != 0:
@@ -522,3 +544,7 @@ if __name__ == '__main__':
     test_row = ['', '', '', 'в', '', 'р', '#', 'а', '', 'в', '', '', 'в', '', '']
     print("варвар: " + str(get_word_possible_positions_in_row("варвар", test_row)))  # 0, 9
     print("вар: " + str(get_word_possible_positions_in_row("вар", test_row)))  # 3, 12
+
+    test_row = ['', 'а', '', 'д', '', 'а', '#', 'а', '', 'д', '', '', 'д', '', '']
+    print("да: " + str(get_word_possible_positions_in_row("да", test_row)))
+    print("ад: " + str(get_word_possible_positions_in_row("ад", test_row)))
