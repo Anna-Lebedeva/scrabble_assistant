@@ -11,9 +11,6 @@ import ML.load_data as load_data
 from keras.models import Sequential
 from keras.layers import Dense
 import keras
-import tensorflow
-import os
-import numpy as np
 
 K.set_image_data_format('channels_last')
 
@@ -33,37 +30,32 @@ X_train = X_train.astype('float32') / 255.0
 # Преобразуем метки в категории
 y_train = np_utils.to_categorical(y_train)
 num_classes = y_train.shape[1]
+
+
 # Создание модели
 model = Sequential()
-model.add(Conv2D(32, (3, 3), input_shape=(64, 64, 3), padding='same',
-                 activation='relu', kernel_constraint=maxnorm(3)))
-model.add(Dropout(0.2))
-model.add(Conv2D(32, (3, 3), activation='relu', padding='same',
-                 kernel_constraint=maxnorm(3)))
+model.add(Conv2D(32, (3, 3), input_shape=(32, 32, 3), padding='same', activation='relu', kernel_constraint=maxnorm(3)))
+model.add(Conv2D(32, (3, 3), activation='relu', padding='same', kernel_constraint=maxnorm(3)))
 model.add(MaxPooling2D(pool_size=(2, 2)))
+model.add(Dropout(0.25))
 model.add(Flatten())
 model.add(Dense(512, activation='relu', kernel_constraint=maxnorm(3)))
 model.add(Dropout(0.5))
 model.add(Dense(num_classes, activation='softmax'))
 
-# Сборка модели
-epochs = 100
-lrate = 0.01
-decay = lrate / epochs
-batch_size = 512     # Кол-во элементов в выборке до изменения значений весов
-momentum = 0  # 0.9 было
 
+# Сборка модели
+epochs = 15
+batch_size = 32  # Кол-во элементов в выборке до изменения значений весов
+momentum = 0
 
 # Создание экземпляра оптимизатора
-# sgd = optimizers.SGD(lr=lrate, momentum=momentum, decay=decay, nesterov=False)
 sgd = optimizers.SGD()
-# rmsprop = optimizers.RMSprop()
 
 # Конфигурация обучения: минимизируемая функция потерь,
 # оптимизатор, список метрик для мониторинга
-model.compile(loss='categorical_crossentropy', optimizer=sgd,
+model.compile(loss='categorical_crossentropy', optimizer='adadelta',
               metrics=['accuracy'])
-print(model.summary())
 
 callbacks = [
     keras.callbacks.EarlyStopping(
@@ -79,12 +71,15 @@ callbacks = [
 
 # Обучение сети
 model.fit(X_train, y_train, epochs=epochs, batch_size=batch_size,
-          # callbacks=callbacks,
+          callbacks=callbacks,
           # часть выборки, которая используется в качестве проверочной
           validation_split=0.2)
 
+print(model.summary())
+
 # Оценка качества обучения сети на тестовых данных
 scores = model.evaluate(X_train, y_train, verbose=0)
+print("Loss: %.2f%%" % (scores[0] * 100))
 print("Accuracy: %.2f%%" % (scores[1] * 100))
 
 # Генерация описания модели в формате json
@@ -94,7 +89,6 @@ with open(path_to_model_json, "w") as json_file:
     json_file.write(model_json)
 # Запись данных о весах в файл
 model.save_weights(path_to_model_weights)
-
 
 # Гибернация компьютера по завершении тренировки
 # os.system("shutdown /h /f")

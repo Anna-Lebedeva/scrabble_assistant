@@ -24,7 +24,7 @@ yellow = [77, 78, 5, 1]
 empty = [78, 79, 5]
 all_types = [str1, str2, str3, asterisk, red, blue, green, white, yellow, empty]
 
-
+errors = []
 for a in range(len(all_types)):
     current = all_types[a]
 
@@ -71,9 +71,14 @@ for a in range(len(all_types)):
             #     errors.append(i)
             # print(errors)
 
-            warped = cut_by_external_contour(path_to_raw + file)
-            warped = imutils.resize(cut_by_internal_contour(warped, left=3.3, top=3.0, right=0.3, bot=1.4), height=750)
-            squares_array = cut_board_on_cells(warped)
+            try:
+                warped = cut_by_external_contour(path_to_raw + file)
+                warped = imutils.resize(cut_by_internal_contour(warped, left=3.3, top=3.0,right=0.3, bot=1.4), height=750)
+                squares_array = cut_board_on_cells(warped)
+                cv2.imwrite(path_to_train + str(b) + "/" + file, squares_array[current[2]][x])
+                print(str(b) + ": " + file + " (" + str(round(i * 100 / len(os.listdir(path_to_raw)), 1)) + "%)")
+            except AttributeError:
+                errors.append(file)
 
-            cv2.imwrite(path_to_train + str(b) + "/" + file, squares_array[current[2]][x])
-            print(str(b) + ": " + file + " : " + str(round(i*100/len(os.listdir(path_to_raw)), 1)) + "%")
+
+print("Плохие фото: {}", format(errors))

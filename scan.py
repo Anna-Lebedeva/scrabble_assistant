@@ -99,7 +99,7 @@ def cut_by_internal_contour(img: np.ndarray,
 
     # Обрезка
     cropped = img[round(top * w / 100):round(h * (1 - bot / 100)),
-                  round(left * h / 100):round(w * (1 - right / 100))]
+              round(left * h / 100):round(w * (1 - right / 100))]
 
     return cropped
 
@@ -201,48 +201,102 @@ def make_prediction(square: list) -> [np.ndarray]:
     predictions = []
     for j in range(15):
         predictions.append([])
+
         for i in range(15):
             image = square[j][i]
             cv2.imwrite("./" + str(i) + ".jpg", image)
             image = misc.imread("./" + str(i) + ".jpg")
             os.remove("./" + str(i) + ".jpg")
-            image = misc.imresize(image, (64, 64))
+            image = misc.imresize(image, (32, 32))
             image = np.array([image])
             image = image.astype('float32')
             image = image / 255.0
 
-            prediction = loaded_model.predict(image)
-            prediction = int_to_word_out[np.argmax(prediction)]
+            prediction_arr = loaded_model.predict(image)
+            prediction = int_to_word_out[np.argmax(prediction_arr)]
             predictions[j].append(prediction)
 
             # замена числа на букву
             prediction_letter = folder_values["{}".format(prediction)]
 
-            print(prediction_letter)
-            # print(prediction)
+            print(np.max(prediction_arr))
 
-            cv2.imshow("", square[j][i])
+            if float(np.max(prediction_arr)) > 0.92:
+                print(prediction, end=" ")
+                print(prediction_letter)
+            else:
+                print("Empty")
+
+            cv2.imshow("External cropped board", external_cropped_board)
+            cv2.imshow("{} {}".format(j, i),
+                       imutils.resize(square[j][i], height=200))
             cv2.waitKey()
+            cv2.destroyWindow("{} {}".format(j, i))
 
     return predictions
+
+
+# author - Mikhail
+def cut_cell(img: np.ndarray,
+             left: float = None,
+             top: float = None,
+             right: float = None,
+             bot: float = None) -> np.ndarray:
+    """
+    Обрезает изображение с разных сторон на определённое значение
+    :param img: Изображение на вход
+    :param left: Сколько процентов обрезать слева
+    :param top: Сколько процентов обрезать сверху
+    :param right: Сколько процентов обрезать справа
+    :param bot: Сколько процентов обрезать снизу
+    :return: Обрезанное изображение
+    """
+
+    # Получение высоты и ширины изображения
+    (h, w) = img.shape[:2]
+
+    # Значения параметров кадрирования по-умолчанию
+    if left is None:
+        left = 14
+    if top is None:
+        top = 14
+    if right is None:
+        right = 14
+    if bot is None:
+        bot = 14
+
+    # Обрезка
+    cropped = img[round(top * w / 100):round(h * (1 - bot / 100)),
+                  round(left * h / 100):round(w * (1 - right / 100))]
+
+    return cropped
 
 
 if __name__ == "__main__":
     pass
     external_cropped_board = imutils.resize(cut_by_external_contour(
-        "images_real/a3.jpg"), height=750)
+        "!raw_images_to_cut/36.jpg"), height=750)
     internal_cropped_board = imutils.resize(cut_by_internal_contour(
         external_cropped_board, left=3.3, top=3.0, right=0.3, bot=1.4),
         height=750)
     board_squares = cut_board_on_cells(internal_cropped_board)
 
-    cv2.imshow("External cropped board", external_cropped_board)
-    cv2.waitKey()
-    cv2.destroyAllWindows()
+    # cv2.imshow("External cropped board", external_cropped_board)
+    # cv2.waitKey()
+    # cv2.destroyAllWindows()
 
     # cv2.imshow("Internal cropped board", internal_cropped_board)
     # cv2.waitKey()
     # cv2.destroyAllWindows()
+
+    cv2.imshow("Cell", board_squares[0][0])
+    cv2.waitKey()
+    cv2.destroyAllWindows()
+
+    cv2.imshow("Cut", cut_cell(board_squares[0][0], left=10, right=10, top=10, bot=10))
+    print(cut_cell(board_squares[0][0]).shape[0])
+    cv2.waitKey()
+    cv2.destroyAllWindows()
 
     # cv2.imshow("Grid", draw_the_grid(internal_cropped_board))
     # cv2.waitKey()
