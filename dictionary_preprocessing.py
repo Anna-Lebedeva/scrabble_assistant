@@ -55,7 +55,7 @@ def drop_incorrect_words():
     Перезаписывает предобработанный словарь на место исходного.
     :return:
     """
-    dictionary_data = pd.read_csv(sa.DICTIONARY_FILENAME, header=None,
+    dictionary_data = pd.read_csv(sa.DICTIONARY_FILE_PATH, header=None,
                                   names=['word'])
     # Считываем словарь в датафрейм
 
@@ -74,7 +74,7 @@ def drop_incorrect_words():
     # и содержащие больше букв, чем есть в игре.
     # fixme: Выполняется долго! Можно переписать.
 
-    np.savetxt(fname=sa.DICTIONARY_FILENAME, X=dictionary_data.word, fmt='%s',
+    np.savetxt(fname=sa.DICTIONARY_FILE_PATH, X=dictionary_data.word, fmt='%s',
                encoding='utf-8')  # Перезаписываем почищенный словарь
 
 
@@ -88,7 +88,7 @@ def make_sub_dictionaries():
     Записывает подсловари в папку sub-dictionaries
     :return:
     """
-    dictionary_data = pd.read_csv(sa.DICTIONARY_FILENAME, header=None,
+    dictionary_data = pd.read_csv(sa.DICTIONARY_FILE_PATH, header=None,
                                   names=['word'])
     # Считываем словарь в датафрейм
 
