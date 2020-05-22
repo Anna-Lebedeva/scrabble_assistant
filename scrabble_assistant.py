@@ -131,19 +131,19 @@ def is_word_compilable(letters: Counter, word: str) -> bool:
 
 
 # author - Pavel
-def is_symbol_a_letter(letter: str) -> bool:
+def is_symbol_a_letter(symbol: str) -> bool:
     """
     Проверяет, является ли символ буквой
-    Считает и кириллицу и латиницу
-    Считает и прописные, и заглавные
-    :param letter: символ
+    Считает и кириллицу, и латиницу
+    Считает и прописные, и заглавные буквы
+    :param symbol: символ
     :return: true - это буква
     """
-    if letter is None or not letter:
+    if symbol is None or not symbol:
         return False
     else:
-        return 65 <= ord(letter) <= 90 or 97 <= ord(letter) <= 122 or \
-               1040 <= ord(letter) <= 1071 or 1072 <= ord(letter) <= 1131
+        return 65 <= ord(symbol) <= 90 or 97 <= ord(symbol) <= 122 or \
+               1040 <= ord(symbol) <= 1071 or 1072 <= ord(symbol) <= 1131
 
 
 # author - Pavel
