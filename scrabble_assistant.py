@@ -3,10 +3,8 @@ from pathlib import Path
 import numpy as np
 import json
 import re
-import time
 
 # пути к json файлам
-#
 LETTERS_VALUES_FILE_PATH = "jsons/letters_values.json"  # ценность букв
 LETTERS_AMOUNT_FILE_PATH = "jsons/letters_amount.json"  # кол-во букв
 BOARD_BONUSES_FILE_PATH = "jsons/board_bonuses.json"  # бонусы на доске
@@ -84,7 +82,6 @@ def get_best_hint_for_empty_board_brute_force(board: [[str]], letters: Counter) 
     mid_index = int(len(board[0]) / 2)  # 7 for standard board
 
     # параметры лучшей подсказки
-    #
     best_word = ""  # слово
     best_hint_value = 0  # цена
     best_hint_start_index = mid_index  # стартовый индекс
@@ -133,7 +130,8 @@ def is_word_compilable(letters: Counter, word: str) -> bool:
     return True
 
 
-def get_best_hint_for_empty_board_not_brute_force(board: [[str]], letters: Counter) -> [[str]]:
+def get_best_hint_for_empty_board_not_brute_force(board: [[str]], letters: Counter) -> [
+    [str]]:
     """
     Генерирует первый ход. Выдает расположение лучшего слова для 1-ого хода.
     :param board: доска, на которой идет игра
@@ -209,6 +207,8 @@ def get_best_hint_for_empty_board_not_brute_force(board: [[str]], letters: Count
         best_hint[mid_index][best_hint_start_index + i] = best_word[i]
 
     return best_hint
+
+
 # author - Matvey
 
 
@@ -266,6 +266,17 @@ def get_regex_patterns(sharped_row: [str]) -> ([re.Pattern], [[str]]):
     # Upd. компиляция не понадобится. Но пока не удалять
 
     return patterns, letters_in_patterns
+
+
+# Автор: Матвей
+def is_word_fit_to_pattern(word: str, pattern: re.Pattern) -> bool:
+    """
+    Проверяет - подходит ли слово в паттерн.
+    :param word: слово
+    :param pattern: паттерн
+    :return:
+    """
+    return bool(pattern.search(word))
 
 
 # author - Matvey
@@ -505,33 +516,13 @@ if __name__ == '__main__':
     #     print(test_marked_board[iii])
     # print(get_marked_row(test_board, 12))
 
-    empty_board = get_empty_board(15, 15)
+    patterns_, letters_ = get_regex_patterns(
+        ['', '', 'ж', 'а', '#', 'а', '#', '#', '#', '#', '', 'р', 'ю', '', ''])
+    print(patterns_, letters_)
 
-    t1 = time.time()
-    print(get_best_hint_for_empty_board_brute_force(empty_board, Counter('абвгдежзи'))[7])
-    print(time.time() - t1)
-    t1 = time.time()
-    print(get_best_hint_for_empty_board_not_brute_force(empty_board, Counter('абвгдежзи'))[7])
-    print(time.time() - t1)
+    print(patterns_[0])
 
-    # print(get_best_hint_for_empty_board_not_brute_force(empty_board, Counter('салат'))[7])
-    # print(get_best_hint_for_empty_board_not_brute_force(empty_board, Counter('шалаш'))[7])
-    # print(get_best_hint_for_empty_board_not_brute_force(empty_board, Counter('суп'))[7])
-    # print(get_best_hint_for_empty_board_not_brute_force(empty_board, Counter('абв'))[7])
-    # print(get_best_hint_for_empty_board_not_brute_force(empty_board, Counter('абвг'))[7])
-    # print(get_best_hint_for_empty_board_not_brute_force(empty_board, Counter('абвгд'))[7])
-    # print(get_best_hint_for_empty_board_not_brute_force(empty_board, Counter('абвгде'))[7])
-    # print(get_best_hint_for_empty_board_not_brute_force(empty_board, Counter('абвгдеж'))[7])
-    # print(get_best_hint_for_empty_board_not_brute_force(empty_board, Counter('абвгдежз'))[7])
-    # print(get_best_hint_for_empty_board_not_brute_force(empty_board, Counter('абвгдежзи'))[7])
-    # print(get_best_hint_for_empty_board_not_brute_force(empty_board,
-    #                                     Counter('уеаояижзфцшщъыьэю'))[7])
-    # print(get_best_hint_for_empty_board(empty_board, Counter('аашаш'))[7])
-
-    # TIME: 1.36 s ± 21.7 ms per loop (mean ± std. dev. of 7 runs, 1 loop each)
-
-    # patterns_, letters_ = get_regex_patterns(
-    #    ['', '', 'ж', 'а', '#', 'а', '#', '#', '#', '#', '', 'р', 'ю', '', ''])
-    # print(patterns_, letters_)
-
-    # print(get_smallest_sub_dict(letters_))
+    print(is_word_fit_in_pattern('вежа', patterns_[0]))
+    print(is_word_fit_in_pattern('кожа', patterns_[0]))
+    print(is_word_fit_in_pattern('поклажа', patterns_[0]))
+    print(is_word_fit_in_pattern('фрукт', patterns_[0]))
