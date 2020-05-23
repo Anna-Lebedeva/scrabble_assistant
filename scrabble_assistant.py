@@ -6,14 +6,14 @@ import time
 import re
 
 # пути к json файлам
-LETTERS_VALUES_FILE_PATH = "jsons/letters_values.json"  # ценность букв
-LETTERS_AMOUNT_FILE_PATH = "jsons/letters_amount.json"  # кол-во букв
-BOARD_BONUSES_FILE_PATH = "jsons/board_bonuses.json"  # бонусы на доске
+LETTERS_VALUES_FILE_PATH = 'jsons/letters_values.json'  # ценность букв
+LETTERS_AMOUNT_FILE_PATH = 'jsons/letters_amount.json'  # кол-во букв
+BOARD_BONUSES_FILE_PATH = 'jsons/board_bonuses.json'  # бонусы на доске
 
 # путь к основному словарю
-DICTIONARY_FILE_PATH = "dictionaries/dictionary.txt"
+DICTIONARY_FILE_PATH = 'dictionaries/dictionary.txt'
 # путь к словарю из 7 и менее букв
-DICTIONARY_MAX_7_LETTERS_FILE_PATH = "dictionaries/dictionary_max_7_letters.txt"
+DICTIONARY_MAX_7_LETTERS_FILE_PATH = 'dictionaries/dictionary_max_7_letters.txt'
 
 
 # author - Matvey
@@ -23,6 +23,7 @@ def read_json_to_dict(json_filename: str) -> dict:
     :param json_filename: имя json-файла
     :return: считанный словарь
     """
+
     with open(file=Path(Path.cwd() / json_filename), mode='r',
               encoding='utf-8') as file:
         return dict(json.load(file))
@@ -35,6 +36,7 @@ def read_json_to_list(json_filename: str) -> [[str]]:
     :param json_filename: имя json-файла
     :return: считанный список
     """
+
     with open(file=Path(Path.cwd() / json_filename), mode='r',
               encoding='utf-8') as file:
         return list(json.load(file))
@@ -50,9 +52,15 @@ BOARD_BONUSES = read_json_to_list(BOARD_BONUSES_FILE_PATH)
 
 # author - Pavel
 def is_board_empty(board: [[str]]) -> bool:
+    """
+    Проверяет, является ли доска пустой
+    :param board: доска
+    :return: true - доска пустая
+    """
+
     for row in board:
         for i in range(len(row)):
-            if row[i] != "":
+            if row[i] != '':
                 return False
     return True
 
@@ -67,11 +75,17 @@ def get_hint(board: [[str]], letters: Counter) -> ([[str]], int):
     :param letters: буквы игрока
     :return: доска с лучшим словом, ценность слова
     """
+
+    # если доска пустая
     if is_board_empty(board):
+        # запускаем для нее отдельную функцию
         return get_hint_for_empty_board(board, letters)
+    # если доска не пустая
     else:
+        # ищем подсказки по горизонтали и по вертикали
         hint_1, value_1 = get_horizontal_hint(board, letters)
         hint_2, value_2 = get_horizontal_hint(transpose_board(board), letters)
+        # возвращаем ту подсказку, чье слово ценнее
         if value_1 >= value_2:
             return hint_1, value_1
         else:
@@ -79,6 +93,8 @@ def get_hint(board: [[str]], letters: Counter) -> ([[str]], int):
 
 
 # author - Pavel
+# todo: без регулярок нет возможности пользоваться подсловарями
+# todo: с подсловарями будет быстрее в 3-5 раз
 def get_horizontal_hint(board: [[str]], letters: Counter) -> ([[str]], int):
     """
     Дает лучшую подсказку слова на доске по горизонтали
@@ -88,7 +104,7 @@ def get_horizontal_hint(board: [[str]], letters: Counter) -> ([[str]], int):
     """
 
     # параметры лучшей подсказки
-    best_word = ""  # слово
+    best_word = ''  # слово
     best_hint_value = 0  # цена
     best_hint_x_index = 0  # стартовый индекс
     best_hint_y_index = 0  # стартовый индекс
@@ -101,11 +117,11 @@ def get_horizontal_hint(board: [[str]], letters: Counter) -> ([[str]], int):
                 word = line[:-1]  # без \n
                 for index in get_word_possible_pos_in_row(word,
                                                           marked_board[i]):
-                    word2 = ""
+                    word2 = ''
                     for j in range(len(word)):
                         if marked_board[i][j + index] != word[j]:
                             word2 += word[j]
-                    # print(str(i) + ": " + word + " | " + word2)
+
                     if is_word_compilable(word2, letters):
                         # считаем его ценность
                         value = calculate_word_value(word, board, i, index)
@@ -138,7 +154,7 @@ def get_hint_for_empty_board(board: [[str]],
     mid_index = int(len(board[0]) / 2)  # 7 for standard board
 
     # параметры лучшей подсказки
-    best_word = ""  # слово
+    best_word = ''  # слово
     best_hint_value = 0  # цена
     best_hint_start_index = mid_index  # стартовый индекс
 
@@ -194,7 +210,8 @@ def is_symbol_letter(symbol: str) -> bool:
     :param symbol: символ
     :return: true - это буква
     """
-    if symbol is None or not symbol:
+
+    if symbol is None or symbol == '':
         return False
     else:
         return 65 <= ord(symbol) <= 90 or 97 <= ord(symbol) <= 122 or \
@@ -229,7 +246,7 @@ def get_word_possible_pos_in_row(word: str, row: [str]) -> [int]:
             # если буквы не совпадают и клетка в строке не пуста
             if word[j] == row[i + j]:
                 same_letters_counter += 1
-            elif row[i + j] == "":
+            elif row[i + j] == '':
                 pass
             else:
                 # игнорируем данную позицию, идем дальше
@@ -268,6 +285,7 @@ def get_regex_patterns(sharped_row: [str]) -> ([re.Pattern], [[str]]):
     :return: шаблоны, по которому можно найти подходящие слова и список для
     каждого шаблона, где находятся буквы из этого шаблона
     """
+
     prepared_row = []
     patterns = []
     letters = []
@@ -279,7 +297,7 @@ def get_regex_patterns(sharped_row: [str]) -> ([re.Pattern], [[str]]):
         if sharped_row[cell]:  # Если в клетке есть символ
             prepared_row.append(sharped_row[cell])
         else:  # Если клетка пустая
-            prepared_row.append(' ')
+            prepared_row.append('')
             # fixme: переписать?
 
     prepared_row = ''.join(prepared_row).split('#')
@@ -298,7 +316,7 @@ def get_regex_patterns(sharped_row: [str]) -> ([re.Pattern], [[str]]):
         letters = []
 
     for i in range(len(patterns)):
-        patterns[i] = patterns[i].replace(' ', '[а-я]?')
+        patterns[i] = patterns[i].replace('', '[а-я]?')
     # В пустое место можно вписать любую букву букву а-я или не писать ничего
     # todo: Можно переписать регулярку c помощью одних фигурных скобок
 
@@ -324,6 +342,7 @@ def is_word_fit_to_pattern(word: str, pattern: re.Pattern) -> bool:
     :param pattern: паттерн
     :return:
     """
+
     return bool(pattern.search(word))
 
 
@@ -335,6 +354,7 @@ def calculate_letters_value(word: str) -> int:
     :param word: слово, ценность которого нужно посчитать
     :return: ценность слова, без учета бонусов
     """
+
     return sum([LETTERS_VALUES[letter] for letter in word])
 
 
@@ -384,15 +404,15 @@ def calculate_word_value(word: str, board: [[str]],
         # Бонус использован, если на его месте уже есть буква.
 
         # Если в клетке не было буквы
-        if not board[line_index][start_index + i]:
+        if board[line_index][start_index + i] == '':
             new_letters_counter += 1
-            if bonus == "x2":
+            if bonus == 'x2':
                 letter_value *= 2
-            elif bonus == "x3":
+            elif bonus == 'x3':
                 letter_value *= 3
-            elif bonus == "X2":
+            elif bonus == 'X2':
                 word_bonuses_2x_counter += 1
-            elif bonus == "X3":
+            elif bonus == 'X3':
                 word_bonuses_3x_counter += 1
 
         value += letter_value
@@ -427,7 +447,7 @@ def get_marked_rows(board: [[str]]) -> [[str]]:
             up_block = False  # заблокировано ли сверху
             down_block = False  # заблокировано ли снизу
 
-            if not row[symbol_index]:  # если в клетке пусто
+            if row[symbol_index] == '':  # если в клетке пусто
                 if index > 0:  # если не самая верхняя строка
                     if board[index - 1][symbol_index]:  # если сверху буква
                         up_block = True
@@ -485,6 +505,7 @@ def transpose_board(board: [[str]]) -> [[str]]:
     :param board: двумерный массив доски
     :return: транспонированный двумерный массив
     """
+
     return list(np.array(board).transpose())
 
 
@@ -497,6 +518,7 @@ def get_empty_board(y: int, x: int) -> [[str]]:
     :param x: кол-во столбцов
     :return: матрица y*x
     """
+
     return [[''] * y for _ in range(x)]
 
 
@@ -533,50 +555,24 @@ def get_smallest_sub_dict(letters_in_pattern: [str]) -> str:
 
 # ----- TESTS -----
 if __name__ == '__main__':
-    pass
 
-    # test_board = [
-    #     [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
-    #     [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
-    #     [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', 'т', ' ', ' ', ' ', ' ', ' '],
-    #     [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', 'о', ' ', ' ', ' ', ' ', ' '],
-    #     [' ', ' ', ' ', 'п', 'о', 'c', 'е', 'л', 'о', 'к', ' ', ' ', ' ', ' ', ' '],
-    #     [' ', ' ', ' ', 'а', ' ', 'а', ' ', ' ', ' ', ' ', ' ', 'р', ' ', ' ', ' '],
-    #     [' ', ' ', ' ', 'п', ' ', 'д', 'о', 'м', ' ', 'я', ' ', 'е', ' ', ' ', ' '],
-    #     [' ', ' ', ' ', 'а', ' ', ' ', ' ', 'а', 'з', 'б', 'у', 'к', 'а', ' ', ' '],
-    #     [' ', ' ', ' ', ' ', ' ', 'с', 'о', 'м', ' ', 'л', ' ', 'а', ' ', ' ', ' '],
-    #     [' ', ' ', ' ', 'я', 'м', 'а', ' ', 'а', ' ', 'о', ' ', ' ', ' ', ' ', ' '],
-    #     [' ', ' ', ' ', ' ', ' ', 'л', ' ', ' ', ' ', 'к', 'и', 'т', ' ', ' ', ' '],
-    #     [' ', ' ', ' ', ' ', 'с', 'о', 'л', 'ь', ' ', 'о', ' ', ' ', ' ', ' ', ' '],
-    #     [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
-    #     [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
-    #     [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
-    # ]
-
-    # todo: может вместо '' будем использовать ' '? Проще таблицу воспринимать
     test_board = [
-        [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
-        [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
-        [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
-        [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
-        [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
-        [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
-        [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
-        [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
-        [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
-        [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
-        [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
-        [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
-        [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
-        [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
-        [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
+        ['', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
+        ['', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
+        ['', '', '', '', '', '', '', '', '', 'т', '', '', '', '', ''],
+        ['', '', '', '', '', '', '', '', '', 'о', '', '', '', '', ''],
+        ['', '', '', 'п', 'о', 'c', 'е', 'л', 'о', 'к', '', '', '', '', ''],
+        ['', '', '', 'а', '', 'а', '', '', '', '', '', 'р', '', '', ''],
+        ['', '', '', 'п', '', 'д', 'о', 'м', '', 'я', '', 'е', '', '', ''],
+        ['', '', '', 'а', '', '', '', 'а', 'з', 'б', 'у', 'к', 'а', '', ''],
+        ['', '', '', '', '', 'с', 'о', 'м', '', 'л', '', 'а', '', '', ''],
+        ['', '', '', 'я', 'м', 'а', '', 'а', '', 'о', '', '', '', '', ''],
+        ['', '', '', '', '', 'л', '', '', '', 'к', 'и', 'т', '', '', ''],
+        ['', '', '', '', 'с', 'о', 'л', 'ь', '', 'о', '', '', '', '', ''],
+        ['', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
+        ['', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
+        ['', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
     ]
-
-    # убираем лишние пробелы
-    for test_row in test_board:
-        for test_i in range(len(test_row)):
-            if test_row[test_i] == ' ':
-                test_row[test_i] = ''
 
     # print(20 == calculate_word_value('тотем',
     #                                  transpose_board(test_board), 11, 10))
@@ -602,34 +598,66 @@ if __name__ == '__main__':
     # print(is_word_fit_to_pattern('фрукт', patterns_[0]))
 
     # test_row = ['', '', 'д', 'а', '', 'а', '#', 'о', '', '#', '', 'р', '', 'к', 'а']
-    # print("дама: " + str(get_word_possible_positions_in_row("дама", test_row)))  # 2
-    # print("даг: " + str(get_word_possible_positions_in_row("даг", test_row)))  # нет
-    # print("адам: " + str(get_word_possible_positions_in_row("адам", test_row)))  # нет
-    # print("адама: " + str(get_word_possible_positions_in_row("адама", test_row)))  # 1
-    # print("редара: " + str(get_word_possible_positions_in_row("редара", test_row)))  # 0
-    # print("река: " + str(get_word_possible_positions_in_row("река", test_row)))  # 11
-    # print("шрека: " + str(get_word_possible_positions_in_row("шрека", test_row)))  # 10
-    # print("шре: " + str(get_word_possible_positions_in_row("шре", test_row)))  # нет
+    # print('дама: ' + str(get_word_possible_positions_in_row('дама', test_row)))  # 2
+    # print('даг: ' + str(get_word_possible_positions_in_row('даг', test_row)))  # нет
+    # print('адам: ' + str(get_word_possible_positions_in_row('адам', test_row)))  # нет
+    # print('адама: ' + str(get_word_possible_positions_in_row('адама', test_row)))  # 1
+    # print('редара: ' + str(get_word_possible_positions_in_row('редара', test_row)))  # 0
+    # print('река: ' + str(get_word_possible_positions_in_row('река', test_row)))  # 11
+    # print('шрека: ' + str(get_word_possible_positions_in_row('шрека', test_row)))  # 10
+    # print('шре: ' + str(get_word_possible_positions_in_row('шре', test_row)))  # нет
     #
     # print()
     #
     # test_row = ['', '', '', 'в', '', 'р', '#', 'а', '', 'в', '', '', 'в', '', '']
-    # print("варвар: " + str(get_word_possible_positions_in_row("варвар", test_row)))  # 0, 9
-    # print("вар: " + str(get_word_possible_positions_in_row("вар", test_row)))  # 3, 12
+    # print('варвар: ' + str(get_word_possible_positions_in_row('варвар', test_row)))  # 0, 9
+    # print('вар: ' + str(get_word_possible_positions_in_row('вар', test_row)))  # 3, 12
     #
     # test_row = ['', 'а', '', 'д', '', 'а', '#', 'а', '', 'д', '', '', 'д', '', '']
-    # print("да: " + str(get_word_possible_positions_in_row("да", test_row)))
-    # print("ад: " + str(get_word_possible_positions_in_row("ад", test_row)))
+    # print('да: ' + str(get_word_possible_positions_in_row('да', test_row)))
+    # print('ад: ' + str(get_word_possible_positions_in_row('ад', test_row)))
+
+    # test_board = [
+    #     [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
+    #     [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
+    #     [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
+    #     [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
+    #     [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
+    #     [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
+    #     [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
+    #     [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
+    #     [' ', ' ', ' ', ' ', ' ', ' ', 'у', 'х', 'о', ' ', ' ', ' ', ' ', ' ', ' '],
+    #     [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
+    #     [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
+    #     [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
+    #     [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
+    #     [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
+    #     [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
+    # ]
+
+    # убираем пробелы, они нужны были только для удобства ввода
+    for test_row in test_board:
+        for test_j in range(len(test_row)):
+            if test_row[test_j] == ' ':
+                test_row[test_j] = ''
 
     t = time.time()
-    test_hint, test_value = get_hint(test_board, Counter("аблкено"))
-    print("Time = " + str(time.time() - t) + "s")
+    # вся магия происходит тут
+    test_hint, test_value = get_hint(test_board, Counter('аблкено'))
+    print('Time = ' + str(time.time() - t) + 's')
 
-    for test_row in test_hint:
-        # добавляем пробелы для вывода
-        for test_i in range(len(test_row)):
-            if test_row[test_i] == '':
-                test_row[test_i] = ' '
-        print(test_row)
+    # доска с подсказкой
+    hint = []
+    for test_i in range(len(test_hint)):
+        hint.append([])
+        for test_j in range(len(test_hint[test_i])):
+            if test_board[test_i][test_j] != '':
+                hint[test_i].append(test_board[test_i][test_j])
+            else:
+                if test_hint[test_i][test_j] == '':
+                    hint[test_i].append(' ')
+                else:
+                    hint[test_i].append(test_hint[test_i][test_j].upper())
+        print(hint[test_i])
 
-    print("Hint value = " + str(test_value))
+    print('Hint value = ' + str(test_value))
