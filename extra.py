@@ -3,10 +3,10 @@ import json
 
 
 # author - Pavel
-def is_symbol_letter(symbol: str) -> bool:
+def is_symbol_russian_letter(symbol: str) -> bool:
     """
     Проверяет, является ли символ буквой
-    Считает и кириллицу, и латиницу
+    Считает только кириллицу
     Считает и прописные, и заглавные буквы
     :param symbol: символ
     :return: true - это буква
@@ -15,8 +15,7 @@ def is_symbol_letter(symbol: str) -> bool:
     if symbol is None or symbol == '':
         return False
     else:
-        return 65 <= ord(symbol) <= 90 or 97 <= ord(symbol) <= 122 or \
-               1040 <= ord(symbol) <= 1071 or 1072 <= ord(symbol) <= 1131
+        return 1040 <= ord(symbol) <= 1071 or 1072 <= ord(symbol) <= 1131
 
 
 # author - Matvey

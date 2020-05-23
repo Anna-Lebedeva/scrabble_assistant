@@ -1,8 +1,5 @@
 from collections import Counter
-from pathlib import Path
 import numpy as np
-import time
-import re
 
 from extra import *
 
@@ -13,9 +10,6 @@ BOARD_BONUSES_FILE_PATH = 'jsons/board_bonuses.json'  # бонусы на дос
 
 # путь к основному словарю
 DICTIONARY_FILE_PATH = 'dictionaries/dictionary.txt'
-# путь к словарю из 7 и менее букв
-DICTIONARY_MAX_7_LETTERS_FILE_PATH = 'dictionaries/dictionary_max_7_letters.txt'
-
 
 # словарь с ценностью букв
 LETTERS_VALUES = read_json_to_dict(LETTERS_VALUES_FILE_PATH)
@@ -31,10 +25,14 @@ def get_hint(board: [[str]], letters: Counter) -> ([[str]], int):
     Основная функция файла
     Выдает лучшую подсказку на доске из двух вариантов:
     По горизонтали и по вертикали (транспонированная доска)
-    :param board: доска, где идет игра
-    :param letters: буквы игрока
+    :param board: доска в виде двумерного символьного массива
+    :param letters: буквы, имеющиеся у игрока
     :return: доска с лучшим словом, ценность слова
     """
+
+    # если доска с ошибками - вернуть пустую доску
+    if not is_board_correct(board):
+        return get_empty_board(len(board), len(board[0])), -1
 
     # если доска пустая
     if is_board_empty(board):
@@ -53,13 +51,12 @@ def get_hint(board: [[str]], letters: Counter) -> ([[str]], int):
 
 
 # author - Pavel
-# todo: без регулярок нет возможности пользоваться подсловарями
-# todo: с подсловарями будет быстрее в 3-5 раз
+# todo: с регулярками будет быстрее раз в 10
 def get_horizontal_hint(board: [[str]], letters: Counter) -> ([[str]], int):
     """
     Дает лучшую подсказку слова на доске по горизонтали
-    :param board: символьный двумерный массив доски
-    :param letters: набор букв игрока
+    :param board: доска в виде двумерного символьного массива
+    :param letters: буквы, имеющиеся у игрока
     :return: доска с лучшим словом, ценность слова
     """
 
@@ -71,26 +68,28 @@ def get_horizontal_hint(board: [[str]], letters: Counter) -> ([[str]], int):
 
     marked_board = get_marked_rows(board)
     for i in range(len(marked_board)):
-        with open(DICTIONARY_FILE_PATH, 'r',
-                  encoding='utf-8') as dictionary:
+        with open(DICTIONARY_FILE_PATH, 'r', encoding='utf-8') as dictionary:
             for line in dictionary:  # Читаем строки из словаря
                 word = line[:-1]  # без \n
-                for index in get_word_possible_pos_in_row(word,
-                                                          marked_board[i]):
+
+                for word_start_index in \
+                        get_possible_word_positions_in_row(word,
+                                                           marked_board[i]):
                     word2 = ''
                     for j in range(len(word)):
-                        if marked_board[i][j + index] != word[j]:
+                        if marked_board[i][j + word_start_index] != word[j]:
                             word2 += word[j]
 
                     if is_word_compilable(word2, letters):
                         # считаем его ценность
-                        value = calculate_word_value(word, board, i, index)
+                        value = calculate_word_value(word, board, i,
+                                                     word_start_index)
                         # если ценность выше, чем у максимального,
                         # меняем лучшее слово и все его параметры на найденое
                         if value >= best_hint_value:
                             best_word = word
                             best_hint_value = value
-                            best_hint_x_index = index
+                            best_hint_x_index = word_start_index
                             best_hint_y_index = i
 
     # записываем лучшее слово в матрицу доски
@@ -106,8 +105,8 @@ def get_hint_for_empty_board(board: [[str]],
                              letters: Counter) -> ([[str]], int):
     """
     Дает лучшую подсказку для первого хода (пустая доска)
-    :param board: доска, на которой идет игра
-    :param letters: буквы, которые есть у игрока
+    :param board: доска в виде двумерного символьного массива
+    :param letters: буквы, имеющиеся у игрока
     :return: доска с лучшим словом, ценность этого слова на доске
     """
 
@@ -119,22 +118,25 @@ def get_hint_for_empty_board(board: [[str]],
     best_hint_start_index = mid_index  # стартовый индекс
 
     # открываем словарь
-    with open(DICTIONARY_MAX_7_LETTERS_FILE_PATH, 'r',
-              encoding='utf-8') as dictionary:
+    with open(DICTIONARY_FILE_PATH, 'r', encoding='utf-8') as dictionary:
         for line in dictionary:  # Читаем строки из словаря
-            word = line[:-1]  # без \n
-            # если слово можно собрать - пропускаем его
-            if is_word_compilable(word, letters):
-                # размещаем слово по всем разрешенным позициям
-                for i in range(mid_index - len(word) + 1, mid_index + 1):
-                    # считаем его ценность
-                    value = calculate_word_value(word, board, mid_index, i)
-                    # если ценность выше, чем у максимального,
-                    # меняем лучшее слово и все его параметры на найденое
-                    if value >= best_hint_value:
-                        best_word = word
-                        best_hint_value = value
-                        best_hint_start_index = i
+            # если слово больше 7 букв - отбрасываем
+            # макс. длина 8, так как в конце есть \n
+            # отбрасывать \n до проверки неразумно, тратит много времени
+            if len(line) <= 8:
+                word = line[:-1]  # без \n
+                # если слово можно собрать - пропускаем его
+                if is_word_compilable(word, letters):
+                    # размещаем слово по всем разрешенным позициям
+                    for i in range(mid_index - len(word) + 1, mid_index + 1):
+                        # считаем его ценность
+                        value = calculate_word_value(word, board, mid_index, i)
+                        # если ценность выше, чем у максимального,
+                        # меняем лучшее слово и все его параметры на найденое
+                        if value >= best_hint_value:
+                            best_word = word
+                            best_hint_value = value
+                            best_hint_start_index = i
 
     # записываем лучшее слово в матрицу доски
     best_hint = get_empty_board(len(board), len(board[0]))
@@ -161,7 +163,7 @@ def get_empty_board(y: int, x: int) -> [[str]]:
 def is_board_empty(board: [[str]]) -> bool:
     """
     Проверяет, является ли доска пустой
-    :param board: доска
+    :param board: доска в виде двумерного символьного массива
     :return: true - доска пустая
     """
 
@@ -172,11 +174,28 @@ def is_board_empty(board: [[str]]) -> bool:
     return True
 
 
+# author - Pavel
+def is_board_correct(board: [[str]]) -> bool:
+    """
+    Проверяет доску на корректность символов внутри
+    Допустимы русские буквы, * и пустая строка
+    :param board: доска в виде двумерного символьного массива
+    :return: true - доска корректна
+    """
+
+    for row in board:
+        for char in row:
+            if char != '' and char != '*' and \
+                    not is_symbol_russian_letter(char):
+                return False
+    return True
+
+
 # authors - Matvey and Pavel
 def transpose_board(board: [[str]]) -> [[str]]:
     """
     Транспонирует двумерный массив
-    :param board: двумерный массив доски
+    :param board: доска в виде двумерного символьного массива
     :return: транспонированный двумерный массив
     """
 
@@ -187,13 +206,14 @@ def transpose_board(board: [[str]]) -> [[str]]:
 def get_marked_rows(board: [[str]]) -> [[str]]:
     """
     Меняет доску, помечая заблокированные клетки знаком #
+    Работает только для горизонталей (rows)
     Если у клетки есть символы сверху или снизу, то клетка заблокирована
     Постобработка:
     Между двумя # пустое пространство - все клетки между ними #
     От начала до # пустое пространство - все клетки между ними #
     От # до конца пустое пространство - все клетки между ними #
-    :param board: символьный двумерный массив доски
-    :return: одномерный массив символов(строка) с заблокированными клетками
+    :param board: доска в виде двумерного символьного массива
+    :return: одномерный массив символов(row) с заблокированными клетками
     """
 
     marked_board = []  # новая доска с метками
@@ -255,9 +275,8 @@ def get_marked_rows(board: [[str]]) -> [[str]]:
 
 
 # author - Pavel
-# todo: без регулярок нет возможности пользоваться подсловарями
-# todo: с подсловарями будет быстрее в 3-5 раз
-def get_word_possible_pos_in_row(word: str, row: [str]) -> [int]:
+# todo: с регулярками будет быстрее раз в 10
+def get_possible_word_positions_in_row(word: str, row: [str]) -> [int]:
     """
     Находит все возможные позиции слова в строке
     :param word: слово
@@ -304,8 +323,8 @@ def get_word_possible_pos_in_row(word: str, row: [str]) -> [int]:
                 next_sym = row[i + len(word)]
 
             # если и слева и справа не мешается буква - можем вставить слово
-            if not is_symbol_letter(previous_sym) and \
-                    not is_symbol_letter(next_sym):
+            if not is_symbol_russian_letter(previous_sym) and \
+                    not is_symbol_russian_letter(next_sym):
                 possible_indexes.append(i)
 
     return possible_indexes
@@ -316,7 +335,7 @@ def is_word_compilable(word: str, letters: Counter) -> bool:
     """
     Проверяет возможность составить слово из переданных букв.
     :param word: слово
-    :param letters: счетчик букв игрока
+    :param letters: буквы, имеющиеся у игрока
     :return: можно ли составить из переданных букв переданое слово
     """
 
@@ -337,7 +356,7 @@ def calculate_word_value(word: str, board: [[str]],
     Не учитывает бонусы, которые уже были использованы.
     Если игрок доложил 7 букв - добавляет 15 баллов.
     :param word: слово, ценность которого нужно посчитать
-    :param board: доска с текущей позицией
+    :param board: доска в виде двумерного символьного массива
     :param line_index: индекс строки, в которой стоит слово
     :param start_index: индекс начала слова в строке
     :return: ценность слова, с учетом бонусов
