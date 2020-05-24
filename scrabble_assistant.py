@@ -188,7 +188,7 @@ def is_board_correct(board: [[str]]) -> bool:
         for char in row:
             # если символ не пустой и не * и не русская буква
             # тогда этот символ некорректен -> вся таблица некорректна
-            if char and char != '*' and \
+            if char != '' and char != '*' and \
                     not ex.is_symbol_russian_letter(char):
                 return False
     return True
