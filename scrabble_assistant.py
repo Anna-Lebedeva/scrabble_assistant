@@ -1,7 +1,6 @@
-from collections import Counter
 import numpy as np
 
-from extra import *
+import extra as ex
 
 # пути к json файлам
 LETTERS_VALUES_FILE_PATH = 'jsons/letters_values.json'  # ценность букв
@@ -9,18 +8,18 @@ LETTERS_AMOUNT_FILE_PATH = 'jsons/letters_amount.json'  # кол-во букв
 BOARD_BONUSES_FILE_PATH = 'jsons/board_bonuses.json'  # бонусы на доске
 
 # путь к основному словарю
-DICTIONARY_FILE_PATH = 'dictionaries/dictionary.txt'
+DICTIONARY_FILE_PATH = 'dictionary.txt'
 
 # словарь с ценностью букв
-LETTERS_VALUES = read_json_to_dict(LETTERS_VALUES_FILE_PATH)
+LETTERS_VALUES = ex.read_json_to_dict(LETTERS_VALUES_FILE_PATH)
 # словарь с кол-вом букв в игре
-LETTERS_AMOUNT = read_json_to_dict(LETTERS_AMOUNT_FILE_PATH)
+LETTERS_AMOUNT = ex.read_json_to_dict(LETTERS_AMOUNT_FILE_PATH)
 # список бонусов доски в виде матрицы
-BOARD_BONUSES = read_json_to_list(BOARD_BONUSES_FILE_PATH)
+BOARD_BONUSES = ex.read_json_to_list(BOARD_BONUSES_FILE_PATH)
 
 
 # author - Pavel
-def get_hint(board: [[str]], letters: Counter) -> ([[str]], int):
+def get_hint(board: [[str]], letters: ex.Counter) -> ([[str]], int):
     """
     Основная функция файла
     Выдает лучшую подсказку на доске из двух вариантов:
@@ -52,7 +51,7 @@ def get_hint(board: [[str]], letters: Counter) -> ([[str]], int):
 
 # author - Pavel
 # todo: с регулярками будет быстрее раз в 10
-def get_horizontal_hint(board: [[str]], letters: Counter) -> ([[str]], int):
+def get_horizontal_hint(board: [[str]], letters: ex.Counter) -> ([[str]], int):
     """
     Дает лучшую подсказку слова на доске по горизонтали
     :param board: доска в виде двумерного символьного массива
@@ -80,10 +79,10 @@ def get_horizontal_hint(board: [[str]], letters: Counter) -> ([[str]], int):
                         if marked_board[i][j + word_start_index] != word[j]:
                             word2 += word[j]
 
-                    if is_word_compilable(word2, letters):
+                    if ex.is_word_compilable(word2, letters):
                         # считаем его ценность
-                        value = calculate_word_value(word, board, i,
-                                                     word_start_index)
+                        value = evaluate_word(word, board, i,
+                                              word_start_index)
                         # если ценность выше, чем у максимального,
                         # меняем лучшее слово и все его параметры на найденое
                         if value >= best_hint_value:
@@ -102,7 +101,7 @@ def get_horizontal_hint(board: [[str]], letters: Counter) -> ([[str]], int):
 
 # author - Pavel
 def get_hint_for_empty_board(board: [[str]],
-                             letters: Counter) -> ([[str]], int):
+                             letters: ex.Counter) -> ([[str]], int):
     """
     Дает лучшую подсказку для первого хода (пустая доска)
     :param board: доска в виде двумерного символьного массива
@@ -126,11 +125,11 @@ def get_hint_for_empty_board(board: [[str]],
             if len(line) <= 8:
                 word = line[:-1]  # без \n
                 # если слово можно собрать - пропускаем его
-                if is_word_compilable(word, letters):
+                if ex.is_word_compilable(word, letters):
                     # размещаем слово по всем разрешенным позициям
                     for i in range(mid_index - len(word) + 1, mid_index + 1):
                         # считаем его ценность
-                        value = calculate_word_value(word, board, mid_index, i)
+                        value = evaluate_word(word, board, mid_index, i)
                         # если ценность выше, чем у максимального,
                         # меняем лучшее слово и все его параметры на найденое
                         if value >= best_hint_value:
@@ -169,7 +168,9 @@ def is_board_empty(board: [[str]]) -> bool:
 
     for row in board:
         for i in range(len(row)):
-            if row[i] != '':
+            # если строка не пустая
+            # то вся доска не пустая
+            if row[i]:
                 return False
     return True
 
@@ -185,8 +186,10 @@ def is_board_correct(board: [[str]]) -> bool:
 
     for row in board:
         for char in row:
-            if char != '' and char != '*' and \
-                    not is_symbol_russian_letter(char):
+            # если символ не пустой и не * и не русская буква
+            # тогда этот символ некорректен -> вся таблица некорректна
+            if char and char != '*' and \
+                    not ex.is_symbol_russian_letter(char):
                 return False
     return True
 
@@ -223,7 +226,7 @@ def get_marked_rows(board: [[str]]) -> [[str]]:
             up_block = False  # заблокировано ли сверху
             down_block = False  # заблокировано ли снизу
 
-            if row[symbol_index] == '':  # если в клетке пусто
+            if not row[symbol_index]:  # если в клетке пусто
                 if index > 0:  # если не самая верхняя строка
                     if board[index - 1][symbol_index]:  # если сверху буква
                         up_block = True
@@ -260,7 +263,7 @@ def get_marked_rows(board: [[str]]) -> [[str]]:
                         row[j] = '#'
                     last_sharp_index = row_index
             # если нашли какой-то символ, но не #, сбрасываем счетчик
-            elif row[row_index] != '':
+            elif row[row_index]:
                 last_sharp_index = -1
 
             # если дошли до конца и между последним # и концом нет символов,
@@ -301,7 +304,7 @@ def get_possible_word_positions_in_row(word: str, row: [str]) -> [int]:
             # если буквы не совпадают и клетка в строке не пуста
             if word[j] == row[i + j]:
                 same_letters_counter += 1
-            elif row[i + j] == '':
+            elif not row[i + j]:
                 pass
             else:
                 # игнорируем данную позицию, идем дальше
@@ -323,33 +326,16 @@ def get_possible_word_positions_in_row(word: str, row: [str]) -> [int]:
                 next_sym = row[i + len(word)]
 
             # если и слева и справа не мешается буква - можем вставить слово
-            if not is_symbol_russian_letter(previous_sym) and \
-                    not is_symbol_russian_letter(next_sym):
+            if not ex.is_symbol_russian_letter(previous_sym) and \
+                    not ex.is_symbol_russian_letter(next_sym):
                 possible_indexes.append(i)
 
     return possible_indexes
 
 
-# author - Matvey
-def is_word_compilable(word: str, letters: Counter) -> bool:
-    """
-    Проверяет возможность составить слово из переданных букв.
-    :param word: слово
-    :param letters: буквы, имеющиеся у игрока
-    :return: можно ли составить из переданных букв переданое слово
-    """
-
-    word_letters = Counter(word)  # Счетчик букв для слова
-    for letter in word_letters.keys():
-        if letters[letter] < word_letters[letter]:
-            # Если количество букв у игрока меньше, чем букв в слове
-            return False
-    return True
-
-
 # author - Pavel
-def calculate_word_value(word: str, board: [[str]],
-                         line_index: int, start_index: int) -> int:
+def evaluate_word(word: str, board: [[str]],
+                  line_index: int, start_index: int) -> int:
     """
     Считает ценность слова, расположенного на доске,
     с учетом бонусов на доске в любых кол-вах.
@@ -393,7 +379,7 @@ def calculate_word_value(word: str, board: [[str]],
         # Бонус использован, если на его месте уже есть буква.
 
         # Если в клетке не было буквы
-        if board[line_index][start_index + i] == '':
+        if not board[line_index][start_index + i]:
             new_letters_counter += 1
             if bonus == 'x2':
                 letter_value *= 2

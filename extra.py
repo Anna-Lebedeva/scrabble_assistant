@@ -1,5 +1,23 @@
+from collections import Counter
 from pathlib import Path
 import json
+
+
+# author - Matvey
+def is_word_compilable(word: str, letters: Counter) -> bool:
+    """
+    Проверяет возможность составить слово из переданных букв.
+    :param word: слово
+    :param letters: буквы, имеющиеся у игрока
+    :return: можно ли составить из переданных букв переданое слово
+    """
+
+    word_letters = Counter(word)  # Счетчик букв для слова
+    for letter in word_letters.keys():
+        if letters[letter] < word_letters[letter]:
+            # Если количество букв у игрока меньше, чем букв в слове
+            return False
+    return True
 
 
 # author - Pavel
@@ -12,7 +30,7 @@ def is_symbol_russian_letter(symbol: str) -> bool:
     :return: true - это буква
     """
 
-    if symbol is None or symbol == '':
+    if symbol is None or not symbol:
         return False
     else:
         return 1040 <= ord(symbol) <= 1071 or 1072 <= ord(symbol) <= 1131
