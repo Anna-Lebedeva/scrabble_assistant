@@ -1,5 +1,5 @@
 import numpy as np
-
+from collections import Counter
 import extra as ex
 
 # пути к json файлам
@@ -19,7 +19,7 @@ BOARD_BONUSES = ex.read_json_to_list(BOARD_BONUSES_FILE_PATH)
 
 
 # author - Pavel
-def get_hint(board: [[str]], letters: ex.Counter) -> ([[str]], int):
+def get_hint(board: [[str]], letters: Counter) -> ([[str]], int):
     """
     Основная функция файла
     Выдает лучшую подсказку на доске из двух вариантов:
@@ -400,3 +400,14 @@ def evaluate_word(word: str, board: [[str]],
         value += 15
 
     return value
+
+
+# todo: написать функцию
+# author - Pavel
+def get_used_letters_dict(board: [[str]]) -> Counter:
+    """
+    Возвращает буквы, которые присутствуют на доске
+    :param board: доска в виде двумерного символьного массива
+    :return: Counter из использованных на доске букв
+    """
+    pass
