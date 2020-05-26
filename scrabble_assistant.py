@@ -402,12 +402,39 @@ def evaluate_word(word: str, board: [[str]],
     return value
 
 
-# todo: написать функцию
 # author - Pavel
-def get_used_letters_dict(board: [[str]]) -> Counter:
+def get_used_letters_counter(board: [[str]]) -> Counter:
     """
     Возвращает буквы, которые присутствуют на доске
     :param board: доска в виде двумерного символьного массива
     :return: Counter из использованных на доске букв
     """
-    pass
+
+    # счетчик для подсчете букв
+    letters_counter = Counter()
+
+    # идем по строкам
+    for row in board:
+        # формируем новый счетчик из строки и суммируем его с текущим
+        letters_counter += Counter(row)
+
+    # если в счетчике есть пустые символы
+    if not letters_counter.get('') is None:
+        # удаляем запись о пустых символах
+        letters_counter.pop('')
+
+    return letters_counter
+
+
+# author - Pavel
+def is_board_letters_amount_right(board: [[str]]) -> bool:
+    """
+    Проверяет не превышает ли кол-во букв на доске их кол-во в наборе
+    :param board: доска в виде двумерного символьного массива
+    :return: true - доска корректна
+    """
+    c = get_used_letters_counter(board)
+    for key in c.keys():
+        if c[key] > LETTERS_AMOUNT[key]:
+            return False
+    return True
