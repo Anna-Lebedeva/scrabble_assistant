@@ -1,51 +1,21 @@
-from collections import Counter
-from pathlib import Path
 import numpy as np
-import json
-import time
-import re
+from collections import Counter
+import extra as ex
 
 # пути к json файлам
-LETTERS_VALUES_FILE_PATH = "jsons/letters_values.json"  # ценность букв
-LETTERS_AMOUNT_FILE_PATH = "jsons/letters_amount.json"  # кол-во букв
-BOARD_BONUSES_FILE_PATH = "jsons/board_bonuses.json"  # бонусы на доске
+LETTERS_VALUES_FILE_PATH = 'jsons/letters_values.json'  # ценность букв
+LETTERS_AMOUNT_FILE_PATH = 'jsons/letters_amount.json'  # кол-во букв
+BOARD_BONUSES_FILE_PATH = 'jsons/board_bonuses.json'  # бонусы на доске
 
 # путь к основному словарю
-DICTIONARY_FILE_PATH = "dictionaries/dictionary.txt"
-# путь к словарю из 7 и менее букв
-DICTIONARY_MAX_7_LETTERS_FILE_PATH = "dictionaries/dictionary_max_7_letters.txt"
-
-
-# author - Matvey
-def read_json_to_dict(json_filename: str) -> dict:
-    """
-    Считывает json-файл в dict
-    :param json_filename: имя json-файла
-    :return: считанный словарь
-    """
-    with open(file=Path(Path.cwd() / json_filename), mode='r',
-              encoding='utf-8') as file:
-        return dict(json.load(file))
-
-
-# author - Pavel
-def read_json_to_list(json_filename: str) -> [[str]]:
-    """
-    Считывает json-файл в list
-    :param json_filename: имя json-файла
-    :return: считанный список
-    """
-    with open(file=Path(Path.cwd() / json_filename), mode='r',
-              encoding='utf-8') as file:
-        return list(json.load(file))
-
+DICTIONARY_FILE_PATH = 'dictionary.txt'
 
 # словарь с ценностью букв
-LETTERS_VALUES = read_json_to_dict(LETTERS_VALUES_FILE_PATH)
+LETTERS_VALUES = ex.read_json_to_dict(LETTERS_VALUES_FILE_PATH)
 # словарь с кол-вом букв в игре
-LETTERS_AMOUNT = read_json_to_dict(LETTERS_AMOUNT_FILE_PATH)
+LETTERS_AMOUNT = ex.read_json_to_dict(LETTERS_AMOUNT_FILE_PATH)
 # список бонусов доски в виде матрицы
-BOARD_BONUSES = read_json_to_list(BOARD_BONUSES_FILE_PATH)
+BOARD_BONUSES = ex.read_json_to_list(BOARD_BONUSES_FILE_PATH)
 
 
 # author - Pavel
@@ -54,56 +24,71 @@ def get_hint(board: [[str]], letters: Counter) -> ([[str]], int):
     Основная функция файла
     Выдает лучшую подсказку на доске из двух вариантов:
     По горизонтали и по вертикали (транспонированная доска)
-    :param board: доска, где идет игра
-    :param letters: буквы игрока
+    :param board: доска в виде двумерного символьного массива
+    :param letters: буквы, имеющиеся у игрока
     :return: доска с лучшим словом, ценность слова
     """
 
-    hint_1, value_1 = get_best_hint(board, letters)
-    hint_2, value_2 = get_best_hint(transpose_board(board), letters)
-    if value_1 >= value_2:
-        return hint_1, value_1
+    # если доска с ошибками - вернуть пустую доску
+    if not is_board_correct(board):
+        return get_empty_board(len(board), len(board[0])), -1
+
+    # если доска пустая
+    if is_board_empty(board):
+        # запускаем для нее отдельную функцию
+        return get_hint_for_empty_board(board, letters)
+    # если доска не пустая
     else:
-        return transpose_board(hint_2), value_2
+        # ищем подсказки по горизонтали и по вертикали
+        hint_1, value_1 = get_horizontal_hint(board, letters)
+        hint_2, value_2 = get_horizontal_hint(transpose_board(board), letters)
+        # возвращаем ту подсказку, чье слово ценнее
+        if value_1 >= value_2:
+            return hint_1, value_1
+        else:
+            return transpose_board(hint_2), value_2
 
 
 # author - Pavel
-def get_best_hint(board: [[str]], letters: Counter) -> ([[str]], int):
+# todo: с регулярками будет быстрее раз в 10
+def get_horizontal_hint(board: [[str]], letters: ex.Counter) -> ([[str]], int):
     """
     Дает лучшую подсказку слова на доске по горизонтали
-    :param board: символьный двумерный массив доски
-    :param letters: набор букв игрока
+    :param board: доска в виде двумерного символьного массива
+    :param letters: буквы, имеющиеся у игрока
     :return: доска с лучшим словом, ценность слова
     """
 
     # параметры лучшей подсказки
-    best_word = ""  # слово
+    best_word = ''  # слово
     best_hint_value = 0  # цена
     best_hint_x_index = 0  # стартовый индекс
     best_hint_y_index = 0  # стартовый индекс
 
     marked_board = get_marked_rows(board)
     for i in range(len(marked_board)):
-        with open(DICTIONARY_FILE_PATH, 'r',
-                  encoding='utf-8') as dictionary:
+        with open(DICTIONARY_FILE_PATH, 'r', encoding='utf-8') as dictionary:
             for line in dictionary:  # Читаем строки из словаря
                 word = line[:-1]  # без \n
-                for index in get_word_possible_pos_in_row(word,
-                                                          marked_board[i]):
-                    word2 = ""
+
+                for word_start_index in \
+                        get_possible_word_positions_in_row(word,
+                                                           marked_board[i]):
+                    word2 = ''
                     for j in range(len(word)):
-                        if marked_board[i][j + index] != word[j]:
+                        if marked_board[i][j + word_start_index] != word[j]:
                             word2 += word[j]
-                    # print(str(i) + ": " + word + " | " + word2)
-                    if is_word_compilable(word2, letters):
+
+                    if ex.is_word_compilable(word2, letters):
                         # считаем его ценность
-                        value = calculate_word_value(word, board, i, index)
+                        value = evaluate_word(word, board, i,
+                                              word_start_index)
                         # если ценность выше, чем у максимального,
                         # меняем лучшее слово и все его параметры на найденое
                         if value >= best_hint_value:
                             best_word = word
                             best_hint_value = value
-                            best_hint_x_index = index
+                            best_hint_x_index = word_start_index
                             best_hint_y_index = i
 
     # записываем лучшее слово в матрицу доски
@@ -115,39 +100,42 @@ def get_best_hint(board: [[str]], letters: Counter) -> ([[str]], int):
 
 
 # author - Pavel
-def get_best_hint_for_empty_board(board: [[str]],
-                                  letters: Counter) -> ([[str]], int):
+def get_hint_for_empty_board(board: [[str]],
+                             letters: ex.Counter) -> ([[str]], int):
     """
     Дает лучшую подсказку для первого хода (пустая доска)
-    :param board: доска, на которой идет игра
-    :param letters: буквы, которые есть у игрока
+    :param board: доска в виде двумерного символьного массива
+    :param letters: буквы, имеющиеся у игрока
     :return: доска с лучшим словом, ценность этого слова на доске
     """
 
     mid_index = int(len(board[0]) / 2)  # 7 for standard board
 
     # параметры лучшей подсказки
-    best_word = ""  # слово
+    best_word = ''  # слово
     best_hint_value = 0  # цена
     best_hint_start_index = mid_index  # стартовый индекс
 
     # открываем словарь
-    with open(DICTIONARY_MAX_7_LETTERS_FILE_PATH, 'r',
-              encoding='utf-8') as dictionary:
+    with open(DICTIONARY_FILE_PATH, 'r', encoding='utf-8') as dictionary:
         for line in dictionary:  # Читаем строки из словаря
-            word = line[:-1]  # без \n
-            # если слово можно собрать - пропускаем его
-            if is_word_compilable(word, letters):
-                # размещаем слово по всем разрешенным позициям
-                for i in range(mid_index - len(word) + 1, mid_index + 1):
-                    # считаем его ценность
-                    value = calculate_word_value(word, board, mid_index, i)
-                    # если ценность выше, чем у максимального,
-                    # меняем лучшее слово и все его параметры на найденое
-                    if value >= best_hint_value:
-                        best_word = word
-                        best_hint_value = value
-                        best_hint_start_index = i
+            # если слово больше 7 букв - отбрасываем
+            # макс. длина 8, так как в конце есть \n
+            # отбрасывать \n до проверки неразумно, тратит много времени
+            if len(line) <= 8:
+                word = line[:-1]  # без \n
+                # если слово можно собрать - пропускаем его
+                if ex.is_word_compilable(word, letters):
+                    # размещаем слово по всем разрешенным позициям
+                    for i in range(mid_index - len(word) + 1, mid_index + 1):
+                        # считаем его ценность
+                        value = evaluate_word(word, board, mid_index, i)
+                        # если ценность выше, чем у максимального,
+                        # меняем лучшее слово и все его параметры на найденое
+                        if value >= best_hint_value:
+                            best_word = word
+                            best_hint_value = value
+                            best_hint_start_index = i
 
     # записываем лучшее слово в матрицу доски
     best_hint = get_empty_board(len(board), len(board[0]))
@@ -157,256 +145,78 @@ def get_best_hint_for_empty_board(board: [[str]],
     return best_hint, best_hint_value
 
 
-# author - Matvey
-def is_word_compilable(word: str, letters: Counter) -> bool:
+# authors - Matvey and Pavel
+def get_empty_board(y: int, x: int) -> [[str]]:
     """
-    Проверяет возможность составить слово из переданных букв.
-    :param word: слово
-    :param letters: счетчик букв игрока
-    :return: можно ли составить из переданных букв переданое слово
+    Генерирует пустую матрицу в y строк и x столбцов
+    И заполняет ее символами пустыми строками
+    :param y: кол-во строк
+    :param x: кол-во столбцов
+    :return: матрица y*x
     """
 
-    word_letters = Counter(word)  # Счетчик букв для слова
-    for letter in word_letters.keys():
-        if letters[letter] < word_letters[letter]:
-            # Если количество букв у игрока меньше, чем букв в слове
-            return False
+    return [[''] * y for _ in range(x)]
+
+
+# author - Pavel
+def is_board_empty(board: [[str]]) -> bool:
+    """
+    Проверяет, является ли доска пустой
+    :param board: доска в виде двумерного символьного массива
+    :return: true - доска пустая
+    """
+
+    for row in board:
+        for i in range(len(row)):
+            # если строка не пустая
+            # то вся доска не пустая
+            if row[i]:
+                return False
     return True
 
 
 # author - Pavel
-def is_symbol_letter(symbol: str) -> bool:
+def is_board_correct(board: [[str]]) -> bool:
     """
-    Проверяет, является ли символ буквой
-    Считает и кириллицу, и латиницу
-    Считает и прописные, и заглавные буквы
-    :param symbol: символ
-    :return: true - это буква
-    """
-    if symbol is None or not symbol:
-        return False
-    else:
-        return 65 <= ord(symbol) <= 90 or 97 <= ord(symbol) <= 122 or \
-               1040 <= ord(symbol) <= 1071 or 1072 <= ord(symbol) <= 1131
-
-
-# author - Pavel
-# todo: без регулярок нет возможности пользоваться подсловарями
-# todo: с подсловарями будет быстрее в 3-5 раз
-def get_word_possible_pos_in_row(word: str, row: [str]) -> [int]:
-    """
-    Находит все возможные позиции слова в строке
-    :param word: слово
-    :param row: строка в виде массива символов
-    :return: массив индексов начала слова в строке
+    Проверяет доску на корректность символов внутри
+    Допустимы русские буквы, * и пустая строка
+    :param board: доска в виде двумерного символьного массива
+    :return: true - доска корректна
     """
 
-    # индексы всех возможных позиций слова в строке
-    possible_indexes = []
-
-    # идем по строке так, чтобы слово влезло в строку
-    for i in range(len(row) - len(word) + 1):
-
-        # флаг, показывающий, все ли буквы могут поместиться в строку
-        is_word_fit = True
-
-        # счетчик совпадений по буквам
-        same_letters_counter = 0
-
-        # идем по слову
-        for j in range(len(word)):
-            # если буквы не совпадают и клетка в строке не пуста
-            if word[j] == row[i + j]:
-                same_letters_counter += 1
-            elif row[i + j] == "":
-                pass
-            else:
-                # игнорируем данную позицию, идем дальше
-                is_word_fit = False
-                break
-
-        # если все буквы подошли
-        # и слово прикрепилось к хотя бы одной букве
-        # но слово не дублирует уже написанное
-        if is_word_fit and 0 < same_letters_counter < len(word):
-            # предыдущий символ
-            previous_sym = None
-            if i != 0:
-                previous_sym = row[i - 1]
-
-            # следующий символ
-            next_sym = None
-            if (i + len(word)) < len(row):
-                next_sym = row[i + len(word)]
-
-            # если и слева и справа не мешается буква - можем вставить слово
-            if not is_symbol_letter(previous_sym) and \
-                    not is_symbol_letter(next_sym):
-                possible_indexes.append(i)
-
-    return possible_indexes
+    for row in board:
+        for char in row:
+            # если символ не пустой и не * и не русская буква
+            # тогда этот символ некорректен -> вся таблица некорректна
+            if char != '' and char != '*' and \
+                    not ex.is_symbol_russian_letter(char):
+                return False
+    return True
 
 
-# author - Matvey
-# fixme: не работает для многих случаев
-def get_regex_patterns(sharped_row: [str]) -> ([re.Pattern], [[str]]):
+# authors - Matvey and Pavel
+def transpose_board(board: [[str]]) -> [[str]]:
     """
-    Получает строку, возвращает паттерны, соответствующие этой строке,
-    для поиска подходящих слов в словаре по этому паттерну.
-    :param sharped_row: размеченный '#' ряд
-    :return: шаблоны, по которому можно найти подходящие слова и список для
-    каждого шаблона, где находятся буквы из этого шаблона
-    """
-    prepared_row = []
-    patterns = []
-    letters = []
-    letters_in_patterns = []
-    # test_row = ['', '', '', 'а', '#', 'а', '#',
-    # '#', '#', '#', '', 'р', '', '', '']
-
-    for cell in range(len(sharped_row)):
-        if sharped_row[cell]:  # Если в клетке есть символ
-            prepared_row.append(sharped_row[cell])
-        else:  # Если клетка пустая
-            prepared_row.append(' ')
-            # fixme: переписать?
-
-    prepared_row = ''.join(prepared_row).split('#')
-    # Соединяем в строку и нарезаем на подстроки по '#'
-
-    for i in range(len(prepared_row)):
-        if len(prepared_row[i]) > 1:
-            # отбираем подстроки длинее 1 символа
-            patterns.append(prepared_row[i])
-
-    for pattern in patterns:
-        for i in pattern:
-            if i.isalpha():
-                letters.append(i)
-        letters_in_patterns.append(letters)
-        letters = []
-
-    for i in range(len(patterns)):
-        patterns[i] = patterns[i].replace(' ', '[а-я]?')
-    # В пустое место можно вписать любую букву букву а-я или не писать ничего
-    # todo: Можно переписать регулярку c помощью одних фигурных скобок
-
-    for i in range(len(patterns)):
-        patterns[i] = '^(' + patterns[i] + ')$'
-    # Чтобы регулярка не хватала слова,
-    # которые удовлетворяют, но выходят за рамки.
-
-    for i in range(len(patterns)):
-        patterns[i] = re.compile(patterns[i])
-    # Компилируем каждый паттерн в регулярное выражение
-    # Upd. компиляция не понадобится. Но пока не удалять
-
-    return patterns, letters_in_patterns
-
-
-# author - Matvey
-# todo: если она точно работает, можно функцию убрать
-def is_word_fit_to_pattern(word: str, pattern: re.Pattern) -> bool:
-    """
-    Проверяет - подходит ли слово в паттерн.
-    :param word: слово
-    :param pattern: паттерн
-    :return:
-    """
-    return bool(pattern.search(word))
-
-
-# author - Matvey
-# todo: удалить или все же пригодится?
-def calculate_letters_value(word: str) -> int:
-    """
-    Считает ценность слова, без учета бонусов.
-    :param word: слово, ценность которого нужно посчитать
-    :return: ценность слова, без учета бонусов
-    """
-    return sum([LETTERS_VALUES[letter] for letter in word])
-
-
-# author - Pavel
-def calculate_word_value(word: str, board: [[str]],
-                         line_index: int, start_index: int) -> int:
-    """
-    Считает ценность слова, расположенного на доске,
-    с учетом бонусов на доске в любых кол-вах.
-    Не учитывает бонусы, которые уже были использованы.
-    Если игрок доложил 7 букв - добавляет 15 баллов.
-    :param word: слово, ценность которого нужно посчитать
-    :param board: доска с текущей позицией
-    :param line_index: индекс строки, в которой стоит слово
-    :param start_index: индекс начала слова в строке
-    :return: ценность слова, с учетом бонусов
+    Транспонирует двумерный массив
+    :param board: доска в виде двумерного символьного массива
+    :return: транспонированный двумерный массив
     """
 
-    # Считываем ценность букв как словарь
-    letters_values = LETTERS_VALUES
-
-    # Считываем бонусы на доске как матрицу
-    board_bonuses = BOARD_BONUSES
-    # разметка ценности полей доски:
-    # 00 - обычное поле
-    # x2 - *2 за букву
-    # x3 - *3 за букву
-    # X2 - *2 за слово
-    # X3 - *3 за слово
-    # ST - стартовое поле
-
-    value = 0
-    new_letters_counter = 0
-    word_bonuses_2x_counter = 0  # Сколько бонусов x2 слово собрали
-    word_bonuses_3x_counter = 0  # Сколько бонусов x3 слово собрали
-
-    for i in range(len(word)):  # Идем по буквам слова
-        letter = word[i]
-
-        letter_value = letters_values[letter]  # Ценность буквы без бонусов
-
-        bonus = board_bonuses[line_index][start_index + i]
-        # Бонус на клетке, где стоит буква
-
-        # Бонусы учитываются только в том случае,
-        # если они не были использованы ранее.
-        # Бонус использован, если на его месте уже есть буква.
-
-        # Если в клетке не было буквы
-        if not board[line_index][start_index + i]:
-            new_letters_counter += 1
-            if bonus == "x2":
-                letter_value *= 2
-            elif bonus == "x3":
-                letter_value *= 3
-            elif bonus == "X2":
-                word_bonuses_2x_counter += 1
-            elif bonus == "X3":
-                word_bonuses_3x_counter += 1
-
-        value += letter_value
-    # Считаем все собранные бонусы за слово
-    value *= 2 ** word_bonuses_2x_counter
-    value *= 3 ** word_bonuses_3x_counter
-
-    # Выложил разом 7 букв - получи 15 баллов
-    if new_letters_counter == 7:
-        value += 15
-
-    return value
+    return list(np.array(board).transpose())
 
 
 # author - Pavel
 def get_marked_rows(board: [[str]]) -> [[str]]:
     """
     Меняет доску, помечая заблокированные клетки знаком #
+    Работает только для горизонталей (rows)
     Если у клетки есть символы сверху или снизу, то клетка заблокирована
     Постобработка:
     Между двумя # пустое пространство - все клетки между ними #
     От начала до # пустое пространство - все клетки между ними #
     От # до конца пустое пространство - все клетки между ними #
-    :param board: символьный двумерный массив доски
-    :return: одномерный массив символов(строка) с заблокированными клетками
+    :param board: доска в виде двумерного символьного массива
+    :return: одномерный массив символов(row) с заблокированными клетками
     """
 
     marked_board = []  # новая доска с метками
@@ -453,7 +263,7 @@ def get_marked_rows(board: [[str]]) -> [[str]]:
                         row[j] = '#'
                     last_sharp_index = row_index
             # если нашли какой-то символ, но не #, сбрасываем счетчик
-            elif row[row_index] != '':
+            elif row[row_index]:
                 last_sharp_index = -1
 
             # если дошли до конца и между последним # и концом нет символов,
@@ -467,127 +277,164 @@ def get_marked_rows(board: [[str]]) -> [[str]]:
     return marked_board
 
 
-# authors - Matvey and Pavel
-def transpose_board(board: [[str]]) -> [[str]]:
+# author - Pavel
+# todo: с регулярками будет быстрее раз в 10
+def get_possible_word_positions_in_row(word: str, row: [str]) -> [int]:
     """
-    Транспонирует двумерный массив
-    :param board: двумерный массив доски
-    :return: транспонированный двумерный массив
-    """
-    return list(np.array(board).transpose())
-
-
-# authors - Matvey and Pavel
-def get_empty_board(y: int, x: int) -> [[str]]:
-    """
-    Генерирует пустую матрицу в y строк и x столбцов
-    И заполняет ее символами пустыми строками
-    :param y: кол-во строк
-    :param x: кол-во столбцов
-    :return: матрица y*x
-    """
-    return [[''] * y for _ in range(x)]
-
-
-# author - Matvey
-# fixme: у нас изменились пути, переписать
-# todo: может вернуть не имя файла, а путь к нему?
-def get_smallest_sub_dict(letters_in_pattern: [str]) -> str:
-    """
-    Выбирает из списка букв самую редкую
-    и возвращает название подсловаря с этой буквой.
-    :param letters_in_pattern: список букв, которые есть в паттерне
-    :return: имя наименьшего словаря
+    Находит все возможные позиции слова в строке
+    :param word: слово
+    :param row: строка в виде массива символов
+    :return: массив индексов начала слова в строке
     """
 
-    min_sub_dict_name = ''  # Название наименьшего словаря
-    min_sub_dict_size = Path(Path.cwd() / 'dictionary.txt').stat().st_size
+    # индексы всех возможных позиций слова в строке
+    possible_indexes = []
 
-    # Считываем название полного словаря
-    for i in letters_in_pattern:  # Идем по буквам
-        sub_dict_letter = str('letter' + str(ord(i) - 1071) + '.txt')
-        # Получаем название подсловаря
+    # идем по строке так, чтобы слово влезло в строку
+    for i in range(len(row) - len(word) + 1):
 
-        sub_dict_size = Path(Path.cwd() / 'sub-dictionaries' /
-                             sub_dict_letter).stat().st_size
-        # Получаем размер подсловаря
+        # флаг, показывающий, все ли буквы могут поместиться в строку
+        is_word_fit = True
 
-        # Если размер подсловаря меньше минимального
-        if sub_dict_size < min_sub_dict_size:
-            min_sub_dict_name = sub_dict_letter
-            min_sub_dict_size = sub_dict_size
+        # счетчик совпадений по буквам
+        same_letters_counter = 0
 
-    return min_sub_dict_name
+        # идем по слову
+        for j in range(len(word)):
+            # если буквы не совпадают и клетка в строке не пуста
+            if word[j] == row[i + j]:
+                same_letters_counter += 1
+            elif not row[i + j]:
+                pass
+            else:
+                # игнорируем данную позицию, идем дальше
+                is_word_fit = False
+                break
+
+        # если все буквы подошли
+        # и слово прикрепилось к хотя бы одной букве
+        # но слово не дублирует уже написанное
+        if is_word_fit and 0 < same_letters_counter < len(word):
+            # предыдущий символ
+            previous_sym = None
+            if i != 0:
+                previous_sym = row[i - 1]
+
+            # следующий символ
+            next_sym = None
+            if (i + len(word)) < len(row):
+                next_sym = row[i + len(word)]
+
+            # если и слева и справа не мешается буква - можем вставить слово
+            if not ex.is_symbol_russian_letter(previous_sym) and \
+                    not ex.is_symbol_russian_letter(next_sym):
+                possible_indexes.append(i)
+
+    return possible_indexes
 
 
-# ----- TESTS -----
-if __name__ == '__main__':
-    pass
+# author - Pavel
+def evaluate_word(word: str, board: [[str]],
+                  line_index: int, start_index: int) -> int:
+    """
+    Считает ценность слова, расположенного на доске,
+    с учетом бонусов на доске в любых кол-вах.
+    Не учитывает бонусы, которые уже были использованы.
+    Если игрок доложил 7 букв - добавляет 15 баллов.
+    :param word: слово, ценность которого нужно посчитать
+    :param board: доска в виде двумерного символьного массива
+    :param line_index: индекс строки, в которой стоит слово
+    :param start_index: индекс начала слова в строке
+    :return: ценность слова, с учетом бонусов
+    """
 
-    test_board = [
-        ['', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
-        ['', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
-        ['', '', '', '', '', '', '', '', '', 'т', '', '', '', '', ''],
-        ['', '', '', '', '', '', '', '', '', 'о', '', '', '', '', ''],
-        ['', '', '', 'п', 'о', 'c', 'е', 'л', 'о', 'к', '', '', '', '', ''],
-        ['', '', '', 'а', '', 'а', '', '', '', '', '', 'р', '', '', ''],
-        ['', '', '', 'п', '', 'д', 'о', 'м', '', 'я', '', 'е', '', '', ''],
-        ['', '', '', 'а', '', '', '', 'а', 'з', 'б', 'у', 'к', 'а', '', ''],
-        ['', '', '', '', '', 'с', 'о', 'м', '', 'л', '', 'а', '', '', ''],
-        ['', '', '', 'я', 'м', 'а', '', 'а', '', 'о', '', '', '', '', ''],
-        ['', '', '', '', '', 'л', '', '', '', 'к', 'и', 'т', '', '', ''],
-        ['', '', '', '', 'с', 'о', 'л', 'ь', '', 'о', '', '', '', '', ''],
-        ['', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
-        ['', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
-        ['', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
-    ]
+    # Считываем ценность букв как словарь
+    letters_values = LETTERS_VALUES
 
-    # print(20 == calculate_word_value('тотем',
-    #                                  transpose_board(test_board), 11, 10))
-    # print(8 == calculate_word_value('дуло',
-    #                                 transpose_board(test_board), 4, 1))
-    # передаем транспонированную доску, тк слово написано по вертикали
-    # если доска транспонирована - координаты меняются местами
+    # Считываем бонусы на доске как матрицу
+    board_bonuses = BOARD_BONUSES
+    # разметка ценности полей доски:
+    # 00 - обычное поле
+    # x2 - *2 за букву
+    # x3 - *3 за букву
+    # X2 - *2 за слово
+    # X3 - *3 за слово
+    # ST - стартовое поле
 
-    # test_marked_board = get_marked_rows(test_board)
-    # for iii in range(len(test_marked_board)):
-    #     print(test_marked_board[iii])
-    # print(get_marked_row(test_board, 12))
+    value = 0
+    new_letters_counter = 0
+    word_bonuses_2x_counter = 0  # Сколько бонусов x2 слово собрали
+    word_bonuses_3x_counter = 0  # Сколько бонусов x3 слово собрали
 
-    # patterns_, letters_ = get_regex_patterns(
-    #     ['', '', 'д', 'а', '', 'а', '#', 'о', '', '#', '', 'р', '', 'к', 'а'])
-    # print(patterns_, letters_)
+    for i in range(len(word)):  # Идем по буквам слова
+        letter = word[i]
 
-    # print(patterns_[0])
+        letter_value = letters_values[letter]  # Ценность буквы без бонусов
 
-    # print(is_word_fit_to_pattern('прока', patterns_[2]))
-    # print(is_word_fit_to_pattern('ок', patterns_[1]))
-    # print(is_word_fit_to_pattern('поклажа', patterns_[0]))
-    # print(is_word_fit_to_pattern('фрукт', patterns_[0]))
+        bonus = board_bonuses[line_index][start_index + i]
+        # Бонус на клетке, где стоит буква
 
-    # test_row = ['', '', 'д', 'а', '', 'а', '#', 'о', '', '#', '', 'р', '', 'к', 'а']
-    # print("дама: " + str(get_word_possible_positions_in_row("дама", test_row)))  # 2
-    # print("даг: " + str(get_word_possible_positions_in_row("даг", test_row)))  # нет
-    # print("адам: " + str(get_word_possible_positions_in_row("адам", test_row)))  # нет
-    # print("адама: " + str(get_word_possible_positions_in_row("адама", test_row)))  # 1
-    # print("редара: " + str(get_word_possible_positions_in_row("редара", test_row)))  # 0
-    # print("река: " + str(get_word_possible_positions_in_row("река", test_row)))  # 11
-    # print("шрека: " + str(get_word_possible_positions_in_row("шрека", test_row)))  # 10
-    # print("шре: " + str(get_word_possible_positions_in_row("шре", test_row)))  # нет
-    #
-    # print()
-    #
-    # test_row = ['', '', '', 'в', '', 'р', '#', 'а', '', 'в', '', '', 'в', '', '']
-    # print("варвар: " + str(get_word_possible_positions_in_row("варвар", test_row)))  # 0, 9
-    # print("вар: " + str(get_word_possible_positions_in_row("вар", test_row)))  # 3, 12
-    #
-    # test_row = ['', 'а', '', 'д', '', 'а', '#', 'а', '', 'д', '', '', 'д', '', '']
-    # print("да: " + str(get_word_possible_positions_in_row("да", test_row)))
-    # print("ад: " + str(get_word_possible_positions_in_row("ад", test_row)))
+        # Бонусы учитываются только в том случае,
+        # если они не были использованы ранее.
+        # Бонус использован, если на его месте уже есть буква.
 
-    t = time.time()
-    test_hint, test_value = get_hint(test_board, Counter("аблкено"))
-    print(str(time.time() - t))
-    for iii in range(len(test_hint)):
-        print(test_hint[iii])
-    print(test_value)
+        # Если в клетке не было буквы
+        if not board[line_index][start_index + i]:
+            new_letters_counter += 1
+            if bonus == 'x2':
+                letter_value *= 2
+            elif bonus == 'x3':
+                letter_value *= 3
+            elif bonus == 'X2':
+                word_bonuses_2x_counter += 1
+            elif bonus == 'X3':
+                word_bonuses_3x_counter += 1
+
+        value += letter_value
+    # Считаем все собранные бонусы за слово
+    value *= 2 ** word_bonuses_2x_counter
+    value *= 3 ** word_bonuses_3x_counter
+
+    # Выложил разом 7 букв - получи 15 баллов
+    if new_letters_counter == 7:
+        value += 15
+
+    return value
+
+
+# author - Pavel
+def get_used_letters_counter(board: [[str]]) -> Counter:
+    """
+    Возвращает буквы, которые присутствуют на доске
+    :param board: доска в виде двумерного символьного массива
+    :return: Counter из использованных на доске букв
+    """
+
+    # счетчик для подсчете букв
+    letters_counter = Counter()
+
+    # идем по строкам
+    for row in board:
+        # формируем новый счетчик из строки и суммируем его с текущим
+        letters_counter += Counter(row)
+
+    # если в счетчике есть пустые символы
+    if not letters_counter.get('') is None:
+        # удаляем запись о пустых символах
+        letters_counter.pop('')
+
+    return letters_counter
+
+
+# author - Pavel
+def is_board_letters_amount_right(board: [[str]]) -> bool:
+    """
+    Проверяет не превышает ли кол-во букв на доске их кол-во в наборе
+    :param board: доска в виде двумерного символьного массива
+    :return: true - доска корректна
+    """
+    c = get_used_letters_counter(board)
+    for key in c.keys():
+        if c[key] > LETTERS_AMOUNT[key]:
+            return False
+    return True
