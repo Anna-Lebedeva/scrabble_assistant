@@ -1,14 +1,14 @@
 import numpy as np
 from collections import Counter
-import extra as ex
+from assistant import extra as ex
 
 # пути к json файлам
-LETTERS_VALUES_FILE_PATH = 'jsons/letters_values.json'  # ценность букв
-LETTERS_AMOUNT_FILE_PATH = 'jsons/letters_amount.json'  # кол-во букв
-BOARD_BONUSES_FILE_PATH = 'jsons/board_bonuses.json'  # бонусы на доске
+LETTERS_VALUES_FILE_PATH = '../jsons/letters_values.json'  # ценность букв
+LETTERS_AMOUNT_FILE_PATH = '../jsons/letters_amount.json'  # кол-во букв
+BOARD_BONUSES_FILE_PATH = '../jsons/board_bonuses.json'  # бонусы на доске
 
 # путь к основному словарю
-DICTIONARY_FILE_PATH = 'dictionary.txt'
+DICTIONARY_FILE_PATH = '../dictionary.txt'
 
 # словарь с ценностью букв
 LETTERS_VALUES = ex.read_json_to_dict(LETTERS_VALUES_FILE_PATH)

@@ -1,8 +1,3 @@
-from collections import Counter
-import time
-
-import scrabble_assistant as sa
-
 if __name__ == '__main__':
 
     test_board = [

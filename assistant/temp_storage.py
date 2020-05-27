@@ -1,6 +1,6 @@
 import re
 from pathlib import Path
-from scrabble_assistant import LETTERS_VALUES
+from assistant.scrabble_assistant import LETTERS_VALUES
 
 
 # author - Matvey

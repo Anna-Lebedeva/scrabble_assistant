@@ -3,7 +3,7 @@ from pathlib import Path
 
 import numpy as np
 import pandas as pd
-import scrabble_assistant as sa
+from assistant import scrabble_assistant as sa
 
 
 # author - Matvey

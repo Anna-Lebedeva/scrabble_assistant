@@ -99,7 +99,7 @@ def cut_by_internal_contour(img: np.ndarray,
 
     # Обрезка
     cropped = img[round(top * w / 100):round(h * (1 - bot / 100)),
-              round(left * h / 100):round(w * (1 - right / 100))]
+                  round(left * h / 100):round(w * (1 - right / 100))]
 
     return cropped
 
@@ -227,7 +227,6 @@ def make_prediction(square: list) -> [np.ndarray]:
             else:
                 print("Empty")
 
-            cv2.imshow("External cropped board", external_cropped_board)
             cv2.imshow("{} {}".format(j, i),
                        imutils.resize(square[j][i], height=200))
             cv2.waitKey()
@@ -274,12 +273,12 @@ def cut_cell(img: np.ndarray,
 
 if __name__ == "__main__":
     pass
-    external_cropped_board = imutils.resize(cut_by_external_contour(
-        "!raw_images_to_cut/36.jpg"), height=750)
-    internal_cropped_board = imutils.resize(cut_by_internal_contour(
-        external_cropped_board, left=3.3, top=3.0, right=0.3, bot=1.4),
-        height=750)
-    board_squares = cut_board_on_cells(internal_cropped_board)
+    # external_cropped_board = imutils.resize(cut_by_external_contour(
+    #     "!raw_images_to_cut/36.jpg"), height=750)
+    # internal_cropped_board = imutils.resize(cut_by_internal_contour(
+    #     external_cropped_board, left=3.3, top=3.0, right=0.3, bot=1.4),
+    #     height=750)
+    # board_squares = cut_board_on_cells(internal_cropped_board)
 
     # cv2.imshow("External cropped board", external_cropped_board)
     # cv2.waitKey()
@@ -289,14 +288,15 @@ if __name__ == "__main__":
     # cv2.waitKey()
     # cv2.destroyAllWindows()
 
-    cv2.imshow("Cell", board_squares[0][0])
-    cv2.waitKey()
-    cv2.destroyAllWindows()
-
-    cv2.imshow("Cut", cut_cell(board_squares[0][0], left=10, right=10, top=10, bot=10))
-    print(cut_cell(board_squares[0][0]).shape[0])
-    cv2.waitKey()
-    cv2.destroyAllWindows()
+    # cv2.imshow("Cell", board_squares[0][0])
+    # cv2.waitKey()
+    # cv2.destroyAllWindows()
+    #
+    # cv2.imshow("Cut", cut_cell(board_squares[0][0],
+    #                            left=10, right=10, top=10, bot=10))
+    # print(cut_cell(board_squares[0][0]).shape[0])
+    # cv2.waitKey()
+    # cv2.destroyAllWindows()
 
     # cv2.imshow("Grid", draw_the_grid(internal_cropped_board))
     # cv2.waitKey()
