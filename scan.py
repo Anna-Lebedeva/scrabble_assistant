@@ -1,3 +1,5 @@
+from PIL import Image
+
 from pyimagesearch.transform import four_point_transform
 import cv2
 import imutils
@@ -8,6 +10,10 @@ import pickle
 import tensorflow as tf
 import os
 import json
+
+# Размер изображений для тренировки и предсказаний нейросетки
+# Импортируется в train и load_data, чтобы изменять значение в одном месте
+ML = 32
 
 
 # authors - Pavel, Mikhail and Sergei
@@ -70,10 +76,8 @@ def cut_by_external_contour(path: str) -> np.ndarray:
 
 # author - Mikhail
 def cut_by_internal_contour(img: np.ndarray,
-                            left: float = None,
-                            top: float = None,
-                            right: float = None,
-                            bot: float = None) -> np.ndarray:
+                            left=3.3, top=3.0,
+                            right=0.3, bot=1.4) -> np.ndarray:
     """
     Обрезает изображение с разных сторон на определённое значение
     :param img: Изображение на вход
@@ -86,16 +90,6 @@ def cut_by_internal_contour(img: np.ndarray,
 
     # Получение высоты и ширины изображения
     (h, w) = img.shape[:2]
-
-    # Значения параметров кадрирования по-умолчанию
-    if left is None:
-        left = 3.3
-    if top is None:
-        top = 3
-    if right is None:
-        right = 0.3
-    if bot is None:
-        bot = 1.4
 
     # Обрезка
     cropped = img[round(top * w / 100):round(h * (1 - bot / 100)),
@@ -161,13 +155,12 @@ def cut_board_on_cells(img: np.ndarray) -> [np.ndarray]:
 
 
 # todo: сделать вывод дмухмерного массива предсказаний
-#  после достижения необходимой точности нейросети
+#  после достижения необходимой точности предсказаний
 # taken from repo:
 # https://github.com/rohanthomas/Tensorflow-image-recognition,
 # embedded by Mikhail
 def make_prediction(square: list) -> [np.ndarray]:
     """
-
     :param square: Массив изображений ячеек, размерность массива 15х15
     :return: Массив предсказаний изображений
     (пока выводит одно предсказание для отладки)
@@ -202,45 +195,49 @@ def make_prediction(square: list) -> [np.ndarray]:
     for j in range(15):
         predictions.append([])
 
-        for i in range(15):
-            image = square[j][i]
-            cv2.imwrite("./" + str(i) + ".jpg", image)
-            image = misc.imread("./" + str(i) + ".jpg")
-            os.remove("./" + str(i) + ".jpg")
-            image = misc.imresize(image, (32, 32))
-            image = np.array([image])
-            image = image.astype('float32')
-            image = image / 255.0
+        for k in range(15):
+            image = square[j][k]
+            Image.fromarray(image.astype('uint8'))
 
-            prediction_arr = loaded_model.predict(image)
+            image = colored_to_cropped_threshold(image)
+
+            img = misc.imresize(image, (ML, ML))
+            img = np.reshape(img, (ML, ML, 1))
+            img = np.array([img])
+            img = img.astype('float32')
+            img = img / 255.0
+
+            prediction_arr = loaded_model.predict(img)
             prediction = int_to_word_out[np.argmax(prediction_arr)]
             predictions[j].append(prediction)
 
             # замена числа на букву
             prediction_letter = folder_values["{}".format(prediction)]
 
-            print(np.max(prediction_arr))
-
-            if float(np.max(prediction_arr)) > 0.92:
-                print(prediction, end=" ")
-                print(prediction_letter)
+            # Вероятность
+            print("(" + str(np.max(prediction_arr)) + ")", end=" ")
+            # Предсказание
+            if float(np.max(prediction_arr)) > 0.999:
+                print(prediction, prediction_letter)
             else:
-                print("Empty")
+                print("Empty" + "... Или может быть " + str(
+                    prediction_letter) + "!")
 
-            cv2.imshow("{} {}".format(j, i),
-                       imutils.resize(square[j][i], height=200))
+            # Изображение для проверки (временно)
+            cv2.imshow("{} {}".format(j, k), board_squares[j][k])
+            cv2.imshow("Threshold", imutils.resize(image, height=200))
             cv2.waitKey()
-            cv2.destroyWindow("{} {}".format(j, i))
+            cv2.destroyAllWindows()
 
     return predictions
 
 
 # author - Mikhail
 def cut_cell(img: np.ndarray,
-             left: float = None,
-             top: float = None,
-             right: float = None,
-             bot: float = None) -> np.ndarray:
+             left=8.0,
+             top=12.0,
+             right=12.0,
+             bot=12.0) -> np.ndarray:
     """
     Обрезает изображение с разных сторон на определённое значение
     :param img: Изображение на вход
@@ -254,52 +251,74 @@ def cut_cell(img: np.ndarray,
     # Получение высоты и ширины изображения
     (h, w) = img.shape[:2]
 
-    # Значения параметров кадрирования по-умолчанию
-    if left is None:
-        left = 14
-    if top is None:
-        top = 14
-    if right is None:
-        right = 14
-    if bot is None:
-        bot = 14
-
     # Обрезка
     cropped = img[round(top * w / 100):round(h * (1 - bot / 100)),
-                  round(left * h / 100):round(w * (1 - right / 100))]
+              round(left * h / 100):round(w * (1 - right / 100))]
 
     return cropped
 
 
+# author - Pavel, Sergei, Mikhail
+def colored_to_cropped_threshold(img: np.ndarray) -> np.ndarray:
+    """
+    Делает изображение чёрно-белым по порогу и отрезает лишнее
+    :param img: Изображение на вход
+    :return: Пороговое обрезанное изображение
+    """
+
+    gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+    # gray = cv2.GaussianBlur(gray, (1, 1), 0)
+    # gray = cv2.blur(gray, (3, 3))
+    _, thresh = cv2.threshold(gray, 180, 255, cv2.THRESH_BINARY)
+    # thresh = cv2.adaptiveThreshold(gray, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, blockSize=31, C=5)
+    # img_erode = cv2.erode(thresh, np.ones((1, 1), np.uint8), iterations=1)
+
+    # Обрезалка
+    cropped = thresh.copy()
+    contours, hierarchy = cv2.findContours(cropped, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
+
+    marker = 0
+    for idx, contour in enumerate(contours):
+        (x, y, w, h) = cv2.boundingRect(contour)
+        if w * h > 240:
+            marker = 1
+            cropped = cropped[0:y+h, x:x+y+h]
+            cropped = cv2.resize(cropped, (28, 28))
+            break
+    if marker == 0:
+        cropped = cv2.resize(cropped, (28, 28))
+
+    output = cropped  # Вывод порогового
+
+    return output
+
+
 if __name__ == "__main__":
     pass
-    # external_cropped_board = imutils.resize(cut_by_external_contour(
-    #     "!raw_images_to_cut/36.jpg"), height=750)
-    # internal_cropped_board = imutils.resize(cut_by_internal_contour(
-    #     external_cropped_board, left=3.3, top=3.0, right=0.3, bot=1.4),
-    #     height=750)
-    # board_squares = cut_board_on_cells(internal_cropped_board)
+
+    external_cropped_board = imutils.resize(cut_by_external_contour(
+        "images_real/f4.jpg"), height=750)
+    internal_cropped_board = imutils.resize(cut_by_internal_contour(
+        external_cropped_board, left=3.3, top=3.0,
+        right=0.3, bot=1.4), height=750)
+    board_squares = cut_board_on_cells(internal_cropped_board)
+
+    # for j in range(3):
+    #     for i in range(15):
+    #         cv2.imshow("Cell", imutils.resize(
+    #             colored_to_cropped_threshold(board_squares[j][i]), height=150))
+    #         cv2.waitKey()
+    #         cv2.destroyAllWindows()
+    # cv2.imshow("Cell", imutils.resize(
+    #     colored_to_cropped_threshold(board_squares[0][12]), height=150))
+
+    print(make_prediction(board_squares))
 
     # cv2.imshow("External cropped board", external_cropped_board)
-    # cv2.waitKey()
-    # cv2.destroyAllWindows()
-
     # cv2.imshow("Internal cropped board", internal_cropped_board)
-    # cv2.waitKey()
-    # cv2.destroyAllWindows()
-
     # cv2.imshow("Cell", board_squares[0][0])
-    # cv2.waitKey()
-    # cv2.destroyAllWindows()
-    #
-    # cv2.imshow("Cut", cut_cell(board_squares[0][0],
-    #                            left=10, right=10, top=10, bot=10))
-    # print(cut_cell(board_squares[0][0]).shape[0])
-    # cv2.waitKey()
-    # cv2.destroyAllWindows()
-
+    # cv2.imshow("Cut", cut_cell(board_squares[0][0], left=10, right=10, top=10, bot=10))
     # cv2.imshow("Grid", draw_the_grid(internal_cropped_board))
-    # cv2.waitKey()
-    # cv2.destroyAllWindows()
 
-    # print(make_prediction(board_squares))
+    cv2.waitKey()
+    cv2.destroyAllWindows()
