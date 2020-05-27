@@ -258,7 +258,7 @@ def cut_cell(img: np.ndarray,
     return cropped
 
 
-# author - Pavel, Sergei, Mikhail
+# author - Sergei, Mikhail
 def colored_to_cropped_threshold(img: np.ndarray) -> np.ndarray:
     """
     Делает изображение чёрно-белым по порогу и отрезает лишнее
