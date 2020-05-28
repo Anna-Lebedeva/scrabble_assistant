@@ -17,21 +17,20 @@ ML = 32
 
 
 # authors - Pavel, Mikhail and Sergei
-def cut_by_external_contour(path: str) -> np.ndarray:
+def cut_by_external_contour(img: np.ndarray) -> np.ndarray:
     """
     Обрезает внешний контур объекта на изображении
     Подходит для игральной доски
-    :param path: Путь к изображению
+    :param img: Изображение на вход
     :return: Обрезанное изображение
     """
 
-    image = cv2.imread(path)
-    ratio = image.shape[0] / 750.0
-    orig = image.copy()
-    image = imutils.resize(image, height=750)
+    ratio = img.shape[0] / 750.0
+    orig = img.copy()
+    img = imutils.resize(img, height=750)
 
     # Черно-белое изображение
-    gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+    gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 
     # Размытие по Гауссу, оптимальные параметры: (5, 5)
     gray = cv2.GaussianBlur(gray, (5, 5), 0)
@@ -76,8 +75,8 @@ def cut_by_external_contour(path: str) -> np.ndarray:
 
 # author - Mikhail
 def cut_by_internal_contour(img: np.ndarray,
-                            left=3.3, top=3.0,
-                            right=0.3, bot=1.4) -> np.ndarray:
+                            left=4.8, top=4.6,
+                            right=1.8, bot=1.8) -> np.ndarray:
     """
     Обрезает изображение с разных сторон на определённое значение
     :param img: Изображение на вход
@@ -253,7 +252,7 @@ def cut_cell(img: np.ndarray,
 
     # Обрезка
     cropped = img[round(top * w / 100):round(h * (1 - bot / 100)),
-              round(left * h / 100):round(w * (1 - right / 100))]
+                  round(left * h / 100):round(w * (1 - right / 100))]
 
     return cropped
 
@@ -269,6 +268,7 @@ def colored_to_cropped_threshold(img: np.ndarray) -> np.ndarray:
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
     # gray = cv2.GaussianBlur(gray, (1, 1), 0)
     # gray = cv2.blur(gray, (3, 3))
+    # edged = cv2.Canny(gray, 180, 255)
     _, thresh = cv2.threshold(gray, 180, 255, cv2.THRESH_BINARY)
     # thresh = cv2.adaptiveThreshold(gray, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, blockSize=31, C=5)
     # img_erode = cv2.erode(thresh, np.ones((1, 1), np.uint8), iterations=1)
@@ -296,24 +296,24 @@ def colored_to_cropped_threshold(img: np.ndarray) -> np.ndarray:
 if __name__ == "__main__":
     pass
 
+    image = cv2.imread("!raw_images_to_cut/1.jpg")
+
     external_cropped_board = imutils.resize(cut_by_external_contour(
-        "images_real/f4.jpg"), height=750)
+        image), height=750)
     internal_cropped_board = imutils.resize(cut_by_internal_contour(
-        external_cropped_board, left=3.3, top=3.0,
-        right=0.3, bot=1.4), height=750)
+        external_cropped_board, left=3.3, top=3.0, right=0.3, bot=1.4), height=750)
     board_squares = cut_board_on_cells(internal_cropped_board)
 
-    # for j in range(3):
-    #     for i in range(15):
-    #         cv2.imshow("Cell", imutils.resize(
-    #             colored_to_cropped_threshold(board_squares[j][i]), height=150))
-    #         cv2.waitKey()
-    #         cv2.destroyAllWindows()
+    for j in range(3):
+        for i in range(15):
+            cv2.imshow("Cell", imutils.resize(
+                colored_to_cropped_threshold(board_squares[j][i]), height=150))
+            cv2.waitKey()
+            cv2.destroyAllWindows()
     # cv2.imshow("Cell", imutils.resize(
     #     colored_to_cropped_threshold(board_squares[0][12]), height=150))
 
-    print(make_prediction(board_squares))
-
+    # print(make_prediction(board_squares))
     # cv2.imshow("External cropped board", external_cropped_board)
     # cv2.imshow("Internal cropped board", internal_cropped_board)
     # cv2.imshow("Cell", board_squares[0][0])
