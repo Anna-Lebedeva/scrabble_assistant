@@ -75,8 +75,8 @@ def cut_by_external_contour(img: np.ndarray) -> np.ndarray:
 
 # author - Mikhail
 def cut_by_internal_contour(img: np.ndarray,
-                            left=4.8, top=4.6,
-                            right=1.8, bot=1.8) -> np.ndarray:
+                            left=4.0, top=3.8,
+                            right=1.6, bot=1.5) -> np.ndarray:
     """
     Обрезает изображение с разных сторон на определённое значение
     :param img: Изображение на вход
@@ -296,29 +296,29 @@ def colored_to_cropped_threshold(img: np.ndarray) -> np.ndarray:
 if __name__ == "__main__":
     pass
 
-    image = cv2.imread("!raw_images_to_cut/1.jpg")
+    image = cv2.imread("!raw_images_to_cut/IMG_20200528_155326_4.jpg")
 
-    external_cropped_board = imutils.resize(cut_by_external_contour(
+    external_crop = imutils.resize(cut_by_external_contour(
         image), height=750)
-    internal_cropped_board = imutils.resize(cut_by_internal_contour(
-        external_cropped_board, left=3.3, top=3.0, right=0.3, bot=1.4), height=750)
-    board_squares = cut_board_on_cells(internal_cropped_board)
+    internal_crop = imutils.resize(cut_by_internal_contour(
+        external_crop, left=4.0, top=3.8, right=1.6, bot=1.5), height=750)
+    board_squares = cut_board_on_cells(internal_crop)
 
-    for j in range(3):
-        for i in range(15):
-            cv2.imshow("Cell", imutils.resize(
-                colored_to_cropped_threshold(board_squares[j][i]), height=150))
-            cv2.waitKey()
-            cv2.destroyAllWindows()
+    # for j in range(3):
+    #     for i in range(15):
+    #         cv2.imshow("Cell", imutils.resize(
+    #             colored_to_cropped_threshold(board_squares[j][i]), height=150))
+    #         cv2.waitKey()
+    #         cv2.destroyAllWindows()
     # cv2.imshow("Cell", imutils.resize(
     #     colored_to_cropped_threshold(board_squares[0][12]), height=150))
 
     # print(make_prediction(board_squares))
-    # cv2.imshow("External cropped board", external_cropped_board)
-    # cv2.imshow("Internal cropped board", internal_cropped_board)
+    # cv2.imshow("External cropped board", external_crop)
+    cv2.imshow("Internal cropped board", internal_crop)
     # cv2.imshow("Cell", board_squares[0][0])
     # cv2.imshow("Cut", cut_cell(board_squares[0][0], left=10, right=10, top=10, bot=10))
-    # cv2.imshow("Grid", draw_the_grid(internal_cropped_board))
+    cv2.imshow("Grid", draw_the_grid(internal_crop))
 
     cv2.waitKey()
     cv2.destroyAllWindows()
