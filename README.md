@@ -4,8 +4,9 @@
 
 ### Необходимые пакеты:
 #### _Python 3.7_
-#### `pip install tensorflow==2.2.0`
-#### `pip install keras==2.3.1`
-#### `pip install pillow==7.1.2`
-#### `pip install imutils==0.5.3`
-#### `pip install scipy==1.1.0 --force-reinstall`
+#### `tensorflow 2.2.0`
+#### `keras 2.3.1`
+#### `pillow 7.1.2`
+#### `imutils 0.5.3`
+#### `scipy 1.1.0`
+#### `pyqt5 5.14.2`
