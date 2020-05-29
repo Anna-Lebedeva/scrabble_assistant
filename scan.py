@@ -75,8 +75,8 @@ def cut_by_external_contour(img: np.ndarray) -> np.ndarray:
 
 # author - Mikhail
 def cut_by_internal_contour(img: np.ndarray,
-                            left=4.0, top=3.8,
-                            right=1.6, bot=1.5) -> np.ndarray:
+                            left=4.3, top=4.4,
+                            right=1.5, bot=1.4) -> np.ndarray:
     """
     Обрезает изображение с разных сторон на определённое значение
     :param img: Изображение на вход

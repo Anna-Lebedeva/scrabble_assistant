@@ -26,7 +26,7 @@ class ScrabbleApplication(QWidget):
     _board = None
 
     # размеры окна и виджетов
-    _width = 540  # 450 px
+    _width = 450  # 450 px
     _height = int(_width * 1.7777777)  # 800px
     _chip_size = _width // 9  # размер кнопки с буквой в px
     _row_size = _chip_size * (_width // _chip_size)  # длина линии кнопок в px
@@ -51,7 +51,7 @@ class ScrabbleApplication(QWidget):
     _start_button = None  # кнопка по нажатии запускает весь алгоритм
 
     # labels
-    _chosen_chips_label = None
+    _chosen_chips_labels = None
     _chosen_chips_label_text = 'Выбранные\nфишки:'
 
     _msg_label = None
@@ -70,6 +70,7 @@ class ScrabbleApplication(QWidget):
     _board_img = None  # обрезанное изображение доски
 
     _hint_labels = []  # фишки подсказок, отображаемые на экране
+    _is_hint_showing = False  # получена ли подсказка
 
     def __init__(self):
         """
@@ -171,7 +172,7 @@ class ScrabbleApplication(QWidget):
         label = QLabel(self)
         label.setText(self._chosen_chips_label_text)
         label.setAlignment(Qt.AlignCenter)
-        self._chosen_chips_label = label
+        self._chosen_chips_labels = label
 
         # msg label
         label = QLabel(self)
@@ -241,18 +242,27 @@ class ScrabbleApplication(QWidget):
         Обновление всех виджетов
         """
 
+        # повторная инициализация словарей
+        self.init_dicts()
         # обновляем кнопки
         self.update_buttons()
         # сбрасываем msg
         self._msg_label.setText(self._msg_image_uploaded)
 
-        # сбрасываем все выбранные фишки, удаляя их картинку
+        # сбрасываем все выбранные фишки
         for i in range(7):
             btn = self._chosen_chips_buttons[i]
             btn.setIcon(QIcon())
             self._chosen_chips_buttons[i] = btn
 
-        # удаление подсказки с экрана
+        # очистка подсказки
+        self.clear_hint()
+
+    def clear_hint(self):
+        """
+        Удаление подсказки с экрана
+        """
+
         for label in self._hint_labels:
             label.setPixmap(QPixmap())
 
@@ -303,7 +313,7 @@ class ScrabbleApplication(QWidget):
         index = 0  # суммарная длина всех прошлых labels
         label_size = self._width // 15
         for label in self._hint_labels:
-            label.resize(label_size - 2, label_size - 2)
+            label.resize(label_size - 1, label_size - 1)
             x_pos = index % self._width
             y_pos = index // self._width * label_size
             index += label_size
@@ -322,8 +332,8 @@ class ScrabbleApplication(QWidget):
 
         # прорисовка chosen chips label
         height = self._chip_size
-        self._chosen_chips_label.resize(self._chip_size * 2, self._chip_size)
-        self._chosen_chips_label.move(0, current_height)
+        self._chosen_chips_labels.resize(self._chip_size * 2, self._chip_size)
+        self._chosen_chips_labels.move(0, current_height)
 
         # прорисовка выбранных букв
         for i in range(len(self._chosen_chips_buttons)):
@@ -405,14 +415,13 @@ class ScrabbleApplication(QWidget):
 
     def drop_btn_pressed(self):
         """
-        Сброс выбранных букв
+        Сброс виджетов
         """
 
         # кнопка не работает, если приложение заблокировано
         if not self.status:
             return
 
-        self.init_dicts()
         self.clear_widgets()
 
     def start_btn_pressed(self):
@@ -424,7 +433,9 @@ class ScrabbleApplication(QWidget):
         if not self.status:
             return
 
-        self.clear_widgets()
+        # очистка подсказки, если запуск идет не в первый раз
+        if self._is_hint_showing:
+            self.clear_hint()
 
         if sum(self._chosen_letters.values()) == 0 and self._board_img is None:
             self._msg_label.setText(self._msg_no_img_no_chips_error)
@@ -436,11 +447,11 @@ class ScrabbleApplication(QWidget):
             # запуск алгоритма
             hint, value = self.sa.get_hint(self._board,
                                            Counter(self._chosen_letters))
+            # отрисовка подсказки на экране
             self.draw_hint(hint)
             # выводим стоимость подсказки
             self._msg_label.setText(self._msg_hint_value + str(value))
-
-            # отрисовка подсказки на экране
+            self._is_hint_showing = True
 
     def draw_hint(self, hint):
         """
@@ -452,7 +463,7 @@ class ScrabbleApplication(QWidget):
             for x in range(len(hint[y])):
                 # отрисовываем букву если:
                 # на подсказке эта буква есть
-                # а доске этой буквы еще нет
+                # а на доске этой буквы еще нет
                 if hint[y][x] != '' and self._board[y][x] == '':
                     # поиск индекса буквы в алфавите
                     # отдельная обработка звездочки
