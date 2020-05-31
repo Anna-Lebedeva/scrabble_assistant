@@ -1,3 +1,7 @@
+import time
+from collections import Counter
+from assistant import scrabble_assistant as sa
+
 if __name__ == '__main__':
 
     test_board = [
@@ -85,25 +89,25 @@ if __name__ == '__main__':
             if test_row[test_j] == ' ':
                 test_row[test_j] = ''
     #
-    # t = time.time()
-    #
-    # # вся магия происходит тут
-    # test_hint, test_value = sa.get_hint(test_board, Counter('аблкено'))
-    #
-    # print('Time = ' + str(time.time() - t) + 's')
-    #
-    # # доска с подсказкой
-    # hint = []
-    # for test_i in range(len(test_hint)):
-    #     hint.append([])
-    #     for test_j in range(len(test_hint[test_i])):
-    #         if test_board[test_i][test_j] != '':
-    #             hint[test_i].append(test_board[test_i][test_j])
-    #         else:
-    #             if test_hint[test_i][test_j] == '':
-    #                 hint[test_i].append(' ')
-    #             else:
-    #                 hint[test_i].append(test_hint[test_i][test_j].upper())
-    #     print(hint[test_i])
-    #
-    # print('Hint value = ' + str(test_value))
+    t = time.time()
+
+    # вся магия происходит тут
+    test_hint, test_value = sa.get_hint(test_board, Counter('абвгд'))
+
+    print('Time = ' + str(time.time() - t) + 's')
+
+    # доска с подсказкой
+    hint = []
+    for test_i in range(len(test_hint)):
+        hint.append([])
+        for test_j in range(len(test_hint[test_i])):
+            if test_board[test_i][test_j] != '':
+                hint[test_i].append(test_board[test_i][test_j])
+            else:
+                if test_hint[test_i][test_j] == '':
+                    hint[test_i].append(' ')
+                else:
+                    hint[test_i].append(test_hint[test_i][test_j].upper())
+        print(hint[test_i])
+
+    print('Hint value = ' + str(test_value))

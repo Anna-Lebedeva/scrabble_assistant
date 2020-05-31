@@ -433,6 +433,9 @@ def is_board_letters_amount_right(board: [[str]]) -> bool:
     :param board: доска в виде двумерного символьного массива
     :return: true - доска корректна
     """
+    if not is_board_correct(board):
+        return False
+
     c = get_used_letters_counter(board)
     for key in c.keys():
         if c[key] > LETTERS_AMOUNT[key]:

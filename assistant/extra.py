@@ -1,6 +1,8 @@
 from collections import Counter
 from pathlib import Path
 import json
+import cv2
+import numpy as np
 
 
 # author - Matvey
@@ -60,3 +62,15 @@ def read_json_to_list(json_filename: str) -> [[str]]:
     with open(file=Path(Path.cwd() / json_filename), mode='r',
               encoding='utf-8') as file:
         return list(json.load(file))
+
+
+# author - Pavel
+# todo: переписать не на cv2
+def read_image(path: str) -> np.ndarray:
+    return cv2.imread(path)
+
+
+# author - Pavel
+# todo: переписать не на cv2
+def write_image(img: np.ndarray, path: str):
+    cv2.imwrite(path, img)
