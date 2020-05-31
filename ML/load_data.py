@@ -1,11 +1,14 @@
 import pickle
+
+import cv2
+import imageio
 from scipy import misc
 import numpy as np
 import os
 from scan import ML
 
 path_to_classifier = "int_to_word_out.pickle"
-path_to_dataset = "thresh_dataset/"
+path_to_dataset = "dataset_image/"
 
 label = os.listdir(path_to_dataset)
 dataset = []
@@ -16,8 +19,8 @@ for image_label in label:
     print(str(image_label), end=", ")
 
     for image in images:
-        img = misc.imread(path_to_dataset + image_label + "/" + image)
-        img = misc.imresize(img, (ML, ML))
+        img = imageio.imread(path_to_dataset + image_label + "/" + image)
+        img = cv2.resize(img, (ML, ML))
         img = np.reshape(img, (ML, ML, 1))
         dataset.append((img, image_label))
 

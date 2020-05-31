@@ -257,12 +257,12 @@ def colored_to_cropped_threshold(img: np.ndarray) -> np.ndarray:
     # Перебор контуров. Если периметр достаточно большой,
     # решаем, что это буква и обрезаем картинку по
     # её левый нижний угол
-    for idx, contour in enumerate(contours):
-        perimeter = cv2.arcLength(contour, True)
-        (x, y, w, h) = cv2.boundingRect(contour)
-        if perimeter > 215:
-            cropped = cropped[0:y + h, x:x + y + h]
-            break
+    # for idx, contour in enumerate(contours):
+    #     perimeter = cv2.arcLength(contour, True)
+    #     (x, y, w, h) = cv2.boundingRect(contour)
+    #     if perimeter > 215:
+    #         cropped = cropped[0:y + h, x:x + y + h]
+    #         break
 
     cropped = cv2.resize(cropped, (ML, ML))
 
@@ -278,16 +278,16 @@ if __name__ == "__main__":
     internal_crop = cut_by_internal_contour(external_crop)
     board_squares = cut_board_on_cells(internal_crop)
 
-    # for j in range(3):
-    #     for i in range(15):
-    #         cv2.imshow("Thresh", resize(colored_to_cropped_threshold(board_squares[j][i]), height=150))
-    #         cv2.imshow("Cell", resize(board_squares[j][i], height=150))
-    #         cv2.waitKey()
-    #         cv2.destroyAllWindows()
+    for j in range(3):
+        for i in range(15):
+            cv2.imshow("Thresh", resize(colored_to_cropped_threshold(board_squares[j][i]), height=150))
+            cv2.imshow("Cell", resize(board_squares[j][i], height=150))
+            cv2.waitKey()
+            cv2.destroyAllWindows()
 
     # cv2.imshow("Cell", resize(colored_to_cropped_threshold(board_squares[0][12]), height=150))
 
-    print(make_prediction(board_squares))
+    # print(make_prediction(board_squares))
     # cv2.imshow("External cropped board", resize(external_crop, height=800))
     # cv2.imshow("Internal cropped board", resize(internal_crop, height=800))
     # cv2.imshow("Cell", board_squares[0][0])

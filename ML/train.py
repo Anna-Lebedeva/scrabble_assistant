@@ -1,6 +1,6 @@
 import os
 import numpy as np
-from keras.layers import Dropout
+from keras.layers import Dropout, Embedding, LSTM
 from keras.layers import Flatten
 from keras import callbacks
 from keras.constraints import maxnorm
@@ -16,7 +16,7 @@ import tensorflow as tf
 from keras.optimizers import RMSprop
 from scan import ML
 
-os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 K.set_image_data_format('channels_last')
 
 path_to_classifier = "int_to_word_out.pickle"
@@ -38,16 +38,13 @@ num_classes = y_train.shape[1]
 
 # Создание модели
 model = Sequential()
-model.add(Conv2D(filters=32, kernel_size=(3, 3), padding='same',
+model.add(Conv2D(32, (3, 3), padding='same',
                  input_shape=(ML, ML, 1), activation='relu'))
-model.add(Conv2D(filters=32, kernel_size=(3, 3), padding='same',
-                 activation='relu'))
+model.add(Conv2D(32, (3, 3), padding='same', activation='relu'))
 model.add(MaxPooling2D(pool_size=(2, 2)))
 model.add(Dropout(0.25))
-model.add(Conv2D(filters=64, kernel_size=(3, 3), padding='same',
-                 activation='relu'))
-model.add(Conv2D(filters=64, kernel_size=(3, 3), padding='same',
-                 activation='relu'))
+model.add(Conv2D(64, (3, 3), padding='same', activation='relu'))
+model.add(Conv2D(64, (3, 3), padding='same', activation='relu'))
 model.add(MaxPooling2D(pool_size=(2, 2), strides=(2, 2)))
 model.add(Dropout(0.25))
 model.add(Flatten())
@@ -57,31 +54,11 @@ model.add(Dense(num_classes, activation="softmax"))
 model.compile(loss='categorical_crossentropy', optimizer='adadelta',
               metrics=['accuracy'])
 
-# model.add(Conv2D(filters=32, kernel_size=(3, 3), activation='relu',
-#                         padding='same', input_shape=(ML, ML, 1)))
-# model.add(MaxPooling2D((2, 2)))
-# model.add(Conv2D(64, (3, 3), activation='relu', padding='same'))
-# model.add(MaxPooling2D((2, 2)))
-# model.add(Conv2D(128, (3, 3), activation='relu', padding='same'))
-# model.add(MaxPooling2D((2, 2)))
+# model.add(Dense(input_shape=(ML, ML, 1), units=32, activation='relu'))
 # model.add(Flatten())
-# model.add(Dense(64, activation='relu'))
-# model.add(Dropout(0.5))
 # model.add(Dense(num_classes, activation='softmax'))
-# model.compile(loss='categorical_crossentropy', optimizer='adadelta',
-#               metrics=['accuracy'])
-
-
-# model.add(Conv2D(filters=32, kernel_size=(3, 3), padding='valid',
-#                         input_shape=(ML, ML, 1), activation='relu'))
-# model.add(Conv2D(filters=64, kernel_size=(3, 3), activation='relu'))
-# model.add(MaxPooling2D(pool_size=(2, 2)))
-# model.add(Dropout(0.25))
-# model.add(Flatten())
-# model.add(Dense(512, activation='relu'))
-# model.add(Dropout(0.5))
-# model.add(Dense(num_classes, activation='softmax'))
-# model.compile(loss='categorical_crossentropy', optimizer='adadelta',
+# model.compile(optimizer='sgd',
+#               loss='categorical_crossentropy',
 #               metrics=['accuracy'])
 
 
@@ -89,7 +66,9 @@ model.compile(loss='categorical_crossentropy', optimizer='adadelta',
 epochs = 15
 batch_size = 32  # Кол-во элементов в выборке до изменения значений весов
 
-# Set a learning rate reduction
+print(model.summary())
+
+# Настройка уменьшения скорости обучения
 callbacks = [
     callbacks.ReduceLROnPlateau(monitor='val_accuracy', patience=3, verbose=1,
                                 factor=0.5, min_lr=0.00001)]
@@ -99,8 +78,6 @@ model.fit(X_train, y_train, epochs=epochs, batch_size=batch_size,
           callbacks=callbacks,
           # часть выборки, которая используется в качестве проверочной
           validation_split=0.1)
-
-print(model.summary())
 
 # Оценка качества обучения сети на тестовых данных
 scores = model.evaluate(X_train, y_train, verbose=0)
