@@ -39,7 +39,7 @@ class ScrabbleApplication(QWidget):
     _background_path = 'app_images/background.jpg'  # фон
 
     # словари с буквами
-    _used_letters = dict()   # словарь с кол-вом букв, которые уже есть на доске
+    _used_letters = dict()  # словарь с кол-вом букв, которые уже есть на доске
     _chosen_letters = dict()  # словарь с буквами, которые выбрал юзер
 
     # кнопки
@@ -184,6 +184,14 @@ class ScrabbleApplication(QWidget):
         """
         Проверка загруженного изображения и его показ на экране
         """
+
+        # menu = self.menuBar()
+        # file_menu = menu.addMenu('File')
+        #
+        # dlg = QFileDialog(self)
+        # open_action = QAction('Open image', self)
+        # open_action.triggered.connect(self.open_image)
+        # file_menu.addAction(open_action)
 
         # todo: загрузка юзером
         # обработка изображения
