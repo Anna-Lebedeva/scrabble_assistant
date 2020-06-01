@@ -139,7 +139,6 @@ def cut_board_on_cells(img: np.ndarray) -> [np.ndarray]:
     # Получение высоты и ширины изображения
     (h, w) = img.shape[:2]
 
-
     # Заполнение массивов координат X для вертикальных и
     # Y для горизонтальных линий
     x = [0, 0.96/15*w+1, 1.96/15*w, 2.96/15*w, 3.96/15*w, 4.96/15*w, 5.96/15*w, 6.98/15*w,
@@ -172,7 +171,7 @@ def make_prediction(square: list) -> [np.ndarray]:
 
     # # Отключение назойливых предупреждений
     tf.get_logger().setLevel('ERROR')
-    os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
+    os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 
     # Импорт файла для замены чисел на буквы
     with open(file="jsons/folders_mapping.json", mode='r',
@@ -200,11 +199,11 @@ def make_prediction(square: list) -> [np.ndarray]:
         predictions.append([])
 
         for k in range(15):
-            image = square[j][k]
+            img = square[j][k]
 
-            image = colored_to_cropped_threshold(image)
+            img = colored_to_cropped_threshold(img)
 
-            img = cv2.resize(image, (ML, ML))
+            img = cv2.resize(img, (ML, ML))
             img = np.reshape(img, (ML, ML, 1))
             img = np.array([img])
             img = img.astype('float32')
@@ -219,7 +218,7 @@ def make_prediction(square: list) -> [np.ndarray]:
 
             # Вероятность
             print("(", np.max(prediction_arr), ")", sep="", end=" ")
-            # Предсказание
+            # Предсказание. Если вероятность меньше порога - это пустая клетка
             if np.max(prediction_arr) > 0.999:
                 print(prediction, prediction_letter)
             else:
@@ -272,18 +271,18 @@ def colored_to_cropped_threshold(img: np.ndarray) -> np.ndarray:
 if __name__ == "__main__":
     pass
 
-    image = cv2.imread("!raw_images_to_cut/IMG_20200528_155349_23.jpg")
+    image = cv2.imread("!raw_images_to_cut/IMG_20200528_155326_5.jpg")
 
     external_crop = cut_by_external_contour(image)
     internal_crop = cut_by_internal_contour(external_crop)
     board_squares = cut_board_on_cells(internal_crop)
 
-    for j in range(3):
-        for i in range(15):
-            cv2.imshow("Thresh", resize(colored_to_cropped_threshold(board_squares[j][i]), height=150))
-            cv2.imshow("Cell", resize(board_squares[j][i], height=150))
-            cv2.waitKey()
-            cv2.destroyAllWindows()
+    # for j in range(3):
+    #     for i in range(15):
+    #         cv2.imshow("Thresh", resize(colored_to_cropped_threshold(board_squares[j][i]), height=150))
+    #         cv2.imshow("Cell", resize(board_squares[j][i], height=150))
+    #         cv2.waitKey()
+    #         cv2.destroyAllWindows()
 
     # cv2.imshow("Cell", resize(colored_to_cropped_threshold(board_squares[0][12]), height=150))
 

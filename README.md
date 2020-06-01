@@ -2,7 +2,7 @@
 Распознавание доски и получение подсказки по фотографии в настольной игре Scrabble (Эрудит)
 
 ## Необходимые пакеты:
-- [Python 3.7](https://www.python.org/)
+- [Python 3.7.7](https://www.python.org/)
 - [TensorFlow 2.2.0](https://www.tensorflow.org/)
 - [Keras 2.3.1](https://keras.io/)
 - [Pillow 7.1.2](https://python-pillow.org/)
