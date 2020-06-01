@@ -7,7 +7,8 @@ import sys
 
 
 from assistant.scrabble_assistant import LETTERS_AMOUNT
-from assistant.scrabble_assistant import get_used_letters, get_hint, is_board_letters_amount_right
+from assistant.scrabble_assistant import get_used_letters, get_hint, \
+    is_board_letters_amount_right
 from assistant.read_files import read_image, write_image
 
 from CV.scan import cut_by_external_contour, cut_by_internal_contour
