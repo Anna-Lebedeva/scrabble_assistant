@@ -6,16 +6,19 @@ from collections import Counter
 import sys
 
 
+from assistant.scrabble_assistant import LETTERS_AMOUNT
+from assistant.scrabble_assistant import get_used_letters, get_hint, is_board_letters_amount_right
+from assistant.read_files import read_image, write_image
+
+from CV.scan import cut_by_external_contour, cut_by_internal_contour
+
+
 # author - Pavel
 class ScrabbleApplication(QWidget):
     """
     Application of scrabble-assistant
     Using PyQT5 version 5.14.2
     """
-
-    from assistant import scrabble_assistant as sa
-    import scan
-    from assistant import extra
 
     # может ли приложение корректно работать дальше
     # при status = False не работают никакие кнопки, кроме "загрузить фото"
@@ -32,11 +35,11 @@ class ScrabbleApplication(QWidget):
     _row_size = _chip_size * (_width // _chip_size)  # длина линии кнопок в px
 
     # пути к изображениям
-    _blue_chips_folder_path = 'app_images/chips/blue/'
-    _red_chips_folder_path = 'app_images/chips/red/'
-    _green_chips_folder_path = 'app_images/chips/green/'
-    _icon_path = 'app_images/icon.png'  # иконка приложения
-    _background_path = 'app_images/background.jpg'  # фон
+    _blue_chips_folder_path = 'resources/app_images/chips/blue/'
+    _red_chips_folder_path = 'resources/app_images/chips/red/'
+    _green_chips_folder_path = 'resources/app_images/chips/green/'
+    _icon_path = 'resources/app_images/icon.png'  # иконка приложения
+    _background_path = 'resources/app_images/background.jpg'  # фон
 
     # словари с буквами
     _used_letters = dict()  # словарь с кол-вом букв, которые уже есть на доске
@@ -107,7 +110,7 @@ class ScrabbleApplication(QWidget):
                                 'ш': 0, 'щ': 0, 'ъ': 0, 'ы': 0, 'ь': 0, 'э': 0,
                                 'ю': 0, 'я': 0, '*': 0}
         # словарь с буквами, которые уже есть на доске
-        self._used_letters = self.sa.get_used_letters_counter(self._board)
+        self._used_letters = get_used_letters(self._board)
 
     def init_buttons(self):
         """
@@ -195,11 +198,11 @@ class ScrabbleApplication(QWidget):
 
         # todo: загрузка юзером
         # обработка изображения
-        img = self.extra.read_image('app_images/test.jpg')
+        img = read_image('resources/app_images/test.jpg')
         # обрезка по внешнему контуру
-        img = self.scan.cut_by_external_contour(img)
+        img = cut_by_external_contour(img)
         # обрезка по внутреннему контуру
-        img = self.scan.cut_by_internal_contour(img)
+        img = cut_by_internal_contour(img)
 
         # todo: здесь будет распознавание нейросетью
 
@@ -221,10 +224,10 @@ class ScrabbleApplication(QWidget):
             ['', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
         ]
         # записываем изображение
-        self.extra.write_image(img, '../application/app_images/user_image.jpg')
+        write_image(img, 'resources/app_images/user_image.jpg')
 
         # считываем изображение
-        img = QPixmap('../application/app_images/user_image.jpg')
+        img = QPixmap('resources/app_images/user_image.jpg')
         # уменьшаем до размеров экрана
         img = img.scaledToHeight(self._width)
         img = img.scaledToWidth(self._width)
@@ -234,7 +237,7 @@ class ScrabbleApplication(QWidget):
         self._img_label.setPixmap(self._board_img)
 
         # если кол-во всех букв на доске не больше допустимого
-        if self.sa.is_board_letters_amount_right(self._board):
+        if is_board_letters_amount_right(self._board):
 
             self.status = True  # запускаем приложение
             self.init_dicts()  # инициализируем словари
@@ -289,7 +292,7 @@ class ScrabbleApplication(QWidget):
             if sum(self._chosen_letters.values()) < 7:
                 # проверка на наличие в игре достаточного количества таких фишек
                 if self._chosen_letters[letter] + self._used_letters[letter] < \
-                        self.sa.LETTERS_AMOUNT[letter]:
+                        LETTERS_AMOUNT[letter]:
                     # путь к папке с изображениями фишек
                     chips_img_path = self._blue_chips_folder_path
                     chips_img_path += 'letter' + str(i + 1) + '.jpg'
@@ -391,7 +394,7 @@ class ScrabbleApplication(QWidget):
         if sum(self._chosen_letters.values()) < 7:
             # проверка на наличие в игре достаточного количества фишек
             if self._chosen_letters[letter] + self._used_letters[letter] < \
-                    self.sa.LETTERS_AMOUNT[letter]:
+                    LETTERS_AMOUNT[letter]:
                 # определяем букву кнопки
                 # отдельный случай со звездочкой
                 if letter == '*':
@@ -453,8 +456,7 @@ class ScrabbleApplication(QWidget):
             self._msg_label.setText(self._msg_no_img_error)
         else:
             # запуск алгоритма
-            hint, value = self.sa.get_hint(self._board,
-                                           Counter(self._chosen_letters))
+            hint, value = get_hint(self._board, Counter(self._chosen_letters))
             # отрисовка подсказки на экране
             self.draw_hint(hint)
             # выводим стоимость подсказки
@@ -496,5 +498,5 @@ class ScrabbleApplication(QWidget):
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
-    sa = ScrabbleApplication()
+    scrabble = ScrabbleApplication()
     sys.exit(app.exec_())

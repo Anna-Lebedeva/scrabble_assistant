@@ -1,21 +1,26 @@
-import numpy as np
+from assistant.read_files import read_json_to_list, read_json_to_dict
+
 from collections import Counter
-from assistant import extra as ex
+import numpy as np
 
 # пути к json файлам
-LETTERS_VALUES_FILE_PATH = '../jsons/letters_values.json'  # ценность букв
-LETTERS_AMOUNT_FILE_PATH = '../jsons/letters_amount.json'  # кол-во букв
-BOARD_BONUSES_FILE_PATH = '../jsons/board_bonuses.json'  # бонусы на доске
+#
+# ценность букв
+LETTERS_VALUES_FILE_PATH = 'resources/jsons/letters_values.json'
+# кол-во букв
+LETTERS_AMOUNT_FILE_PATH = 'resources/jsons/letters_amount.json'
+# бонусы на доске
+BOARD_BONUSES_FILE_PATH = 'resources/jsons/board_bonuses.json'
 
 # путь к основному словарю
-DICTIONARY_FILE_PATH = '../dictionary.txt'
+DICTIONARY_FILE_PATH = 'resources/dictionary.txt'
 
 # словарь с ценностью букв
-LETTERS_VALUES = ex.read_json_to_dict(LETTERS_VALUES_FILE_PATH)
+LETTERS_VALUES = read_json_to_dict(LETTERS_VALUES_FILE_PATH)
 # словарь с кол-вом букв в игре
-LETTERS_AMOUNT = ex.read_json_to_dict(LETTERS_AMOUNT_FILE_PATH)
+LETTERS_AMOUNT = read_json_to_dict(LETTERS_AMOUNT_FILE_PATH)
 # список бонусов доски в виде матрицы
-BOARD_BONUSES = ex.read_json_to_list(BOARD_BONUSES_FILE_PATH)
+BOARD_BONUSES = read_json_to_list(BOARD_BONUSES_FILE_PATH)
 
 
 # author - Pavel
@@ -51,7 +56,7 @@ def get_hint(board: [[str]], letters: Counter) -> ([[str]], int):
 
 # author - Pavel
 # todo: с регулярками будет быстрее раз в 10
-def get_horizontal_hint(board: [[str]], letters: ex.Counter) -> ([[str]], int):
+def get_horizontal_hint(board: [[str]], letters: Counter) -> ([[str]], int):
     """
     Дает лучшую подсказку слова на доске по горизонтали
     :param board: доска в виде двумерного символьного массива
@@ -79,7 +84,7 @@ def get_horizontal_hint(board: [[str]], letters: ex.Counter) -> ([[str]], int):
                         if marked_board[i][j + word_start_index] != word[j]:
                             word2 += word[j]
 
-                    if ex.is_word_compilable(word2, letters):
+                    if is_word_compilable(word2, letters):
                         # считаем его ценность
                         value = evaluate_word(word, board, i,
                                               word_start_index)
@@ -101,7 +106,7 @@ def get_horizontal_hint(board: [[str]], letters: ex.Counter) -> ([[str]], int):
 
 # author - Pavel
 def get_hint_for_empty_board(board: [[str]],
-                             letters: ex.Counter) -> ([[str]], int):
+                             letters: Counter) -> ([[str]], int):
     """
     Дает лучшую подсказку для первого хода (пустая доска)
     :param board: доска в виде двумерного символьного массива
@@ -125,7 +130,7 @@ def get_hint_for_empty_board(board: [[str]],
             if len(line) <= 8:
                 word = line[:-1]  # без \n
                 # если слово можно собрать - пропускаем его
-                if ex.is_word_compilable(word, letters):
+                if is_word_compilable(word, letters):
                     # размещаем слово по всем разрешенным позициям
                     for i in range(mid_index - len(word) + 1, mid_index + 1):
                         # считаем его ценность
@@ -156,53 +161,6 @@ def get_empty_board(y: int, x: int) -> [[str]]:
     """
 
     return [[''] * y for _ in range(x)]
-
-
-# author - Pavel
-def is_board_empty(board: [[str]]) -> bool:
-    """
-    Проверяет, является ли доска пустой
-    :param board: доска в виде двумерного символьного массива
-    :return: true - доска пустая
-    """
-
-    for row in board:
-        for i in range(len(row)):
-            # если строка не пустая
-            # то вся доска не пустая
-            if row[i]:
-                return False
-    return True
-
-
-# author - Pavel
-def is_board_correct(board: [[str]]) -> bool:
-    """
-    Проверяет доску на корректность символов внутри
-    Допустимы русские буквы, * и пустая строка
-    :param board: доска в виде двумерного символьного массива
-    :return: true - доска корректна
-    """
-
-    for row in board:
-        for char in row:
-            # если символ не пустой и не * и не русская буква
-            # тогда этот символ некорректен -> вся таблица некорректна
-            if char != '' and char != '*' and \
-                    not ex.is_symbol_russian_letter(char):
-                return False
-    return True
-
-
-# authors - Matvey and Pavel
-def transpose_board(board: [[str]]) -> [[str]]:
-    """
-    Транспонирует двумерный массив
-    :param board: доска в виде двумерного символьного массива
-    :return: транспонированный двумерный массив
-    """
-
-    return list(np.array(board).transpose())
 
 
 # author - Pavel
@@ -277,6 +235,17 @@ def get_marked_rows(board: [[str]]) -> [[str]]:
     return marked_board
 
 
+# authors - Matvey and Pavel
+def transpose_board(board: [[str]]) -> [[str]]:
+    """
+    Транспонирует двумерный массив
+    :param board: доска в виде двумерного символьного массива
+    :return: транспонированный двумерный массив
+    """
+
+    return list(np.array(board).transpose())
+
+
 # author - Pavel
 # todo: с регулярками будет быстрее раз в 10
 def get_possible_word_positions_in_row(word: str, row: [str]) -> [int]:
@@ -326,11 +295,35 @@ def get_possible_word_positions_in_row(word: str, row: [str]) -> [int]:
                 next_sym = row[i + len(word)]
 
             # если и слева и справа не мешается буква - можем вставить слово
-            if not ex.is_symbol_russian_letter(previous_sym) and \
-                    not ex.is_symbol_russian_letter(next_sym):
+            if not is_symbol_russian_letter(previous_sym) and \
+                    not is_symbol_russian_letter(next_sym):
                 possible_indexes.append(i)
 
     return possible_indexes
+
+
+# author - Pavel
+def get_used_letters(board: [[str]]) -> Counter:
+    """
+    Возвращает буквы, которые присутствуют на доске
+    :param board: доска в виде двумерного символьного массива
+    :return: Counter из использованных на доске букв
+    """
+
+    # счетчик для подсчете букв
+    letters_counter = Counter()
+
+    # идем по строкам
+    for row in board:
+        # формируем новый счетчик из строки и суммируем его с текущим
+        letters_counter += Counter(row)
+
+    # если в счетчике есть пустые символы
+    if not letters_counter.get('') is None:
+        # удаляем запись о пустых символах
+        letters_counter.pop('')
+
+    return letters_counter
 
 
 # author - Pavel
@@ -403,27 +396,39 @@ def evaluate_word(word: str, board: [[str]],
 
 
 # author - Pavel
-def get_used_letters_counter(board: [[str]]) -> Counter:
+def is_board_empty(board: [[str]]) -> bool:
     """
-    Возвращает буквы, которые присутствуют на доске
+    Проверяет, является ли доска пустой
     :param board: доска в виде двумерного символьного массива
-    :return: Counter из использованных на доске букв
+    :return: true - доска пустая
     """
 
-    # счетчик для подсчете букв
-    letters_counter = Counter()
-
-    # идем по строкам
     for row in board:
-        # формируем новый счетчик из строки и суммируем его с текущим
-        letters_counter += Counter(row)
+        for i in range(len(row)):
+            # если строка не пустая
+            # то вся доска не пустая
+            if row[i]:
+                return False
+    return True
 
-    # если в счетчике есть пустые символы
-    if not letters_counter.get('') is None:
-        # удаляем запись о пустых символах
-        letters_counter.pop('')
 
-    return letters_counter
+# author - Pavel
+def is_board_correct(board: [[str]]) -> bool:
+    """
+    Проверяет доску на корректность символов внутри
+    Допустимы русские буквы, * и пустая строка
+    :param board: доска в виде двумерного символьного массива
+    :return: true - доска корректна
+    """
+
+    for row in board:
+        for char in row:
+            # если символ не пустой и не * и не русская буква
+            # тогда этот символ некорректен -> вся таблица некорректна
+            if char != '' and char != '*' and \
+                    not is_symbol_russian_letter(char):
+                return False
+    return True
 
 
 # author - Pavel
@@ -436,8 +441,41 @@ def is_board_letters_amount_right(board: [[str]]) -> bool:
     if not is_board_correct(board):
         return False
 
-    c = get_used_letters_counter(board)
+    c = get_used_letters(board)
     for key in c.keys():
         if c[key] > LETTERS_AMOUNT[key]:
             return False
     return True
+
+
+# author - Matvey
+def is_word_compilable(word: str, letters: Counter) -> bool:
+    """
+    Проверяет возможность составить слово из переданных букв.
+    :param word: слово
+    :param letters: буквы, имеющиеся у игрока
+    :return: можно ли составить из переданных букв переданое слово
+    """
+
+    word_letters = Counter(word)  # Счетчик букв для слова
+    for letter in word_letters.keys():
+        if letters[letter] < word_letters[letter]:
+            # Если количество букв у игрока меньше, чем букв в слове
+            return False
+    return True
+
+
+# author - Pavel
+def is_symbol_russian_letter(symbol: str) -> bool:
+    """
+    Проверяет, является ли символ буквой
+    Считает только кириллицу
+    Считает и прописные, и заглавные буквы
+    :param symbol: символ
+    :return: true - это буква
+    """
+
+    if symbol is None or not symbol:
+        return False
+    else:
+        return 1040 <= ord(symbol) <= 1071 or 1072 <= ord(symbol) <= 1131
