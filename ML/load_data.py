@@ -1,11 +1,9 @@
 import pickle
-
 import cv2
 import imageio
-from scipy import misc
 import numpy as np
 import os
-from scan import ML
+from CV.scan import ML
 
 path_to_classifier = "int_to_word_out.pickle"
 path_to_dataset = "dataset_image/"

@@ -76,7 +76,7 @@ def cut_by_internal_contour(img: np.ndarray,
                             left=3.95, top=4.0,
                             right=1.5, bot=1.2) -> np.ndarray:
     """
-    Обрезает изображение с разных сторон на определённое значение
+    Обрезает изображение с разных сторон
     :param img: Изображение на вход
     :param left: Сколько процентов обрезать слева
     :param top: Сколько процентов обрезать сверху
@@ -108,11 +108,11 @@ def draw_the_grid(img: np.ndarray) -> np.ndarray:
 
     # Заполнение массивов координат X для вертикальных и
     # Y для горизонтальных линий
-    # x = [round(w / 15 * j) for j in range(16)]
-    # y = [round(h / 15 * i) for i in range(16)]
-    x = [0, 0.96/15*w+1, 1.96/15*w, 2.96/15*w, 3.96/15*w, 4.96/15*w, 5.96/15*w, 6.98/15*w,
-         7.98/15*w, 9/15*w, 10/15*w, 11.01/15*w, 12.01/15*w, 13.03/15*w, 14.04/15*w, 14.99/15*w]
+    x = [0, 0.96/15*w+1, 1.96/15*w, 2.96/15*w, 3.96/15*w, 4.96/15*w,
+         5.96/15*w, 6.98/15*w, 7.98/15*w, 9/15*w, 10/15*w, 11.01/15*w,
+         12.01/15*w, 13.03/15*w, 14.04/15*w, 14.99/15*w]
     x = [round(x[k]) for k in range(16)]
+    y = [round(h / 15 * i) for i in range(16)]
 
     # Вертикальные линии
     for i in x:
@@ -120,10 +120,10 @@ def draw_the_grid(img: np.ndarray) -> np.ndarray:
         end_point = (i, h)
         cv2.line(img, start_point, end_point, color=(0, 255, 0), thickness=2)
     # Горизонтальные линии
-    # for j in y:
-    #     start_point = (0, j)
-    #     end_point = (w, j)
-    #     cv2.line(img, start_point, end_point, color=(0, 255, 0), thickness=3)
+    for j in y:
+        start_point = (0, j)
+        end_point = (w, j)
+        cv2.line(img, start_point, end_point, color=(0, 255, 0), thickness=2)
 
     return img
 
@@ -141,8 +141,9 @@ def cut_board_on_cells(img: np.ndarray) -> [np.ndarray]:
 
     # Заполнение массивов координат X для вертикальных и
     # Y для горизонтальных линий
-    x = [0, 0.96/15*w+1, 1.96/15*w, 2.96/15*w, 3.96/15*w, 4.96/15*w, 5.96/15*w, 6.98/15*w,
-         7.98/15*w, 9/15*w, 10/15*w, 11.01/15*w, 12.01/15*w, 13.03/15*w, 14.04/15*w, 14.99/15*w]
+    x = [0, 0.96/15*w+1, 1.96/15*w, 2.96/15*w, 3.96/15*w, 4.96/15*w,
+         5.96/15*w, 6.98/15*w, 7.98/15*w, 9/15*w, 10/15*w, 11.01/15*w,
+         12.01/15*w, 13.03/15*w, 14.04/15*w, 14.99/15*w]
     x = [round(x[k]) for k in range(16)]
     y = [round(h / 15 * m) for m in range(16)]
 
@@ -152,6 +153,7 @@ def cut_board_on_cells(img: np.ndarray) -> [np.ndarray]:
         squares.append([])
         for i in range(1, 16):
             cropped = img[y[j - 1]:y[j], x[i - 1]:x[i]]
+            cropped = cv2.resize(cropped, (ML, ML))
             squares[j - 1].append(cropped)
 
     return squares
@@ -173,27 +175,31 @@ def make_prediction(square: list) -> [np.ndarray]:
     tf.get_logger().setLevel('ERROR')
     os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 
-    # Импорт файла для замены чисел на буквы
+    # Пути до файлов модели
+    path_to_classifier = "../ML/int_to_word_out.pickle"
+    path_to_model_json = "../ML/model_face.json"
+    path_to_weights = "../ML/model_face.h5"
+
+    # Импорт json для замены чисел на буквы
     with open(file="jsons/folders_mapping.json", mode='r',
               encoding='utf-8') as file:
         folder_values = json.load(file)
 
-    # Пути до файлов модели
-    path_to_classifier = "./ML/int_to_word_out.pickle"
-    path_to_model_json = "./ML/model_face.json"
-    path_to_weights = "./ML/model_face.h5"
-
+    # Загрузка классификатора
     classifier_f = open(path_to_classifier, "rb")
     int_to_word_out = pickle.load(classifier_f)
     classifier_f.close()
-    # load json and create model
+
+    # Загрузка json и создание модели
     json_file = open(path_to_model_json, 'r')
     loaded_model_json = json_file.read()
     json_file.close()
     loaded_model = model_from_json(loaded_model_json)
-    # load weights into new model
+
+    # Загрузка весов в модель
     loaded_model.load_weights(path_to_weights)
 
+    # Создание массива предсказаний
     predictions = []
     for j in range(15):
         predictions.append([])
@@ -213,7 +219,7 @@ def make_prediction(square: list) -> [np.ndarray]:
             prediction = int_to_word_out[np.argmax(prediction_arr)]
             predictions[j].append(prediction)
 
-            # замена числа на букву
+            # Замена числа на букву
             prediction_letter = folder_values["{}".format(prediction)]
 
             # Вероятность
@@ -229,6 +235,7 @@ def make_prediction(square: list) -> [np.ndarray]:
             cv2.imshow("Threshold", resize(image, height=200))
             cv2.waitKey()
             cv2.destroyAllWindows()
+
 
     return predictions
 
@@ -271,7 +278,7 @@ def colored_to_cropped_threshold(img: np.ndarray) -> np.ndarray:
 if __name__ == "__main__":
     pass
 
-    image = cv2.imread("!raw_images_to_cut/IMG_20200528_155326_5.jpg")
+    image = cv2.imread("../!raw_images_to_cut/IMG_20200528_155326_5.jpg")
 
     external_crop = cut_by_external_contour(image)
     internal_crop = cut_by_internal_contour(external_crop)
@@ -287,6 +294,7 @@ if __name__ == "__main__":
     # cv2.imshow("Cell", resize(colored_to_cropped_threshold(board_squares[0][12]), height=150))
 
     # print(make_prediction(board_squares))
+
     # cv2.imshow("External cropped board", resize(external_crop, height=800))
     # cv2.imshow("Internal cropped board", resize(internal_crop, height=800))
     # cv2.imshow("Cell", board_squares[0][0])
