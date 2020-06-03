@@ -10,6 +10,5 @@ opencv-python~=4.2.0.34
 imageio~=2.8.0
 scipy~=1.4.1
 matplotlib~=3.2.1
-sklearn==0.23.1
-skimage==0.17.2
 joblib~=0.14.1
+scikit-image~=0.17.2
