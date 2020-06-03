@@ -1,22 +1,19 @@
 import os
 import numpy as np
-from keras.layers import Dropout, Embedding, LSTM
+from keras.layers import Dropout
 from keras.layers import Flatten
 from keras import callbacks
-from keras.constraints import maxnorm
-from keras import optimizers
 from keras.layers import Conv2D
 from keras.layers.convolutional import MaxPooling2D
+from keras.metrics import AUC
 from keras.utils import np_utils
 from keras import backend as K
 import ML.load_data as load_data
 from keras.models import Sequential
 from keras.layers import Dense
-import tensorflow as tf
-from keras.optimizers import RMSprop
 from scan import ML
 
-os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 K.set_image_data_format('channels_last')
 
 path_to_classifier = "int_to_word_out.pickle"
@@ -63,7 +60,7 @@ model.compile(loss='categorical_crossentropy', optimizer='adadelta',
 
 
 # Параметры обучения
-epochs = 15
+epochs = 50
 batch_size = 32  # Кол-во элементов в выборке до изменения значений весов
 
 print(model.summary())

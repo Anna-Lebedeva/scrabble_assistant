@@ -237,6 +237,7 @@ def make_prediction(square: list) -> [np.ndarray]:
             cv2.waitKey()
             cv2.destroyAllWindows()
 
+
     return predictions
 
 

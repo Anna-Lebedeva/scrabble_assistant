@@ -1,10 +1,10 @@
 import os
 from shutil import rmtree
 import cv2
-from scan import cut_by_external_contour
-from scan import cut_by_internal_contour
-from scan import cut_board_on_cells
-from scan import colored_to_cropped_threshold
+from CV.scan import cut_by_external_contour
+from CV.scan import cut_by_internal_contour
+from CV.scan import cut_board_on_cells
+from CV.scan import colored_to_cropped_threshold
 
 path_to_input = '../../!raw_images_to_cut/'
 path_to_output = '../dataset_image/'
