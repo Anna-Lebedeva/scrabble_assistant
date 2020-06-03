@@ -3,7 +3,7 @@ import cv2
 import imageio
 import numpy as np
 import os
-from CV.scan import ML
+from CV.scan import IMAGE_RESOLUTION
 
 path_to_classifier = "int_to_word_out.pickle"
 path_to_dataset = "dataset_image/"
@@ -18,8 +18,8 @@ for image_label in label:
 
     for image in images:
         img = imageio.imread(path_to_dataset + image_label + "/" + image)
-        img = cv2.resize(img, (ML, ML))
-        img = np.reshape(img, (ML, ML, 1))
+        img = cv2.resize(img, (IMAGE_RESOLUTION, IMAGE_RESOLUTION))
+        img = np.reshape(img, (IMAGE_RESOLUTION, IMAGE_RESOLUTION, 1))
         dataset.append((img, image_label))
 
 X = []

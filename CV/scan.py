@@ -1,10 +1,9 @@
 from CV.transform import four_point_transform
-from ML.letter_recognition import recognize_images
+from ML.letter_recognition import recognize_images, CLASSIFIER_DUMP_PATH, SCALER_DUMP_PATH
 import cv2
 from imutils import resize
 from imutils import grab_contours
 import numpy as np
-
 # from keras.models import model_from_json
 # import pickle
 # import tensorflow as tf
@@ -14,6 +13,27 @@ import numpy as np
 # Размер изображений для тренировки и предсказаний нейросетки
 # Импортируется в train и load_data, чтобы изменять значение в одном месте
 IMAGE_RESOLUTION = 28
+
+
+# Авторы: Миша, Матвей
+def get_coordinates(img: np.ndarray) -> ([int], [int], int, int):
+    """Считает координаты для разрезов, по Х, У и высоту, ширину
+    :param img: изображение
+    :return: 2 массива с координатами по Х, У и высоту, ширину.
+    """
+    # Получение высоты и ширины изображения
+    (h, w) = img.shape[:2]
+
+    # Заполнение массивов координат X для вертикальных и
+    # Y для горизонтальных линий
+    x = [0, 0.96 / 15 * w + 1, 1.96 / 15 * w, 2.96 / 15 * w, 3.96 / 15 * w, 4.96 / 15 * w,
+         5.96 / 15 * w, 6.98 / 15 * w, 7.98 / 15 * w, 9 / 15 * w, 10 / 15 * w,
+         11.01 / 15 * w,
+         12.01 / 15 * w, 13.03 / 15 * w, 14.04 / 15 * w, 14.99 / 15 * w]
+    x = [round(x[k]) for k in range(16)]
+    y = [round(h / 15 * m) for m in range(16)]
+
+    return x, y, h, w
 
 
 # authors - Pavel, Mikhail and Sergei
@@ -105,7 +125,7 @@ def draw_the_grid(img: np.ndarray) -> np.ndarray:
     :return: Изображение с сеткой
     """
 
-    x, y, h, w = get_coordinates(img)  # Получение координат
+    x, y, h, w = get_coordinates(img)  # Получение координат, высоты и ширины изображения
 
     # Вертикальные линии
     for i in x:
@@ -121,25 +141,6 @@ def draw_the_grid(img: np.ndarray) -> np.ndarray:
     return img
 
 
-# Авторы: Миша, Матвей
-def get_coordinates(img: np.ndarray) -> ([int], [int], int, int):
-    """Считает координаты для обрезки
-    :param img: изображение
-    :return: 2 массива с координатами по Х и по У. Выстоу и Ширину.
-    """
-    h, w = image.shape[:2]  # Получение высоты и ширины изображения
-
-    # Заполнение массивов координат X для вертикальных и
-    # Y для горизонтальных линий
-    x = [0, 0.96 / 15 * w + 1, 1.96 / 15 * w, 2.96 / 15 * w, 3.96 / 15 * w, 4.96 / 15 * w,
-         5.96 / 15 * w, 6.98 / 15 * w, 7.98 / 15 * w, 9 / 15 * w, 10 / 15 * w,
-         11.01 / 15 * w, 12.01 / 15 * w, 13.03 / 15 * w, 14.04 / 15 * w, 14.99 / 15 * w]
-    x = [round(x[k]) for k in range(16)]
-    y = [round(h / 15 * i) for i in range(16)]
-
-    return x, y, h, w
-
-
 # author - Mikhail
 def cut_board_on_cells(img: np.ndarray) -> [np.ndarray]:
     """
@@ -148,7 +149,7 @@ def cut_board_on_cells(img: np.ndarray) -> [np.ndarray]:
     :return: Массив ячеек длиной 15x15
     """
 
-    x, y, _, _ = get_coordinates(img)  # Получение координат
+    x, y, h, w = get_coordinates(img)  # Получение координат, высоты и ширины изображения
 
     # Заполнение массива
     squares = []
@@ -282,19 +283,19 @@ def colored_to_cropped_threshold(img: np.ndarray) -> np.ndarray:
 if __name__ == "__main__":
     pass
 
-    image = cv2.imread('test1.jpg', 1)
-    cv2.imshow('Show', image)
+    image = cv2.imread('test1.jpg')
 
     external_crop = cut_by_external_contour(image)
     internal_crop = cut_by_internal_contour(external_crop)
     board_squares = cut_board_on_cells(internal_crop)
+    print(board_squares)
 
-    # for j in range(3):
-    #     for i in range(15):
-    #         cv2.imshow("Thresh", resize(colored_to_cropped_threshold(board_squares[j][i]), height=150))
-    #         cv2.imshow("Cell", resize(board_squares[j][i], height=150))
-    #         cv2.waitKey()
-    #         cv2.destroyAllWindows()
+    for j in range(3):
+        for i in range(15):
+            #cv2.imshow("Thresh", resize(colored_to_cropped_threshold(board_squares[j][i]), height=150))
+            cv2.imshow("Cell", resize(board_squares[j][i], height=150))
+            cv2.waitKey()
+            cv2.destroyAllWindows()
 
     # cv2.imshow("Cell", resize(colored_to_cropped_threshold(board_squares[0][12]), height=150))
 

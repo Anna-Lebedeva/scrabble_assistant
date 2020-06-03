@@ -11,7 +11,7 @@ from keras import backend as K
 import ML.load_data as load_data
 from keras.models import Sequential
 from keras.layers import Dense
-from scan import ML
+from CV.scan import IMAGE_RESOLUTION
 
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 K.set_image_data_format('channels_last')
@@ -36,7 +36,7 @@ num_classes = y_train.shape[1]
 # Создание модели
 model = Sequential()
 model.add(Conv2D(32, (3, 3), padding='same',
-                 input_shape=(ML, ML, 1), activation='relu'))
+                 input_shape=(IMAGE_RESOLUTION, IMAGE_RESOLUTION, 1), activation='relu'))
 model.add(Conv2D(32, (3, 3), padding='same', activation='relu'))
 model.add(MaxPooling2D(pool_size=(2, 2)))
 model.add(Dropout(0.25))
@@ -51,7 +51,7 @@ model.add(Dense(num_classes, activation="softmax"))
 model.compile(loss='categorical_crossentropy', optimizer='adadelta',
               metrics=['accuracy'])
 
-# model.add(Dense(input_shape=(ML, ML, 1), units=32, activation='relu'))
+# model.add(Dense(input_shape=(IMAGE_RESOLUTION, IMAGE_RESOLUTION, 1), units=32, activation='relu'))
 # model.add(Flatten())
 # model.add(Dense(num_classes, activation='softmax'))
 # model.compile(optimizer='sgd',
