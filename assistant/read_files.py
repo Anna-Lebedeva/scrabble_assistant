@@ -5,7 +5,7 @@ import numpy as np
 
 
 # author - Matvey
-def read_json_to_dict(json_path: str) -> dict:
+def read_json_to_dict(json_path: Path) -> dict:
     """
     Считывает json-файл в dict
     :param json_path: имя json-файла
@@ -18,7 +18,7 @@ def read_json_to_dict(json_path: str) -> dict:
 
 
 # authors - Pavel, Matvey
-def read_json_to_list(json_path: str) -> [[str]]:
+def read_json_to_list(json_path: Path) -> [[str]]:
     """
     Считывает json-файл в list
     :param json_path: имя json-файла

@@ -1,42 +1,40 @@
-from joblib import load
-import numpy as np
+from pathlib import Path
 
+import numpy as np
+from joblib import load
 from skimage import img_as_float
 from skimage.color import rgb2gray
 
-# from sklearn.linear_model import LogisticRegression
-# from sklearn.preprocessing import StandardScaler
-
-CLASSIFIER_DUMP_PATH = 'classifier.joblib'
-SCALER_DUMP_PATH = 'scaler.joblib'
-
 
 # Автор: Матвей
-# fixme: НЕ ЗАКОНЧЕНО \ НЕ ТЕСТИЛ \ ПРОВЕРОК НЕТ
-def recognize_images(board: [np.ndarray]) -> ([[int]], [[int]]):
+# fixme: НЕ ДОДЕЛАНО / ПРОВЕРОК НЕТ
+def classify_images(board: [np.ndarray],
+                    classifier_path: Path,
+                    scaler_path: Path) -> ([[int]], [[int]]):
     """Приводит картинку к серому. Где каждый пиксель представлен интенсивностью белого.
     Загружает дамп обученной модели. И выдает предсказания для каждой клетки.
     :param board: Массив 15х15х3, где каждый пиксель представлен интенсивностями rgb.
+    :param classifier_path: путь к дампу с классификатором.
+    :param scaler_path: путь к дампу со шкалировщиком.
     :return: Двумерный массив размера переданного на вход, с предсказанными клетками.
     И второй массив таких же размеров, содержащий вероятности.
     """
 
-    images = board.reshape(225, 28, 28, 3)
-    # разворачиваем массив 15x15x28x28x3 в 225x28x28x3
+    images = np.array(board).reshape((225, 28, 28, 3))
+    # Разворачиваем массив 15x15x28x28x3 в 225x28x28x3
+
+    flat_array = np.zeros(shape=(225, 784))
 
     for i in range(len(images)):
-        images[i] = np.around(img_as_float(rgb2gray(images[i])).ravel(), decimals=2)
+        flat_array[i] = np.around(img_as_float(rgb2gray(images[i])).ravel(), decimals=2)
         # Переводим RGB в оттенки серого (из массива х3 получаем число).
-        # Для этого используем формулу Y = 0.2125 R + 0.7154 G + 0.0721 B
         # Переводим в интенсивность белого в диапазон от 0 до 1.
         # Разворачиваем массив 28x28 в 784.
         # Округляем до 2-х знаков после запятой.
 
-    # На этом этапе, у нас массив 225x784, готовый к распознаванию.
-
-    lr_clf = load(CLASSIFIER_DUMP_PATH)  # Загружаем обученный классикатор
-    scaler = load(SCALER_DUMP_PATH)  # Загружаем обученный шкалировщик
-    std_images = scaler.transform(images)  # Шкалируем выборку
+    lr_clf = load(Path.cwd().parent / classifier_path)  # Загружаем обученный классикатор
+    scaler = load(Path.cwd().parent / scaler_path)  # Загружаем обученный шкалировщик
+    std_images = scaler.transform(flat_array)  # Шкалируем выборку
 
     # Для шкалированных данных
     std_predictions = lr_clf.predict(std_images)
@@ -44,8 +42,30 @@ def recognize_images(board: [np.ndarray]) -> ([[int]], [[int]]):
     std_predictions_probability = lr_clf.predict_proba(std_images)
 
     # Для не шкалированных данных
-    predictions = lr_clf.predict(images)
-    predictions_log_probability = lr_clf.predict_log_proba(images)
-    predictions_probability = lr_clf.predict_proba(images)
+    # predictions = lr_clf.predict(flat_array)
+    # predictions_log_probability = lr_clf.predict_log_proba(flat_array)
+    # predictions_probability = lr_clf.predict_proba(flat_array)
 
-    return list(predictions.reshape(15, 15)), list(predictions_probability.reshape(15, 15))
+    return list(std_predictions.reshape(15, 15))  # , \
+    # list(std_predictions_probability.reshape(15, 15))
+
+
+def nums_to_letters(predictions: [np.ndarray]) -> [[str]]:
+    pred_letters = []
+    mapping = {1: "а", 2: "б", 3: "в", 4: "г", 5: "д", 6: "е",
+               7: "ж", 8: "з", 9: "и", 10: "й", 11: "к",
+               12: "л", 13: "м", 14: "н", 15: "о", 16: "п",
+               17: "р", 18: "с", 19: "т", 20: "у", 21: "ф",
+               22: "х", 23: "ц", 24: "ч", 25: "ш", 26: "щ",
+               27: "ъ", 28: "ы", 29: "ь", 30: "э",
+               31: "ю", 32: "я", 33: "*", 34: "T", 35: "t",
+               36: "", 37: "D", 38: "s", 39: "d"}
+
+    # fixme временно. нужно переписать
+    for y in range(len(predictions)):
+        row = []
+        for x in range(len(predictions)):
+            row.append(mapping[predictions[y][x]])
+        pred_letters.append(row)
+
+    return pred_letters

@@ -1,9 +1,14 @@
-from CV.transform import four_point_transform
-from ML.letter_recognition import recognize_images, CLASSIFIER_DUMP_PATH, SCALER_DUMP_PATH
+from pathlib import Path
+
 import cv2
-from imutils import resize
-from imutils import grab_contours
 import numpy as np
+from imutils import grab_contours
+from imutils import resize
+
+from CV.transform import four_point_transform
+from ML.letter_recognition import classify_images, nums_to_letters
+from preprocessing.model_preprocessing import CLASSIFIER_DUMP_PATH, SCALER_DUMP_PATH
+
 # from keras.models import model_from_json
 # import pickle
 # import tensorflow as tf
@@ -30,8 +35,8 @@ def get_coordinates(img: np.ndarray) -> ([int], [int], int, int):
          5.96 / 15 * w, 6.98 / 15 * w, 7.98 / 15 * w, 9 / 15 * w, 10 / 15 * w,
          11.01 / 15 * w,
          12.01 / 15 * w, 13.03 / 15 * w, 14.04 / 15 * w, 14.99 / 15 * w]
-    x = [round(x[k]) for k in range(16)]
-    y = [round(h / 15 * m) for m in range(16)]
+    x = [round(x[i]) for i in range(16)]
+    y = [round(h / 15 * i) for i in range(16)]
 
     return x, y, h, w
 
@@ -288,14 +293,24 @@ if __name__ == "__main__":
     external_crop = cut_by_external_contour(image)
     internal_crop = cut_by_internal_contour(external_crop)
     board_squares = cut_board_on_cells(internal_crop)
-    print(board_squares)
 
-    for j in range(3):
-        for i in range(15):
-            #cv2.imshow("Thresh", resize(colored_to_cropped_threshold(board_squares[j][i]), height=150))
-            cv2.imshow("Cell", resize(board_squares[j][i], height=150))
-            cv2.waitKey()
-            cv2.destroyAllWindows()
+    # тест распознавания изображений:
+    clf_path = Path.cwd().parent / CLASSIFIER_DUMP_PATH
+    sc_path = Path.cwd().parent / SCALER_DUMP_PATH
+
+    predicted_letters = classify_images(board_squares, clf_path, sc_path)
+    pred_board = nums_to_letters(predicted_letters)
+    for row in pred_board:
+        print(row)
+    # print(probability)
+
+    # for j in range(15):
+    #     for i in range(15):
+    #         # cv2.imshow("Thresh", resize(colored_to_cropped_threshold(board_squares[j][i]),
+    #         # height=150))
+    #         cv2.imshow("Cell", resize(board_squares[j][i], height=150))
+    #         cv2.waitKey()
+    #         cv2.destroyAllWindows()
 
     # cv2.imshow("Cell", resize(colored_to_cropped_threshold(board_squares[0][12]), height=150))
 
