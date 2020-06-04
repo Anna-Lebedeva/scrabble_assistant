@@ -1,17 +1,15 @@
-from PyQt5.QtWidgets import QApplication, QWidget, QPushButton, QLabel
+import sys
+from collections import Counter
+
 from PyQt5.QtCore import QSize, Qt
 from PyQt5.QtGui import QIcon, QPixmap
+from PyQt5.QtWidgets import QApplication, QWidget, QPushButton, QLabel
 
-from collections import Counter
-import sys
-
-
+from CV.scan import cut_by_external_contour, cut_by_internal_contour
+from assistant.read_files import read_image, write_image
 from assistant.scrabble_assistant import LETTERS_AMOUNT
 from assistant.scrabble_assistant import get_used_letters, get_hint, \
     is_board_letters_amount_right
-from assistant.read_files import read_image, write_image
-
-from CV.scan import cut_by_external_contour, cut_by_internal_contour
 
 
 # author - Pavel

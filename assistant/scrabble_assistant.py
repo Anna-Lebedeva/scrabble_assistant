@@ -1,19 +1,21 @@
-from assistant.read_files import read_json_to_list, read_json_to_dict
-
 from collections import Counter
+from pathlib import Path
+
 import numpy as np
 
-# пути к json файлам
+from assistant.read_files import read_json_to_list, read_json_to_dict
+
+# Пути к json файлам:
 #
 # ценность букв
-LETTERS_VALUES_FILE_PATH = 'resources/jsons/letters_values.json'
+LETTERS_VALUES_FILE_PATH = Path('resources') / Path('jsons') / Path('letters_values.json')
 # кол-во букв
-LETTERS_AMOUNT_FILE_PATH = 'resources/jsons/letters_amount.json'
+LETTERS_AMOUNT_FILE_PATH = Path('resources') / Path('jsons') / Path('letters_amount.json')
 # бонусы на доске
-BOARD_BONUSES_FILE_PATH = 'resources/jsons/board_bonuses.json'
+BOARD_BONUSES_FILE_PATH = Path('resources') / Path('jsons') / Path('board_bonuses.json')
 
 # путь к основному словарю
-DICTIONARY_FILE_PATH = 'resources/dictionary.txt'
+DICTIONARY_FILE_PATH = Path('resources') / Path('dictionary.txt')
 
 # словарь с ценностью букв
 LETTERS_VALUES = read_json_to_dict(LETTERS_VALUES_FILE_PATH)
