@@ -8,7 +8,7 @@ from PyQt5.QtWidgets import QApplication, QWidget, QPushButton, QLabel
 from CV.scan import cut_by_external_contour, cut_by_internal_contour
 from assistant.read_files import read_image, write_image
 from assistant.scrabble_assistant import LETTERS_AMOUNT
-from assistant.scrabble_assistant import get_used_letters, get_hint, \
+from assistant.scrabble_assistant import get_used_letters, get_n_hints, \
     is_board_letters_amount_right
 
 
@@ -23,6 +23,7 @@ class ScrabbleApplication(QWidget):
     # при status = False не работают никакие кнопки, кроме "загрузить фото"
     # при status = True работает все
     status = False
+    _hints_amount = 5  # сколько подсказок выдавать
 
     # доска в виде двумерного символьного массива
     _board = None
@@ -455,44 +456,48 @@ class ScrabbleApplication(QWidget):
             self._msg_label.setText(self._msg_no_img_error)
         else:
             # запуск алгоритма
-            hint, value = get_hint(self._board, Counter(self._chosen_letters))
+            hints, values = get_n_hints(self._board,
+                                        Counter(self._chosen_letters),
+                                        self._hints_amount)
             # отрисовка подсказки на экране
-            self.draw_hint(hint)
+            self.draw_hint(hints)
             # выводим стоимость подсказки
-            self._msg_label.setText(self._msg_hint_value + str(value))
+            self._msg_label.setText(self._msg_hint_value + str(values))
             self._is_hint_showing = True
 
-    def draw_hint(self, hint):
+    def draw_hint(self, hints: [[[str]]]):
         """
-        Отрисовка подсказки на экране
+        Отрисовка подсказок на экране
         """
 
-        # идем по доске подсказок
-        for y in range(len(hint)):
-            for x in range(len(hint[y])):
-                # отрисовываем букву если:
-                # на подсказке эта буква есть
-                # а на доске этой буквы еще нет
-                if hint[y][x] != '' and self._board[y][x] == '':
-                    # поиск индекса буквы в алфавите
-                    # отдельная обработка звездочки
-                    if hint[y][x] == '*':
-                        chip_index = 32
-                    else:
-                        chip_index = ord(hint[y][x]) - 1072
+        for hint in hints:
+            # идем по доске подсказок
+            for y in range(len(hint)):
+                for x in range(len(hint[y])):
+                    # отрисовываем букву если:
+                    # на подсказке эта буква есть
+                    # а на доске этой буквы еще нет
+                    if hint[y][x] != '' and self._board[y][x] == '':
+                        # поиск индекса буквы в алфавите
+                        # отдельная обработка звездочки
+                        if hint[y][x] == '*':
+                            chip_index = 32
+                        else:
+                            chip_index = ord(hint[y][x]) - 1072
 
-                    # размер одной фишки на изображении
-                    hint_size = self._width // 15  # 30px
-                    # находим нужный label в массиве
-                    hint_label = self._hint_labels[y * 15 + x]
-                    # выбор файла изображения
-                    img_filename = 'letter' + str(chip_index + 1) + '.jpg'
-                    pix = QPixmap(self._green_chips_folder_path + img_filename)
-                    # масштабирование изображения под фишку
-                    pix = pix.scaledToWidth(hint_size)
-                    pix = pix.scaledToHeight(hint_size)
-                    # установка изображения
-                    hint_label.setPixmap(pix)
+                        # размер одной фишки на изображении
+                        hint_size = self._width // 15  # 30px
+                        # находим нужный label в массиве
+                        hint_label = self._hint_labels[y * 15 + x]
+                        # выбор файла изображения
+                        img_folder = self._green_chips_folder_path
+                        img_filename = 'letter' + str(chip_index + 1) + '.jpg'
+                        pix = QPixmap(img_folder + img_filename)
+                        # масштабирование изображения под фишку
+                        pix = pix.scaledToWidth(hint_size)
+                        pix = pix.scaledToHeight(hint_size)
+                        # установка изображения
+                        hint_label.setPixmap(pix)
 
 
 if __name__ == '__main__':

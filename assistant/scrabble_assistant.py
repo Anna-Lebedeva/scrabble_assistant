@@ -84,9 +84,6 @@ def get_n_hints(board: [[str]], letters: Counter, n: int) -> ([[[str]]], [int]):
     x_hints, x_values = get_n_row_hints(board, letters, n)
     y_hints, y_values = get_n_row_hints(transpose_board(board), letters, n)
 
-    print(x_values)
-    print(y_values)
-
     best_hints = []  # массив n лучших подсказок
     best_hints_values = []  # массив стоимостей n лучших подсказок
 
@@ -129,7 +126,7 @@ def get_n_hints(board: [[str]], letters: Counter, n: int) -> ([[[str]]], [int]):
                     break
             # если пересечений нет - добавляем
             if not intersection:
-                best_hints.append(y_hints[yi])
+                best_hints.append(transpose_board(y_hints[yi]))
                 best_hints_values.append(y_value)
             yi += 1
 
@@ -199,23 +196,34 @@ def get_n_row_hints(board: [[str]], letters: Counter, n: int) -> \
                                 # если слово не ценнее, чем n-е
                                 if value <= hints_values[ni]:
                                     # если есть пересечение
-                                    if row_hints_intersect(word, x_index, y_index, hints_words[ni], hints_xs[ni], hints_ys[ni]):
-                                        # игнорируем найденую подсказку
+                                    if row_hints_intersect(word,
+                                                           x_index,
+                                                           y_index,
+                                                           hints_words[ni],
+                                                           hints_xs[ni],
+                                                           hints_ys[ni]):
+                                        # игнорируем найденную подсказку
                                         break
                                 # если слово более ценное
                                 else:
                                     if window == -1:
                                         window = ni
                                     # если hint[ni] пересекается с найденной
-                                    if row_hints_intersect(word, x_index, y_index, hints_words[ni], hints_xs[ni], hints_ys[ni]):
+                                    if row_hints_intersect(word,
+                                                           x_index,
+                                                           y_index,
+                                                           hints_words[ni],
+                                                           hints_xs[ni],
+                                                           hints_ys[ni]):
                                         # то удаляем это слово
                                         # удаляем смещением массива на 1
 
                                         for j in range(ni, n - 1):
-                                            hints_words[j] = hints_words[j + 1]
-                                            hints_values[j] = hints_values[j + 1]
-                                            hints_xs[j] = hints_xs[j + 1]
-                                            hints_ys[j] = hints_ys[j + 1]
+                                            jp = j + 1
+                                            hints_words[j] = hints_words[jp]
+                                            hints_values[j] = hints_values[jp]
+                                            hints_xs[j] = hints_xs[jp]
+                                            hints_ys[j] = hints_ys[jp]
 
                                         # обнуление последнего элемента
                                         hints_words[n - 1] = ''
@@ -392,7 +400,6 @@ def transpose_board(board: [[str]]) -> [[str]]:
 
 
 # author - Pavel
-# todo: с регулярками будет быстрее раз в 10
 def get_word_positions_in_row(word: str, row: [str]) -> [int]:
     """
     Находит все возможные позиции слова в строке
