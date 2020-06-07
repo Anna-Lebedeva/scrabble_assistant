@@ -18,7 +18,8 @@ BOARD_BONUSES_FILE_PATH = Path('resources') / Path('jsons') /\
                           Path('board_bonuses.json')
 
 # путь к основному словарю
-DICTIONARY_FILE_PATH = Path('resources') / Path('dictionary.txt')
+DICTIONARY_FILE_PATH = Path('resources') / Path('dictionaries') /\
+                       Path('dictionary8.txt')
 
 # словарь с ценностью букв
 LETTERS_VALUES = read_json_to_dict(LETTERS_VALUES_FILE_PATH)
@@ -94,41 +95,56 @@ def get_n_hints(board: [[str]], letters: Counter, n: int) -> ([[[str]]], [int]):
     xi = 0  # индекс вертикальных подсказок
     yi = 0  # индекс горизонтальных подсказок
     while xi != n or yi != n:
-        # print(xi)
-        # print(yi)
-        if xi < n:
+        # обработка случая выхода за пределы массива гориз. подсказок
+        if xi != n:
             x_value = x_values[xi]
         else:
             x_value = -1
 
-        if yi < n:
+        # обработка случая выхода за пределы массива верт. подсказок
+        if yi != n:
             y_value = y_values[yi]
         else:
             y_value = -1
 
+        intersection = False  # мешает ли текущая подсказка предыдущим
+        # если гориз. подсказка ценнее
         if x_value >= y_value:
-            best_hints.append(x_hints[xi])
-            best_hints_values.append(x_value)
+            # проверка на пересеченеи с предыдущими подсказками
+            for hint in best_hints:
+                if hints_intersect(x_hints[xi], hint):
+                    intersection = True
+                    break
+            # если пересечений нет - добавляем
+            if not intersection:
+                best_hints.append(x_hints[xi])
+                best_hints_values.append(x_value)
             xi += 1
+        # если верт. подсказка ценнее
         else:
-            best_hints.append(y_hints[yi])
-            best_hints_values.append(y_value)
+            # проверка на пересеченеи с предыдущими подсказками
+            for hint in best_hints:
+                if hints_intersect(y_hints[yi], hint):
+                    intersection = True
+                    break
+            # если пересечений нет - добавляем
+            if not intersection:
+                best_hints.append(y_hints[yi])
+                best_hints_values.append(y_value)
             yi += 1
-
-    # todo: исключить пересечения
 
     return best_hints[:n], best_hints_values[:n]
 
 
 # author - Pavel
-def get_n_row_hints(board: [[str]], letters: Counter, n: int) -> ([[[str]]],
-                                                                  [int]):
+def get_n_row_hints(board: [[str]], letters: Counter, n: int) -> \
+        ([[[str]]], [int]):
     """
     Поиск n лучших непересекающихся горизонтальных подсказок
     :param board: доска в виде двумерного символьного массива
     :param letters: буквы, имеющиеся у игрока
     :param n: кол-во необходимых подсказок
-    :return: массив досок с n лучшими непересекающимися подсказками
+    :return: массив из n досок с лучшими непересекающимися подсказками
     """
 
     # параметры лучших подсказок
@@ -231,87 +247,6 @@ def get_n_row_hints(board: [[str]], letters: Counter, n: int) -> ([[[str]]],
         best_hints_values.append(hints_values[i])
 
     return best_hints, best_hints_values
-
-
-# author - Pavel
-def get_hint(board: [[str]], letters: Counter) -> ([[str]], int):
-    """
-    Основная функция файла
-    Выдает лучшую подсказку на доске из двух вариантов:
-    По горизонтали и по вертикали (транспонированная доска)
-    :param board: доска в виде двумерного символьного массива
-    :param letters: буквы, имеющиеся у игрока
-    :return: доска с лучшим словом, ценность слова
-    """
-
-    # если доска с ошибками - вернуть пустую доску
-    if not is_board_correct(board):
-        return get_empty_board(len(board), len(board[0])), -1
-
-    # если доска пустая
-    if is_board_empty(board):
-        # запускаем для нее отдельную функцию
-        return get_hint_for_empty_board(board, letters)
-    # если доска не пустая
-    else:
-        # ищем подсказки по горизонтали и по вертикали
-        hint_1, value_1 = get_row_hint(board, letters)
-        hint_2, value_2 = get_row_hint(transpose_board(board), letters)
-        # возвращаем ту подсказку, чье слово ценнее
-        if value_1 >= value_2:
-            return hint_1, value_1
-        else:
-            return transpose_board(hint_2), value_2
-
-
-# author - Pavel
-# todo: с регулярками будет быстрее раз в 10
-def get_row_hint(board: [[str]], letters: Counter) -> ([[str]], int):
-    """
-    Дает лучшую подсказку слова на доске по горизонтали
-    :param board: доска в виде двумерного символьного массива
-    :param letters: буквы, имеющиеся у игрока
-    :return: доска с лучшим словом, ценность слова
-    """
-
-    # параметры лучшей подсказки
-    best_word = ''  # слово
-    best_hint_value = 0  # цена
-    best_hint_x_index = 0  # стартовый индекс
-    best_hint_y_index = 0  # стартовый индекс
-
-    marked_board = get_marked_rows(board)
-    for i in range(len(marked_board)):
-        with open(DICTIONARY_FILE_PATH, 'r', encoding='utf-8') as dictionary:
-            for line in dictionary:  # Читаем строки из словаря
-                word = line[:-1]  # без \n
-
-                for word_start_index in \
-                        get_word_positions_in_row(word,
-                                                  marked_board[i]):
-                    word2 = ''
-                    for j in range(len(word)):
-                        if marked_board[i][j + word_start_index] != word[j]:
-                            word2 += word[j]
-
-                    if is_word_compilable(word2, letters):
-                        # считаем его ценность
-                        value = evaluate_word(word, board, i,
-                                              word_start_index)
-                        # если ценность выше, чем у максимального,
-                        # меняем лучшее слово и все его параметры на найденое
-                        if value >= best_hint_value:
-                            best_word = word
-                            best_hint_value = value
-                            best_hint_x_index = word_start_index
-                            best_hint_y_index = i
-
-    # записываем лучшее слово в матрицу доски
-    best_hint = get_empty_board(len(board), len(board[0]))
-    for i in range(len(best_word)):
-        best_hint[best_hint_y_index][best_hint_x_index + i] = best_word[i]
-
-    return best_hint, best_hint_value
 
 
 # author - Pavel
