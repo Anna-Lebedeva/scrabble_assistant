@@ -113,7 +113,7 @@ if __name__ == '__main__':
     # print('Hint value = ' + str(test_value))
 
     t = time.time()
-    test_hints, test_values = sa.get_n_hints(test_board, Counter('абеквгд'), 5)
+    test_hints, test_values = sa.get_n_hints(test_board, Counter('ааелкнм'), 10)
     print('Time = ' + str(time.time() - t) + 's')
 
     for hint_i in range(len(test_hints)):
@@ -129,8 +129,8 @@ if __name__ == '__main__':
                         hint[test_i].append(' ')
                     else:
                         hint[test_i].append(test_hints[hint_i][test_i][test_j].upper())
-            print(hint[test_i])
-        print('\n')
+            # print(hint[test_i])
+        # print('\n')
     print('Ценность подсказок: ' + str(test_values))
     # print(test_hints[0])
     # print('Hint value = ' + str(test_value))

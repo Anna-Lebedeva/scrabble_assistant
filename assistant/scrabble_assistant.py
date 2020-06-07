@@ -32,11 +32,17 @@ BOARD_BONUSES = read_json_to_list(BOARD_BONUSES_FILE_PATH)
 def hints_intersect(hint1: [[str]], hint2: [[str]]) -> bool:
     """
     Проверка на пересечение двух подсказок
-    Одна из них расположена вертикально, другая горизонтально
+    :param hint1: первая подсказка
+    :param hint2: вторая подсказка
     """
 
-    # todo
-    pass
+    # если на обоих подсказках в одной и той же клетке есть буквы
+    # то подсказки пересекаются
+    for i in range(len(hint1)):
+        for j in range(len(hint1[0])):
+            if hint1[i][j] and hint2[i][j]:
+                return True
+    return False
 
 
 # author - Pavel
@@ -77,21 +83,37 @@ def get_n_hints(board: [[str]], letters: Counter, n: int) -> ([[[str]]], [int]):
     x_hints, x_values = get_n_row_hints(board, letters, n)
     y_hints, y_values = get_n_row_hints(transpose_board(board), letters, n)
 
-    best_hints = x_hints  # массив n лучших подсказок
-    best_hints_values = x_values  # массив стоимостей n лучших подсказок
+    print(x_values)
+    print(y_values)
+
+    best_hints = []  # массив n лучших подсказок
+    best_hints_values = []  # массив стоимостей n лучших подсказок
 
     # объединение горизонтальных и вертикальных подсказок
     # сортировка по стоимости
-    yi = 0  # индекс вертикальных подсказок
-    for xi in range(n):  # индекс горизонтальных подсказок
-        if y_values[yi] > x_values[xi]:
-            best_hints.insert(xi + yi, transpose_board(y_hints[yi]))
-            best_hints_values.insert(xi + yi, best_hints_values[yi])
+    xi = 0  # индекс вертикальных подсказок
+    yi = 0  # индекс горизонтальных подсказок
+    while xi != n or yi != n:
+        # print(xi)
+        # print(yi)
+        if xi < n:
+            x_value = x_values[xi]
+        else:
+            x_value = -1
+
+        if yi < n:
+            y_value = y_values[yi]
+        else:
+            y_value = -1
+
+        if x_value >= y_value:
+            best_hints.append(x_hints[xi])
+            best_hints_values.append(x_value)
+            xi += 1
+        else:
+            best_hints.append(y_hints[yi])
+            best_hints_values.append(y_value)
             yi += 1
-    # если выгрузили не все вертикальные подсказки - выгружаем оставшиеся
-    for i in range(yi, n):
-        best_hints.append(transpose_board(y_hints[yi]))
-        best_hints_values.append(y_values[yi])
 
     # todo: исключить пересечения
 
