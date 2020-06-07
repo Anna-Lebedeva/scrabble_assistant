@@ -8,11 +8,14 @@ from assistant.read_files import read_json_to_list, read_json_to_dict
 # Пути к json файлам:
 #
 # ценность букв
-LETTERS_VALUES_FILE_PATH = Path('resources') / Path('jsons') / Path('letters_values.json')
+LETTERS_VALUES_FILE_PATH = Path('resources') / Path('jsons') /\
+                           Path('letters_values.json')
 # кол-во букв
-LETTERS_AMOUNT_FILE_PATH = Path('resources') / Path('jsons') / Path('letters_amount.json')
+LETTERS_AMOUNT_FILE_PATH = Path('resources') / Path('jsons') /\
+                           Path('letters_amount.json')
 # бонусы на доске
-BOARD_BONUSES_FILE_PATH = Path('resources') / Path('jsons') / Path('board_bonuses.json')
+BOARD_BONUSES_FILE_PATH = Path('resources') / Path('jsons') /\
+                          Path('board_bonuses.json')
 
 # путь к основному словарю
 DICTIONARY_FILE_PATH = Path('resources') / Path('dictionary.txt')
@@ -23,6 +26,189 @@ LETTERS_VALUES = read_json_to_dict(LETTERS_VALUES_FILE_PATH)
 LETTERS_AMOUNT = read_json_to_dict(LETTERS_AMOUNT_FILE_PATH)
 # список бонусов доски в виде матрицы
 BOARD_BONUSES = read_json_to_list(BOARD_BONUSES_FILE_PATH)
+
+
+# author - Pavel
+def hints_intersect(hint1: [[str]], hint2: [[str]]) -> bool:
+    """
+    Проверка на пересечение двух подсказок
+    Одна из них расположена вертикально, другая горизонтально
+    """
+
+    # todo
+    pass
+
+
+# author - Pavel
+def row_hints_intersect(word1: [str], xs1: int, ys1: int,
+                        word2: [str], xs2: int, ys2: int) -> bool:
+    """
+    Проверка на пересечение двух слов, расположенных горизонтально
+    """
+
+    # если оба слова в одной строке
+    if ys1 == ys2:
+        xe1 = xs1 + len(word1) - 1  # индекс конца слова 1
+        xe2 = xs2 + len(word2) - 1  # индекс конца слова 2
+        # если начало или конец слова 1 находится внутри слова 2
+        # или то же для слова 2
+        # то они пересекаются
+        if xs2 <= xs1 <= xe2 or xs2 <= xe1 <= xe2\
+                or xs1 <= xs2 <= xe1 or xs1 <= xe2 <= xe1:
+            return True
+        else:
+            return False
+    # если слова в разных строках - они не пересекаются
+    else:
+        return False
+
+
+# author - Pavel
+def get_n_hints(board: [[str]], letters: Counter, n: int) -> ([[[str]]], [int]):
+    """
+    Поиск n лучших непересекающихся подсказок
+    Среди вертикальных и горизонтальных выбирается n лучших
+    :param board: доска в виде двумерного символьного массива
+    :param letters: буквы, имеющиеся у игрока
+    :param n: кол-во необходимых подсказок
+    :return: массив досок с n лучшими непересекающимися подсказками
+    """
+
+    x_hints, x_values = get_n_row_hints(board, letters, n)
+    y_hints, y_values = get_n_row_hints(transpose_board(board), letters, n)
+
+    best_hints = x_hints  # массив n лучших подсказок
+    best_hints_values = x_values  # массив стоимостей n лучших подсказок
+
+    # объединение горизонтальных и вертикальных подсказок
+    # сортировка по стоимости
+    yi = 0  # индекс вертикальных подсказок
+    for xi in range(n):  # индекс горизонтальных подсказок
+        if y_values[yi] > x_values[xi]:
+            best_hints.insert(xi + yi, transpose_board(y_hints[yi]))
+            best_hints_values.insert(xi + yi, best_hints_values[yi])
+            yi += 1
+    # если выгрузили не все вертикальные подсказки - выгружаем оставшиеся
+    for i in range(yi, n):
+        best_hints.append(transpose_board(y_hints[yi]))
+        best_hints_values.append(y_values[yi])
+
+    # todo: исключить пересечения
+
+    return best_hints[:n], best_hints_values[:n]
+
+
+# author - Pavel
+def get_n_row_hints(board: [[str]], letters: Counter, n: int) -> ([[[str]]],
+                                                                  [int]):
+    """
+    Поиск n лучших непересекающихся горизонтальных подсказок
+    :param board: доска в виде двумерного символьного массива
+    :param letters: буквы, имеющиеся у игрока
+    :param n: кол-во необходимых подсказок
+    :return: массив досок с n лучшими непересекающимися подсказками
+    """
+
+    # параметры лучших подсказок
+    hints_words = []  # слова
+    hints_values = []  # ценность
+    hints_xs = []  # стартовые X индексы
+    hints_ys = []  # стартовые Y индексы
+
+    # инициализация параметров подсказок
+    for i in range(n):
+        hints_words.append('')
+        hints_values.append(0)
+        hints_xs.append(0)
+        hints_ys.append(0)
+
+    # блокировка заблокированных клеток знаком #
+    marked_board = get_marked_rows(board)
+
+    for i in range(len(marked_board)):
+        with open(DICTIONARY_FILE_PATH, 'r', encoding='utf-8') as dictionary:
+            for dict_line in dictionary:  # Читаем строки из словаря
+                word = dict_line[:-1]  # без \n
+
+                # идем по возможным позициям слова в строке
+                for word_start_index in \
+                        get_word_positions_in_row(word, marked_board[i]):
+                    # то слово, которое пытаемся собрать
+                    # собирается из слова в словаре за вычетом тех букв,
+                    # что уже есть на доске
+                    compiling_word = ''
+                    for j in range(len(word)):
+                        if marked_board[i][j + word_start_index] != word[j]:
+                            compiling_word += word[j]
+
+                    if is_word_compilable(compiling_word, letters):
+                        # считаем его ценность
+                        value = evaluate_word(word, board, i,
+                                              word_start_index)
+                        # если ценность выше, чем у наименее ценного в массиве,
+                        # меняем наименее ценное на найденное
+                        # и затем сортируем
+                        if value >= hints_values[n - 1]:
+                            y_index = i
+                            x_index = word_start_index
+                            window = -1  # индекс вставки новой подсказки
+                            # если найденная подсказка менее ценная, чем n-я
+                            # и пересекает ее - игнорируем найденную.
+                            # если она более ценная, чем n-я,
+                            # вставляем найденную
+                            # и удаляем все менее ценные, пересекающие ее
+                            for ni in range(n):
+                                # если слово не ценнее, чем n-е
+                                if value <= hints_values[ni]:
+                                    # если есть пересечение
+                                    if row_hints_intersect(word, x_index, y_index, hints_words[ni], hints_xs[ni], hints_ys[ni]):
+                                        # игнорируем найденую подсказку
+                                        break
+                                # если слово более ценное
+                                else:
+                                    if window == -1:
+                                        window = ni
+                                    # если hint[ni] пересекается с найденной
+                                    if row_hints_intersect(word, x_index, y_index, hints_words[ni], hints_xs[ni], hints_ys[ni]):
+                                        # то удаляем это слово
+                                        # удаляем смещением массива на 1
+
+                                        for j in range(ni, n - 1):
+                                            hints_words[j] = hints_words[j + 1]
+                                            hints_values[j] = hints_values[j + 1]
+                                            hints_xs[j] = hints_xs[j + 1]
+                                            hints_ys[j] = hints_ys[j + 1]
+
+                                        # обнуление последнего элемента
+                                        hints_words[n - 1] = ''
+                                        hints_values[n - 1] = 0
+                                        hints_xs[n - 1] = 0
+                                        hints_ys[n - 1] = 0
+
+                            # если подсказка подошла, вставляем ее
+                            if window != -1:
+                                hints_words.insert(window, word)
+                                hints_values.insert(window, value)
+                                hints_xs.insert(window, x_index)
+                                hints_ys.insert(window, y_index)
+                            # если появился элемент n+1 - вырезаем его
+                            if len(hints_words) == n + 1:
+                                hints_words.pop()
+                                hints_values.pop()
+                                hints_xs.pop()
+                                hints_ys.pop()
+
+    # запись n лучших подсказок
+    best_hints = []
+    best_hints_values = []
+    for i in range(n):
+        hint = get_empty_board(len(board), len(board[0]))
+        for j in range(len(hints_words[i])):
+            hint[hints_ys[i]][hints_xs[i] + j] = hints_words[i][j]
+        best_hints.append(hint)
+        best_hints_values.append(hints_values[i])
+
+    return best_hints, best_hints_values
 
 
 # author - Pavel
@@ -47,8 +233,8 @@ def get_hint(board: [[str]], letters: Counter) -> ([[str]], int):
     # если доска не пустая
     else:
         # ищем подсказки по горизонтали и по вертикали
-        hint_1, value_1 = get_horizontal_hint(board, letters)
-        hint_2, value_2 = get_horizontal_hint(transpose_board(board), letters)
+        hint_1, value_1 = get_row_hint(board, letters)
+        hint_2, value_2 = get_row_hint(transpose_board(board), letters)
         # возвращаем ту подсказку, чье слово ценнее
         if value_1 >= value_2:
             return hint_1, value_1
@@ -58,7 +244,7 @@ def get_hint(board: [[str]], letters: Counter) -> ([[str]], int):
 
 # author - Pavel
 # todo: с регулярками будет быстрее раз в 10
-def get_horizontal_hint(board: [[str]], letters: Counter) -> ([[str]], int):
+def get_row_hint(board: [[str]], letters: Counter) -> ([[str]], int):
     """
     Дает лучшую подсказку слова на доске по горизонтали
     :param board: доска в виде двумерного символьного массива
@@ -79,8 +265,8 @@ def get_horizontal_hint(board: [[str]], letters: Counter) -> ([[str]], int):
                 word = line[:-1]  # без \n
 
                 for word_start_index in \
-                        get_possible_word_positions_in_row(word,
-                                                           marked_board[i]):
+                        get_word_positions_in_row(word,
+                                                  marked_board[i]):
                     word2 = ''
                     for j in range(len(word)):
                         if marked_board[i][j + word_start_index] != word[j]:
@@ -250,7 +436,7 @@ def transpose_board(board: [[str]]) -> [[str]]:
 
 # author - Pavel
 # todo: с регулярками будет быстрее раз в 10
-def get_possible_word_positions_in_row(word: str, row: [str]) -> [int]:
+def get_word_positions_in_row(word: str, row: [str]) -> [int]:
     """
     Находит все возможные позиции слова в строке
     :param word: слово

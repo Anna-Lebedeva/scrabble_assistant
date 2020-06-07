@@ -83,31 +83,61 @@ if __name__ == '__main__':
     #     [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
     # ]
 
-    # убираем пробелы, они нужны были только для удобства ввода
+    # # убираем пробелы, они нужны были только для удобства ввода
     for test_row in test_board:
         for test_j in range(len(test_row)):
             if test_row[test_j] == ' ':
                 test_row[test_j] = ''
+
+    # t = time.time()
     #
+    # # вся магия происходит тут
+    # test_hint, test_value = sa.get_hint(test_board, Counter('абвгд'))
+    #
+    # print('Time = ' + str(time.time() - t) + 's')
+    #
+    # # доска с подсказкой
+    # hint = []
+    # for test_i in range(len(test_hint)):
+    #     hint.append([])
+    #     for test_j in range(len(test_hint[test_i])):
+    #         if test_board[test_i][test_j] != '':
+    #             hint[test_i].append(test_board[test_i][test_j])
+    #         else:
+    #             if test_hint[test_i][test_j] == '':
+    #                 hint[test_i].append(' ')
+    #             else:
+    #                 hint[test_i].append(test_hint[test_i][test_j].upper())
+    #     print(hint[test_i])
+    #
+    # print('Hint value = ' + str(test_value))
+
     t = time.time()
-
-    # вся магия происходит тут
-    test_hint, test_value = sa.get_hint(test_board, Counter('абвгд'))
-
+    test_hints, test_values = sa.get_n_hints(test_board, Counter('абеквгд'), 5)
     print('Time = ' + str(time.time() - t) + 's')
 
-    # доска с подсказкой
-    hint = []
-    for test_i in range(len(test_hint)):
-        hint.append([])
-        for test_j in range(len(test_hint[test_i])):
-            if test_board[test_i][test_j] != '':
-                hint[test_i].append(test_board[test_i][test_j])
-            else:
-                if test_hint[test_i][test_j] == '':
-                    hint[test_i].append(' ')
+    for hint_i in range(len(test_hints)):
+        # доска с подсказкой
+        hint = []
+        for test_i in range(len(test_hints[hint_i])):
+            hint.append([])
+            for test_j in range(len(test_hints[hint_i][test_i])):
+                if test_board[test_i][test_j] != '':
+                    hint[test_i].append(test_board[test_i][test_j])
                 else:
-                    hint[test_i].append(test_hint[test_i][test_j].upper())
-        print(hint[test_i])
+                    if test_hints[hint_i][test_i][test_j] == '':
+                        hint[test_i].append(' ')
+                    else:
+                        hint[test_i].append(test_hints[hint_i][test_i][test_j].upper())
+            print(hint[test_i])
+        print('\n')
+    print('Ценность подсказок: ' + str(test_values))
+    # print(test_hints[0])
+    # print('Hint value = ' + str(test_value))
 
-    print('Hint value = ' + str(test_value))
+    # f2 = open('resources/dictionary7.txt', 'w', encoding='utf-8')
+    # with open('resources/dictionary.txt', 'r', encoding='utf-8') as dictionary:
+    #     for line in dictionary:
+    #         if len(line) <= 7 + 1:
+    #             f2.write(line)
+    # f2.close()
