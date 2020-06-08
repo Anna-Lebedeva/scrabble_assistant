@@ -85,7 +85,7 @@ def get_smallest_sub_dict(letters_in_pattern: [str]) -> str:
     """
 
     min_sub_dict_name = ''  # Название наименьшего словаря
-    min_sub_dict_size = Path(Path.cwd() / 'dictionary.txt').stat().st_size
+    min_sub_dict_size = Path(Path.cwd() / 'dictionary15.txt').stat().st_size
 
     # Считываем название полного словаря
     for i in letters_in_pattern:  # Идем по буквам

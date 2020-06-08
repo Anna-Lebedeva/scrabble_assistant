@@ -515,7 +515,6 @@ class ScrabbleApplication(QWidget):
                         pix = pix.scaledToHeight(hint_size)
                         # установка изображения
                         hint_label.setPixmap(pix)
-            # todo: прорисовка ценности слова
             # определяем слово как гориз. или верт.
             # по приоритетам находим лучшую точку
             # рисуем

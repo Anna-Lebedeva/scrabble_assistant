@@ -129,15 +129,13 @@ if __name__ == '__main__':
                         hint[test_i].append(' ')
                     else:
                         hint[test_i].append(test_hints[hint_i][test_i][test_j].upper())
-            # print(hint[test_i])
-        # print('\n')
     print('Ценность подсказок: ' + str(test_values))
-    # print(test_hints[0])
-    # print('Hint value = ' + str(test_value))
 
-    # f2 = open('resources/dictionary7.txt', 'w', encoding='utf-8')
-    # with open('resources/dictionary.txt', 'r', encoding='utf-8') as dictionary:
+    # f2 = open('resources/dictionaries/new_dictionary14.txt', 'w',
+    #           encoding='utf-8')
+    # with open('resources/dictionaries/new_dictionary15.txt', 'r',
+    #           encoding='utf-8') as dictionary:
     #     for line in dictionary:
-    #         if len(line) <= 7 + 1:
+    #         if len(line) <= 14 + 1:
     #             f2.write(line)
     # f2.close()

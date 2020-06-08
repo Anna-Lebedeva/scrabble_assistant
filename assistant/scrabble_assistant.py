@@ -19,7 +19,7 @@ BOARD_BONUSES_FILE_PATH = Path('resources') / Path('jsons') / \
 
 # путь к основному словарю
 DICTIONARY_FILE_PATH = Path('resources') / Path('dictionaries') / \
-                       Path('dictionary8.txt')
+                       Path('new_dictionary08.txt')
 
 # словарь с ценностью букв
 LETTERS_VALUES = read_json_to_dict(LETTERS_VALUES_FILE_PATH)
@@ -30,18 +30,20 @@ BOARD_BONUSES = read_json_to_list(BOARD_BONUSES_FILE_PATH)
 
 
 # author - Pavel
-def hints_intersect(hint1: [[str]], hint2: [[str]]) -> bool:
+def hints_intersect(board: [[str]], hint1: [[str]], hint2: [[str]]) -> bool:
     """
     Проверка на пересечение двух подсказок
+    :param board: доска в виде двумерного символьного массива
     :param hint1: первая подсказка
     :param hint2: вторая подсказка
     """
 
     # если на обоих подсказках в одной и той же клетке есть буквы
+    # и на доске эта буква еще не стоит
     # то подсказки пересекаются
-    for i in range(len(hint1)):
-        for j in range(len(hint1[0])):
-            if hint1[i][j] and hint2[i][j]:
+    for y in range(len(hint1)):
+        for x in range(len(hint1[0])):
+            if hint1[y][x] and hint2[y][x] and not board[y][x]:
                 return True
     return False
 
@@ -111,7 +113,7 @@ def get_n_hints(board: [[str]], letters: Counter, n: int) -> ([[[str]]], [int]):
         if x_value >= y_value:
             # проверка на пересечение с предыдущими подсказками
             for hint in best_hints:
-                if hints_intersect(x_hints[xi], hint):
+                if hints_intersect(board, x_hints[xi], hint):
                     intersection = True
                     break
             # если пересечений нет - добавляем
@@ -123,7 +125,7 @@ def get_n_hints(board: [[str]], letters: Counter, n: int) -> ([[[str]]], [int]):
         else:
             # проверка на пересечение с предыдущими подсказками
             for hint in best_hints:
-                if hints_intersect(y_hints[yi], hint):
+                if hints_intersect(board, y_hints[yi], hint):
                     intersection = True
                     break
             # если пересечений нет - добавляем
