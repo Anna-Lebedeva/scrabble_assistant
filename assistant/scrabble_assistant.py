@@ -83,6 +83,8 @@ def get_n_hints(board: [[str]], letters: Counter, n: int) -> ([[[str]]], [int]):
 
     x_hints, x_values = get_n_row_hints(board, letters, n)
     y_hints, y_values = get_n_row_hints(transpose_board(board), letters, n)
+    for i in range(len(y_hints)):
+        y_hints[i] = transpose_board(y_hints[i])
 
     best_hints = []  # массив n лучших подсказок
     best_hints_values = []  # массив стоимостей n лучших подсказок
@@ -107,7 +109,7 @@ def get_n_hints(board: [[str]], letters: Counter, n: int) -> ([[[str]]], [int]):
         intersection = False  # мешает ли текущая подсказка предыдущим
         # если гориз. подсказка ценнее
         if x_value >= y_value:
-            # проверка на пересеченеи с предыдущими подсказками
+            # проверка на пересечение с предыдущими подсказками
             for hint in best_hints:
                 if hints_intersect(x_hints[xi], hint):
                     intersection = True
@@ -119,18 +121,27 @@ def get_n_hints(board: [[str]], letters: Counter, n: int) -> ([[[str]]], [int]):
             xi += 1
         # если верт. подсказка ценнее
         else:
-            # проверка на пересеченеи с предыдущими подсказками
+            # проверка на пересечение с предыдущими подсказками
             for hint in best_hints:
                 if hints_intersect(y_hints[yi], hint):
                     intersection = True
                     break
             # если пересечений нет - добавляем
             if not intersection:
-                best_hints.append(transpose_board(y_hints[yi]))
+                best_hints.append(y_hints[yi])
                 best_hints_values.append(y_value)
             yi += 1
 
-    return best_hints[:n], best_hints_values[:n]
+    # на выход только подсказки, ценность которых выше 0
+    result_hints = []
+    result_values = []
+    for i in range(n):
+        if best_hints_values[i] > 0:
+            result_hints.append(best_hints[i])
+            result_values.append(best_hints_values[i])
+        else:
+            break
+    return result_hints, result_values
 
 
 # author - Pavel

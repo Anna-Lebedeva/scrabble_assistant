@@ -10,6 +10,7 @@ from assistant.read_files import read_image, write_image
 from assistant.scrabble_assistant import LETTERS_AMOUNT
 from assistant.scrabble_assistant import get_used_letters, get_n_hints, \
     is_board_letters_amount_right
+from assistant.hint import get_board_with_hints, get_hint_value_coord
 
 
 # author - Pavel
@@ -23,7 +24,7 @@ class ScrabbleApplication(QWidget):
     # при status = False не работают никакие кнопки, кроме "загрузить фото"
     # при status = True работает все
     status = False
-    _hints_amount = 5  # сколько подсказок выдавать
+    _hints_amount = 25  # сколько подсказок выдавать
 
     # доска в виде двумерного символьного массива
     _board = None
@@ -60,7 +61,7 @@ class ScrabbleApplication(QWidget):
     _msg_label = None
     _msg_start = 'Загрузите фото'
     _msg_image_uploaded = 'Выберите ваши фишки, кликая по ним'
-    _msg_hint_value = 'Ценность подсказки = '
+    _msg_got_hint = 'Подсказки отображены на доске'
     _msg_too_many_letters_error = 'Кол-во некоторых букв на доске ' \
                                   'превышает допустимое игрой значение'
     _msg_max_chips_error = 'Одновременно можно держать только 7 фишек'
@@ -72,8 +73,8 @@ class ScrabbleApplication(QWidget):
     _img_label = None  # label для изображения доски
     _board_img = None  # обрезанное изображение доски
 
-    _hint_labels = []  # фишки подсказок, отображаемые на экране
-    _is_hint_showing = False  # получена ли подсказка
+    _hints_labels = []  # фишки подсказок, отображаемые на экране
+    _got_hints = False  # получена ли подсказка
 
     def __init__(self):
         """
@@ -169,7 +170,10 @@ class ScrabbleApplication(QWidget):
         # hint labels
         for i in range(225):
             label = QLabel(self)
-            self._hint_labels.append(label)
+            label.setAlignment(Qt.AlignCenter)
+            label.setText('')
+            label.setStyleSheet('font-size: 22px;')
+            self._hints_labels.append(label)
 
         # chosen chips label
         label = QLabel(self)
@@ -274,8 +278,9 @@ class ScrabbleApplication(QWidget):
         Удаление подсказки с экрана
         """
 
-        for label in self._hint_labels:
+        for label in self._hints_labels:
             label.setPixmap(QPixmap())
+            label.setText('')
 
     def update_buttons(self):
         """
@@ -323,7 +328,7 @@ class ScrabbleApplication(QWidget):
 
         index = 0  # суммарная длина всех прошлых labels
         label_size = self._width // 15
-        for label in self._hint_labels:
+        for label in self._hints_labels:
             label.resize(label_size - 1, label_size - 1)
             x_pos = index % self._width
             y_pos = index // self._width * label_size
@@ -445,7 +450,7 @@ class ScrabbleApplication(QWidget):
             return
 
         # очистка подсказки, если запуск идет не в первый раз
-        if self._is_hint_showing:
+        if self._got_hints:
             self.clear_hint()
 
         if sum(self._chosen_letters.values()) == 0 and self._board_img is None:
@@ -460,35 +465,39 @@ class ScrabbleApplication(QWidget):
                                         Counter(self._chosen_letters),
                                         self._hints_amount)
             # отрисовка подсказки на экране
-            self.draw_hint(hints)
+            self.draw_hint(hints, values)
             # выводим стоимость подсказки
-            self._msg_label.setText(self._msg_hint_value + str(values))
-            self._is_hint_showing = True
+            self._msg_label.setText(self._msg_got_hint)
+            self._got_hints = True
 
-    def draw_hint(self, hints: [[[str]]]):
+    def draw_hint(self, hints: [[[str]]], values: [int]):
         """
         Отрисовка подсказок на экране
         """
 
-        for hint in hints:
+        # объединение доски с подсказками и их ценностями
+        combined_board = get_board_with_hints(self._board, hints)
+        color_index = 0  # индекс цвета для вывода подсказок
+
+        for i in range(len(hints)):
             # идем по доске подсказок
-            for y in range(len(hint)):
-                for x in range(len(hint[y])):
+            for y in range(len(hints[i])):
+                for x in range(len(hints[i][y])):
                     # отрисовываем букву если:
                     # на подсказке эта буква есть
                     # а на доске этой буквы еще нет
-                    if hint[y][x] != '' and self._board[y][x] == '':
+                    if hints[i][y][x] != '' and self._board[y][x] == '':
                         # поиск индекса буквы в алфавите
                         # отдельная обработка звездочки
-                        if hint[y][x] == '*':
+                        if hints[i][y][x] == '*':
                             chip_index = 32
                         else:
-                            chip_index = ord(hint[y][x]) - 1072
+                            chip_index = ord(hints[i][y][x]) - 1072
 
                         # размер одной фишки на изображении
                         hint_size = self._width // 15  # 30px
                         # находим нужный label в массиве
-                        hint_label = self._hint_labels[y * 15 + x]
+                        hint_label = self._hints_labels[y * 15 + x]
                         # выбор файла изображения
                         img_folder = self._green_chips_folder_path
                         img_filename = 'letter' + str(chip_index + 1) + '.jpg'
@@ -498,6 +507,18 @@ class ScrabbleApplication(QWidget):
                         pix = pix.scaledToHeight(hint_size)
                         # установка изображения
                         hint_label.setPixmap(pix)
+            # todo: прорисовка ценности слова
+            # определяем слово как гориз. или верт.
+            # по приоритетам находим лучшую точку
+            # рисуем
+
+            y, x = get_hint_value_coord(hints[i], combined_board)
+            combined_board[y][x] = '$'
+            label = self._hints_labels[y * 15 + x]
+            label.setText(str(values[i]))
+            label.setStyleSheet('font-size: 22px; color: red;')
+
+            color_index += 1
 
 
 if __name__ == '__main__':
