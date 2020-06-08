@@ -3,7 +3,8 @@ from collections import Counter
 
 from PyQt5.QtCore import QSize, Qt
 from PyQt5.QtGui import QIcon, QPixmap
-from PyQt5.QtWidgets import QApplication, QWidget, QPushButton, QLabel
+from PyQt5.QtWidgets import QApplication, QWidget, QPushButton, QLabel, \
+    QDesktopWidget
 
 from CV.scan import cut_by_external_contour, cut_by_internal_contour
 from assistant.read_files import read_image, write_image
@@ -81,7 +82,6 @@ class ScrabbleApplication(QWidget):
         Инициализация приложения
         """
         super().__init__()
-
         self.init_buttons()
         self.init_labels()
         self.init_ui()
@@ -91,7 +91,12 @@ class ScrabbleApplication(QWidget):
         """
         Инициализация интерфейса
         """
-        self.setGeometry(0, 0, self._width, self._height)
+        size = QDesktopWidget().screenGeometry(-1)
+        width = size.width()
+        height = size.height()
+        self.setGeometry((width - self._width) // 2,
+                         (height - self._height) // 2,
+                         self._width, self._height)
         self.setMaximumSize(self._width, self._height)
         self.setMinimumSize(self._width, self._height)
         self.setWindowTitle('Scrabble')
