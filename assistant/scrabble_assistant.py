@@ -8,17 +8,17 @@ from assistant.read_files import read_json_to_list, read_json_to_dict
 # Пути к json файлам:
 #
 # ценность букв
-LETTERS_VALUES_FILE_PATH = Path('resources') / Path('jsons') /\
+LETTERS_VALUES_FILE_PATH = Path('resources') / Path('jsons') / \
                            Path('letters_values.json')
 # кол-во букв
-LETTERS_AMOUNT_FILE_PATH = Path('resources') / Path('jsons') /\
+LETTERS_AMOUNT_FILE_PATH = Path('resources') / Path('jsons') / \
                            Path('letters_amount.json')
 # бонусы на доске
-BOARD_BONUSES_FILE_PATH = Path('resources') / Path('jsons') /\
+BOARD_BONUSES_FILE_PATH = Path('resources') / Path('jsons') / \
                           Path('board_bonuses.json')
 
 # путь к основному словарю
-DICTIONARY_FILE_PATH = Path('resources') / Path('dictionaries') /\
+DICTIONARY_FILE_PATH = Path('resources') / Path('dictionaries') / \
                        Path('dictionary8.txt')
 
 # словарь с ценностью букв
@@ -60,7 +60,7 @@ def row_hints_intersect(word1: [str], xs1: int, ys1: int,
         # если начало или конец слова 1 находится внутри слова 2
         # или то же для слова 2
         # то они пересекаются
-        if xs2 <= xs1 <= xe2 or xs2 <= xe1 <= xe2\
+        if xs2 <= xs1 <= xe2 or xs2 <= xe1 <= xe2 \
                 or xs1 <= xs2 <= xe1 or xs1 <= xe2 <= xe1:
             return True
         else:
@@ -399,17 +399,6 @@ def get_marked_rows(board: [[str]]) -> [[str]]:
     return marked_board
 
 
-# authors - Matvey and Pavel
-def transpose_board(board: [[str]]) -> [[str]]:
-    """
-    Транспонирует двумерный массив
-    :param board: доска в виде двумерного символьного массива
-    :return: транспонированный двумерный массив
-    """
-
-    return list(np.array(board).transpose())
-
-
 # author - Pavel
 def get_word_positions_in_row(word: str, row: [str]) -> [int]:
     """
@@ -489,6 +478,17 @@ def get_used_letters(board: [[str]]) -> Counter:
     return letters_counter
 
 
+# authors - Matvey and Pavel
+def transpose_board(board: [[str]]) -> [[str]]:
+    """
+    Транспонирует двумерный массив
+    :param board: доска в виде двумерного символьного массива
+    :return: транспонированная доска
+    """
+
+    return list(np.array(board).transpose())
+
+
 # author - Pavel
 def evaluate_word(word: str, board: [[str]],
                   line_index: int, start_index: int) -> int:
@@ -556,6 +556,62 @@ def evaluate_word(word: str, board: [[str]],
         value += 15
 
     return value
+
+
+# author - Pavel
+def delete_alone_letters(board: [[str]]) -> [[str]]:
+    """
+    Удаление доски от 'шумов' - символов, вокруг которых нет других букв
+    Используется после распознавания доски с картинки
+    :param board: доска в виде двумерного символьного массива
+    :return: та же доска без шумов
+    """
+
+    result_board = []  # копия доски
+    for row in board:
+        result_board.append(row.copy())
+
+    # проверка каждого символа в доске
+    for y in range(len(board)):
+        for x in range(len(board[y])):
+            # проверка на конец доски со всех 4 сторон
+            top_end = False
+            right_end = False
+            bot_end = False
+            left_end = False
+            if y == 0:
+                top_end = True
+            if y == len(board) - 1:
+                bot_end = True
+            if x == 0:
+                left_end = True
+            if x == len(board[y]) - 1:
+                right_end = True
+            # поиск соседних букв (сверху, справа, снизу, слева)
+            top_empty = True
+            right_empty = True
+            bot_empty = True
+            left_empty = True
+            # если доска не закончилась сверху
+            if not top_end:
+                # если в клетке сверху есть символ
+                if result_board[y - 1][x]:
+                    top_empty = False
+            if not right_end:
+                if result_board[y][x + 1]:
+                    right_empty = False
+            if not bot_end:
+                if result_board[y + 1][x]:
+                    bot_empty = False
+            if not left_end:
+                if result_board[y][x - 1]:
+                    left_empty = False
+
+            # если пусто по всем четырем направлениям - удаляем символ
+            if top_empty and right_empty and bot_empty and left_empty:
+                result_board[y][x] = ''
+
+    return result_board
 
 
 # author - Pavel

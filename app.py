@@ -10,7 +10,7 @@ from CV.scan import cut_by_external_contour, cut_by_internal_contour
 from assistant.read_files import read_image, write_image
 from assistant.scrabble_assistant import LETTERS_AMOUNT
 from assistant.scrabble_assistant import get_used_letters, get_n_hints, \
-    is_board_letters_amount_right
+    is_board_letters_amount_right, delete_alone_letters
 from assistant.hint import get_board_with_hints, get_hint_value_coord
 
 
@@ -198,14 +198,6 @@ class ScrabbleApplication(QWidget):
         Проверка загруженного изображения и его показ на экране
         """
 
-        # menu = self.menuBar()
-        # file_menu = menu.addMenu('File')
-        #
-        # dlg = QFileDialog(self)
-        # open_action = QAction('Open image', self)
-        # open_action.triggered.connect(self.open_image)
-        # file_menu.addAction(open_action)
-
         # todo: загрузка юзером
         # обработка изображения
         img = read_image('resources/app_images/test.jpg')
@@ -214,10 +206,10 @@ class ScrabbleApplication(QWidget):
         # обрезка по внутреннему контуру
         img = cut_by_internal_contour(img)
 
-        # todo: здесь будет распознавание нейросетью
+        # todo: здесь будет распознавание
 
-        self._board = [
-            ['', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
+        board = [
+            ['', 'я', '', '', '', '', '', '', '', '', '', '', '', '', ''],
             ['', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
             ['', '', '', '', '', '', '', 'м', '', 'т', '', '', '', '', ''],
             ['', '', '', '', '', '', '', 'е', '', 'о', '', '', '', '', ''],
@@ -230,9 +222,16 @@ class ScrabbleApplication(QWidget):
             ['', '', '', '', '', 'л', '', '', '', 'к', 'и', 'т', '', '', ''],
             ['', '', '', '', 'с', 'о', 'л', 'ь', '', 'о', '', '', '', '', ''],
             ['', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
-            ['', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
-            ['', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
+            ['', 'р', '', '', '', '', '', '', '', '', '', '', '', '', ''],
+            ['', '', '', '', '', '', '', '', '', '', '', '', '', 'у', ''],
         ]
+
+        # удаляем помехи из таблицы
+        # если букву не окружают другие буквы хотя бы с одной стороны
+        # удаляем ее
+        board = delete_alone_letters(board)
+        self._board = board
+
         # записываем изображение
         write_image(img, 'resources/app_images/user_image.jpg')
 
