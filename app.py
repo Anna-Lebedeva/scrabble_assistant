@@ -63,6 +63,7 @@ class ScrabbleApplication(QWidget):
     _msg_start = 'Загрузите фото'
     _msg_image_uploaded = 'Выберите ваши фишки, кликая по ним'
     _msg_got_hint = 'Подсказки отображены на доске'
+    _msg_no_hints = 'Ни одного хода не найдено'
     _msg_too_many_letters_error = 'Кол-во некоторых букв на доске ' \
                                   'превышает допустимое игрой значение'
     _msg_max_chips_error = 'Одновременно можно держать только 7 фишек'
@@ -469,11 +470,14 @@ class ScrabbleApplication(QWidget):
             hints, values = get_n_hints(self._board,
                                         Counter(self._chosen_letters),
                                         self._hints_amount)
-            # отрисовка подсказки на экране
-            self.draw_hint(hints, values)
-            # выводим стоимость подсказки
-            self._msg_label.setText(self._msg_got_hint)
-            self._got_hints = True
+            if len(hints) != 0:
+                # отрисовка подсказки на экране
+                self.draw_hint(hints, values)
+                # выводим стоимость подсказки
+                self._msg_label.setText(self._msg_got_hint)
+                self._got_hints = True
+            else:
+                self._msg_label.setText(self._msg_no_hints)
 
     def draw_hint(self, hints: [[[str]]], values: [int]):
         """
