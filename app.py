@@ -7,6 +7,7 @@ from PyQt5.QtWidgets import QApplication, QWidget, QPushButton, QLabel, \
     QDesktopWidget, QFileDialog
 
 from CV.scan import cut_by_external_contour, cut_by_internal_contour
+from CV.Exeptions import CutException
 from assistant.read_files import read_image, write_image
 from assistant.scrabble_assistant import LETTERS_AMOUNT
 from assistant.scrabble_assistant import get_used_letters, get_n_hints, \
@@ -41,7 +42,7 @@ class ScrabbleApplication(QWidget):
     _red_chips_folder_path = 'resources/app_images/chips/red/'
     _green_chips_folder_path = 'resources/app_images/chips/green/'
     _icon_path = 'resources/app_images/icon.png'  # иконка приложения
-    _background_path = 'resources/app_images/background.jpg'  # фон
+    # _background_path = 'resources/app_images/background.jpg'  # фон
 
     # словари с буквами
     _used_letters = dict()  # словарь с кол-вом букв, которые уже есть на доске
@@ -211,23 +212,21 @@ class ScrabbleApplication(QWidget):
 
         # обработка изображения
         try:
-            img = read_image(img_path)
-            # обрезка по внешнему контуру
-            img = cut_by_external_contour(img)
-            # обрезка по внутреннему контуру
-            img = cut_by_internal_contour(img)
-        # todo: подумать над исключениями
-        except AttributeError:
-            self._msg_label.setText(self._msg_scan_error)
+            img = read_image(img_path)  # считывание
+            img = cut_by_external_contour(img)  # обрезка по внешнему контуру
+            img = cut_by_internal_contour(img)  # обрезка по внутреннему контуру
+        except (CutException, AttributeError):
+            self._img_label.setPixmap(QPixmap())  # убираем изображение доски
+            self._msg_label.setText(self._msg_scan_error)  # error msg
             return
 
-        # # распознавание доски с помощью натренированной модели
+        # распознавание доски с помощью натренированной модели
         # board = []  # распознанная доска в виде двумерного символьного массива
         # try:
         #     pass
         #     # todo: здесь будет распознавание
         # # todo: подумать над исключениями
-        # except AttributeError:
+        # except (Exception):
         #     self._msg_label.setText(self._msg_scan_error)
         #     return
 

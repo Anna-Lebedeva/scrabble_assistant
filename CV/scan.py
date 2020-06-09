@@ -6,6 +6,8 @@ from imutils import grab_contours
 from imutils import resize
 
 from CV.transform import four_point_transform
+from CV.Exeptions import CutException
+
 from ML.letter_recognition import classify_images, nums_to_letters
 from preprocessing.model_preprocessing import CLASSIFIER_DUMP_PATH, \
     SCALER_DUMP_PATH
@@ -51,50 +53,54 @@ def cut_by_external_contour(img: np.ndarray) -> np.ndarray:
     :return: Обрезанное изображение
     """
 
-    ratio = img.shape[0] / 750.0
-    orig = img.copy()
-    img = resize(img, height=750)
+    try:
+        ratio = img.shape[0] / 750.0
+        orig = img.copy()
+        img = resize(img, height=750)
 
-    # Черно-белое изображение
-    gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+        # Черно-белое изображение
+        gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 
-    # Размытие по Гауссу, оптимальные параметры: (5, 5)
-    gray = cv2.GaussianBlur(gray, (5, 5), 0)
+        # Размытие по Гауссу, оптимальные параметры: (5, 5)
+        gray = cv2.GaussianBlur(gray, (5, 5), 0)
 
-    # Изображение с границами
-    edged = cv2.Canny(gray, 75, 150)
+        # Изображение с границами
+        edged = cv2.Canny(gray, 75, 150)
 
-    # Получение некого параметра для морфологического преобразования
-    # Оптимальные параметры: (7, 7)
-    # Затем само морфологическое преобразование (закрытие контуров)
-    kernel = cv2.getStructuringElement(cv2.MORPH_CROSS, (7, 7))
-    edged = cv2.morphologyEx(edged, cv2.MORPH_CLOSE, kernel)
+        # Получение некого параметра для морфологического преобразования
+        # Оптимальные параметры: (7, 7)
+        # Затем само морфологическое преобразование (закрытие контуров)
+        kernel = cv2.getStructuringElement(cv2.MORPH_CROSS, (7, 7))
+        edged = cv2.morphologyEx(edged, cv2.MORPH_CLOSE, kernel)
 
-    # Массив всех контуров
-    contours = cv2.findContours(edged.copy(), cv2.RETR_LIST,
-                                cv2.CHAIN_APPROX_SIMPLE)
-    contours = grab_contours(contours)
+        # Массив всех контуров
+        contours = cv2.findContours(edged.copy(), cv2.RETR_LIST,
+                                    cv2.CHAIN_APPROX_SIMPLE)
+        contours = grab_contours(contours)
 
-    # Сортировка контуров по убыванию площади
-    contours = sorted(contours, key=cv2.contourArea, reverse=True)[:5]
+        # Сортировка контуров по убыванию площади
+        contours = sorted(contours, key=cv2.contourArea, reverse=True)[:5]
 
-    screen_cnt = None  # самый большой контур с 4 точками
-    # идем по циклу контуров от самого большого до
-    # самого маленького (они уже отсортированы)
-    for c in contours:
-        peri = cv2.arcLength(c, True)  # периметр контура
+        screen_cnt = None  # самый большой контур с 4 точками
+        # идем по циклу контуров от самого большого до
+        # самого маленького (они уже отсортированы)
+        for c in contours:
+            peri = cv2.arcLength(c, True)  # периметр контура
 
-        # аппроксимация: если точки слишком рядом - сливаем их в одну
-        # это позволяет выдержать небольшую погрешность на изображении
-        # оптимальный параметр от 0.02 * периметр до 0.06 * периметр
-        approx = cv2.approxPolyDP(c, 0.04 * peri, True)
+            # аппроксимация: если точки слишком рядом - сливаем их в одну
+            # это позволяет выдержать небольшую погрешность на изображении
+            # оптимальный параметр от 0.02 * периметр до 0.06 * периметр
+            approx = cv2.approxPolyDP(c, 0.04 * peri, True)
 
-        # просто берем самый большой контур с 4 точками
-        if len(approx) == 4:
-            screen_cnt = approx
-            break
-            # меняем перспективу на вид сверху
-    cropped = four_point_transform(orig, screen_cnt.reshape(4, 2) * ratio)
+            # просто берем самый большой контур с 4 точками
+            if len(approx) == 4:
+                screen_cnt = approx
+                break
+                # меняем перспективу на вид сверху
+        cropped = four_point_transform(orig, screen_cnt.reshape(4, 2) * ratio)
+
+    except AttributeError:
+        raise CutException
 
     return cropped
 
@@ -113,12 +119,25 @@ def cut_by_internal_contour(img: np.ndarray,
     :return: Обрезанное изображение
     """
 
-    # Получение высоты и ширины изображения
-    (h, w) = img.shape[:2]
+    try:
+        (h, w) = img.shape[:2]  # получение размеров игровой доски
+        # обрезка
+        cropped = img[round(top * w / 100):round(h * (1 - bot / 100)),
+                      round(left * h / 100):round(w * (1 - right / 100))]
 
-    # Обрезка
-    cropped = img[round(top * w / 100):round(h * (1 - bot / 100)),
-                  round(left * h / 100):round(w * (1 - right / 100))]
+        (h, w) = cropped.shape[:2]  # получение размеров игрового поля
+
+        allowable_error = 0.03  # погрешность при проверке на квадратность
+        # если cropped не квадрат (допускается погрешность)
+
+        # границы отношения ширины к высоте в пределах заданной погрешности
+        top_line = 1 * (1 + allowable_error)  # верхняя граница
+        bot_line = 1 / (1 + allowable_error)  # нижняя граница
+        if not (bot_line <= w / h <= top_line):
+            raise CutException('Not a square')
+
+    except AttributeError:
+        raise
 
     return cropped
 

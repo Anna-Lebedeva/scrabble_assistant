@@ -31,12 +31,10 @@ def read_json_to_list(json_path: Path) -> [[str]]:
 
 
 # author - Pavel
-# todo: переписать не на cv2
 def read_image(path: str) -> np.ndarray:
     return cv2.imread(path)
 
 
 # author - Pavel
-# todo: переписать не на cv2
 def write_image(img: np.ndarray, path: str):
     cv2.imwrite(path, img)
