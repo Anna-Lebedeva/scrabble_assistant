@@ -2,7 +2,7 @@ import sys
 from collections import Counter
 
 from PyQt5.QtCore import QSize, Qt
-from PyQt5.QtGui import QIcon, QPixmap
+from PyQt5.QtGui import QIcon, QPixmap, QKeyEvent
 from PyQt5.QtWidgets import QApplication, QWidget, QPushButton, QLabel, \
     QDesktopWidget
 
@@ -15,7 +15,7 @@ from assistant.hint import get_board_with_hints, get_hint_value_coord
 
 
 # author - Pavel
-class ScrabbleApplication(QWidget):
+class  ScrabbleApplication(QWidget):
     """
     Application of scrabble-assistant
     Using PyQT5 version 5.14.2
@@ -25,7 +25,7 @@ class ScrabbleApplication(QWidget):
     # при status = False не работают никакие кнопки, кроме "загрузить фото"
     # при status = True работает все
     status = False
-    _hints_amount = 25  # сколько подсказок выдавать
+    _hints_amount = 5  # сколько подсказок выдавать
 
     # доска в виде двумерного символьного массива
     _board = None
@@ -385,20 +385,22 @@ class ScrabbleApplication(QWidget):
         y_pos = index // self._row_size * self._chip_size
         self._drop_button.move(x_pos, y_pos + current_height)
 
-    def letter_btn_pressed(self):
+    def letter_btn_pressed(self, letter: str = None):
         """
-        Добавление фишки к выбранным фишкам, если эт возможно
+        Добавление фишки к выбранным фишкам, если это возможно
         """
         # кнопка не работает, если приложение заблокировано
         if not self.status:
             return
 
-        # определяем какая именно кнопка вызвала функцию
-        # и записываем ее букву
-        letter = ''
-        for i in range(len(self._letters_buttons)):
-            if self._letters_buttons[i] == self.sender():
-                letter = self._letters_on_buttons[i]
+        # если кнопка была активирована нажатием на нее, а не клавиатурой
+        if not letter:
+            # определяем какая именно кнопка вызвала функцию
+            # и записываем ее букву
+            for i in range(len(self._letters_buttons)):
+                if self._letters_buttons[i] == self.sender():
+                    letter = self._letters_on_buttons[i]
+                    break
 
         # проверка на наличие 7 фишек
         if sum(self._chosen_letters.values()) < 7:
@@ -433,6 +435,35 @@ class ScrabbleApplication(QWidget):
         else:
             # если 7 фишек уже выбрано - выводим об этом сообщение
             self._msg_label.setText(self._msg_max_chips_error)
+
+    def keyPressEvent(self, event: QKeyEvent):
+        """
+        Обработка нажатий на кнопки клавиатуры
+        """
+        
+        key = event.key()  # ключ нажатой кнопки
+        text = event.text().lower()  # текст нажатой кнопки
+        if text == 'ё':
+            text = 'е'
+
+        # выход из программы по нажатию Escape
+        if key == Qt.Key_Escape:
+            self.close()
+        # запуск алгоритма по нажатию Enter
+        elif key == Qt.Key_Return:
+            self.start_btn_pressed()
+        # сброс по нажатию Backspace
+        elif key == Qt.Key_Backspace:
+            self.drop_btn_pressed()
+        # если нажатая кнопка - один символ
+        elif len(text) == 1:
+            # если это латинская буква в нижнем регистре
+            if 1072 <= ord(text) <= 1103:
+                # производим нажатие нужной кнопки
+                self.letter_btn_pressed(text)
+            # отдельная обработка звездочки
+            elif text == '*':
+                self.letter_btn_pressed('*')
 
     def drop_btn_pressed(self):
         """
