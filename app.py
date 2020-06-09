@@ -4,7 +4,7 @@ from collections import Counter
 from PyQt5.QtCore import QSize, Qt
 from PyQt5.QtGui import QIcon, QPixmap, QKeyEvent
 from PyQt5.QtWidgets import QApplication, QWidget, QPushButton, QLabel, \
-    QDesktopWidget
+    QDesktopWidget, QFileDialog
 
 from CV.scan import cut_by_external_contour, cut_by_internal_contour
 from assistant.read_files import read_image, write_image
@@ -24,7 +24,7 @@ class ScrabbleApplication(QWidget):
     # может ли приложение корректно работать дальше
     # при status = False не работают никакие кнопки, кроме "загрузить фото"
     # при status = True работает все
-    status = False
+    _status = False
     _hints_amount = 5  # сколько подсказок выдавать
 
     # доска в виде двумерного символьного массива
@@ -61,16 +61,17 @@ class ScrabbleApplication(QWidget):
 
     _msg_label = None
     _msg_start = 'Загрузите фото'
-    _msg_image_uploaded = 'Выберите ваши фишки, кликая по ним'
+    _msg_image_uploaded = 'Выберите ваши фишки'
     _msg_got_hint = 'Подсказки отображены на доске'
     _msg_no_hints = 'Ни одного хода не найдено'
     _msg_too_many_letters_error = 'Кол-во некоторых букв на доске ' \
                                   'превышает допустимое игрой значение'
     _msg_max_chips_error = 'Одновременно можно держать только 7 фишек'
     _msg_max_chip_error = 'В игре больше нет фишек '
-    _msg_no_img_no_chips_error = 'Загрузите изображение и укажите ваши фишки'
-    _msg_no_chips_error = 'Вы не ввели ни одной фишки'
+    _msg_no_img_no_chips_error = 'Загрузите изображение и выберите ваши фишки'
+    _msg_no_chips_error = 'Вы не выбрали ни одной фишки'
     _msg_no_img_error = 'Вы не загрузили изображение'
+    _msg_scan_error = 'Ошибка. Доска не распознана. Загрузите другую фотографию'
 
     _img_label = None  # label для изображения доски
     _board_img = None  # обрезанное изображение доски
@@ -198,15 +199,37 @@ class ScrabbleApplication(QWidget):
         Проверка загруженного изображения и его показ на экране
         """
 
-        # todo: загрузка юзером
-        # обработка изображения
-        img = read_image('resources/app_images/test.jpg')
-        # обрезка по внешнему контуру
-        img = cut_by_external_contour(img)
-        # обрезка по внутреннему контуру
-        img = cut_by_internal_contour(img)
+        fd = QFileDialog()  # диалоговое окно для выбора файла
+        option = fd.Options()  # стандартный выбор файла
+        img_path = fd.getOpenFileName(self, caption="Выбор фотографии",
+                                      filter="Image files (*.jpg)",
+                                      options=option)[0]
 
-        # todo: здесь будет распознавание
+        # если изображение так и не было выбрано - выходим из функции
+        if not img_path:
+            return
+
+        # обработка изображения
+        try:
+            img = read_image(img_path)
+            # обрезка по внешнему контуру
+            img = cut_by_external_contour(img)
+            # обрезка по внутреннему контуру
+            img = cut_by_internal_contour(img)
+        # todo: подумать над исключениями
+        except AttributeError:
+            self._msg_label.setText(self._msg_scan_error)
+            return
+
+        # # распознавание доски с помощью натренированной модели
+        # board = []  # распознанная доска в виде двумерного символьного массива
+        # try:
+        #     pass
+        #     # todo: здесь будет распознавание
+        # # todo: подумать над исключениями
+        # except AttributeError:
+        #     self._msg_label.setText(self._msg_scan_error)
+        #     return
 
         board = [
             ['', 'я', '', '', '', '', '', '', '', '', '', '', '', '', ''],
@@ -248,14 +271,14 @@ class ScrabbleApplication(QWidget):
         # если кол-во всех букв на доске не больше допустимого
         if is_board_letters_amount_right(self._board):
 
-            self.status = True  # запускаем приложение
+            self._status = True  # запускаем приложение
             self.init_dicts()  # инициализируем словари
             self._msg_label.setText(self._msg_image_uploaded)
             self.clear_widgets()
         else:
             # если превышено кол-во хоть одной из букв
             self._msg_label.setText(self._msg_too_many_letters_error)
-            self.status = False  # блокируем приложение
+            self._status = False  # блокируем приложение
 
     def clear_widgets(self):
         """
@@ -390,7 +413,7 @@ class ScrabbleApplication(QWidget):
         Добавление фишки к выбранным фишкам, если это возможно
         """
         # кнопка не работает, если приложение заблокировано
-        if not self.status:
+        if not self._status:
             return
 
         # если кнопка была активирована нажатием на нее, а не клавиатурой
@@ -440,7 +463,7 @@ class ScrabbleApplication(QWidget):
         """
         Обработка нажатий на кнопки клавиатуры
         """
-        
+
         key = event.key()  # ключ нажатой кнопки
         text = event.text().lower()  # текст нажатой кнопки
         if text == 'ё':
@@ -471,7 +494,7 @@ class ScrabbleApplication(QWidget):
         """
 
         # кнопка не работает, если приложение заблокировано
-        if not self.status:
+        if not self._status:
             return
 
         self.clear_widgets()
@@ -482,7 +505,7 @@ class ScrabbleApplication(QWidget):
         """
 
         # кнопка не работает, если приложение заблокировано
-        if not self.status:
+        if not self._status:
             return
 
         # очистка подсказки, если запуск идет не в первый раз
