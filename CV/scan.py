@@ -6,7 +6,7 @@ from imutils import grab_contours
 from imutils import resize
 
 from CV.transform import four_point_transform
-from CV.Exeptions import CutException
+from CV.exceptions import CutException
 
 from ML.letter_recognition import classify_images, nums_to_letters
 from preprocessing.model_preprocessing import CLASSIFIER_DUMP_PATH, \

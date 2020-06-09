@@ -7,7 +7,7 @@ from PyQt5.QtWidgets import QApplication, QWidget, QPushButton, QLabel, \
     QDesktopWidget, QFileDialog
 
 from CV.scan import cut_by_external_contour, cut_by_internal_contour
-from CV.Exeptions import CutException
+from CV.exceptions import CutException
 from assistant.read_files import read_image, write_image
 from assistant.scrabble_assistant import LETTERS_AMOUNT
 from assistant.scrabble_assistant import get_used_letters, get_n_hints, \
