@@ -7,7 +7,8 @@ from imutils import resize
 
 from CV.transform import four_point_transform
 from ML.letter_recognition import classify_images, nums_to_letters
-from preprocessing.model_preprocessing import CLASSIFIER_DUMP_PATH, SCALER_DUMP_PATH
+from preprocessing.model_preprocessing import CLASSIFIER_DUMP_PATH, \
+    SCALER_DUMP_PATH
 
 # from keras.models import model_from_json
 # import pickle
@@ -31,10 +32,10 @@ def get_coordinates(img: np.ndarray) -> ([int], [int], int, int):
 
     # Заполнение массивов координат X для вертикальных и
     # Y для горизонтальных линий
-    x = [0, 0.96 / 15 * w + 1, 1.96 / 15 * w, 2.96 / 15 * w, 3.96 / 15 * w, 4.96 / 15 * w,
-         5.96 / 15 * w, 6.98 / 15 * w, 7.98 / 15 * w, 9 / 15 * w, 10 / 15 * w,
-         11.01 / 15 * w,
-         12.01 / 15 * w, 13.03 / 15 * w, 14.04 / 15 * w, 14.99 / 15 * w]
+    x = [0, 0.96 / 15 * w + 1, 1.96 / 15 * w, 2.96 / 15 * w, 3.96 / 15 * w,
+         4.96 / 15 * w, 5.96 / 15 * w, 6.98 / 15 * w, 7.98 / 15 * w, 9 / 15 * w,
+         10 / 15 * w, 11.01 / 15 * w, 12.01 / 15 * w, 13.03 / 15 * w,
+         14.04 / 15 * w, 14.99 / 15 * w]
     x = [round(x[i]) for i in range(16)]
     y = [round(h / 15 * i) for i in range(16)]
 
@@ -117,7 +118,7 @@ def cut_by_internal_contour(img: np.ndarray,
 
     # Обрезка
     cropped = img[round(top * w / 100):round(h * (1 - bot / 100)),
-              round(left * h / 100):round(w * (1 - right / 100))]
+                  round(left * h / 100):round(w * (1 - right / 100))]
 
     return cropped
 
@@ -130,7 +131,8 @@ def draw_the_grid(img: np.ndarray) -> np.ndarray:
     :return: Изображение с сеткой
     """
 
-    x, y, h, w = get_coordinates(img)  # Получение координат, высоты и ширины изображения
+    # Получение координат, высоты и ширины изображения
+    x, y, h, w = get_coordinates(img)
 
     # Вертикальные линии
     for i in x:
@@ -154,7 +156,8 @@ def cut_board_on_cells(img: np.ndarray) -> [np.ndarray]:
     :return: Массив ячеек длиной 15x15
     """
 
-    x, y, h, w = get_coordinates(img)  # Получение координат, высоты и ширины изображения
+    # Получение координат, высоты и ширины изображения
+    x, y, h, w = get_coordinates(img)
 
     # Заполнение массива
     squares = []
@@ -262,13 +265,14 @@ def colored_to_cropped_threshold(img: np.ndarray) -> np.ndarray:
     # blur = cv2.blur(gray, (3, 3))
     # edges = cv2.Canny(gray, 150, 255)
     _, thresh = cv2.threshold(gray, 150, 255, cv2.THRESH_BINARY)
-    # thresh = cv2.adaptiveThreshold(gray, 255, cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY, blockSize=31, C=5)
+    # thresh = cv2.adaptiveThreshold(gray, 255, cv2.ADAPTIVE_THRESH_MEAN_C,
+    #                                cv2.THRESH_BINARY, blockSize=31, C=5)
     # thresh = cv2.erode(thresh, np.ones((3, 3), np.uint8), iterations=1)
 
     # Поиск контуров
     cropped = thresh.copy()
-    contours, hierarchy = cv2.findContours(cropped, cv2.RETR_EXTERNAL,
-                                           cv2.CHAIN_APPROX_NONE)
+    # contours, hierarchy = cv2.findContours(cropped, cv2.RETR_EXTERNAL,
+    #                                        cv2.CHAIN_APPROX_NONE)
 
     # Перебор контуров. Если периметр достаточно большой,
     # решаем, что это буква и обрезаем картинку по
@@ -306,13 +310,16 @@ if __name__ == "__main__":
 
     # for j in range(15):
     #     for i in range(15):
-    #         # cv2.imshow("Thresh", resize(colored_to_cropped_threshold(board_squares[j][i]),
-    #         # height=150))
+    #         cv2.imshow("Thresh",
+    #                    resize(colored_to_cropped_threshold(board_squares[j][i]),
+    #                           height=150))
     #         cv2.imshow("Cell", resize(board_squares[j][i], height=150))
     #         cv2.waitKey()
     #         cv2.destroyAllWindows()
 
-    # cv2.imshow("Cell", resize(colored_to_cropped_threshold(board_squares[0][12]), height=150))
+    # cv2.imshow("Cell",
+    #            resize(colored_to_cropped_threshold(board_squares[0][12]),
+    #                   height=150))
 
     # print(make_prediction(board_squares))
 

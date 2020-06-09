@@ -15,7 +15,7 @@ from assistant.hint import get_board_with_hints, get_hint_value_coord
 
 
 # author - Pavel
-class  ScrabbleApplication(QWidget):
+class ScrabbleApplication(QWidget):
     """
     Application of scrabble-assistant
     Using PyQT5 version 5.14.2
@@ -82,7 +82,7 @@ class  ScrabbleApplication(QWidget):
         """
         Инициализация приложения
         """
-        super().__init__()
+        super().__init__(flags=Qt.Widget)
         self.init_buttons()
         self.init_labels()
         self.init_ui()
