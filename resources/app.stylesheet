@@ -1,0 +1,81 @@
+
+QWidget
+{
+    color: #F0F0F0;
+    background-color: #323232;
+    font: 18px "Calibri";
+}
+
+QLabel
+{
+    border-top: 1px solid #1e1e1e;
+    border-right: 1px solid #1e1e1e;
+    font: 16px "Calibri";
+    background-color: None;
+}
+
+QLabel#image
+{
+    border: None
+}
+
+QPushButton
+{
+    /*background-color: QLinearGradient( x1: 0, y1: 0, x2: 0, y2: 1, stop: 0 #46465d, stop: 0.1 #44445b, stop: 0.5 #404050, stop: 0.9 #44445b, stop: 1 #46465d);*/
+    background-color: #46465d;
+    border-width: 1px;
+    border-color: #1e1e1e;
+    border-style: solid;
+}
+
+QPushButton:hover
+{
+    border: 2px solid QLinearGradient( x1: 0, y1: 0, x2: 0, y2: 1,
+                                       stop: 0 #7780a1, stop: 1 #9ca177);
+}
+
+QPushButton:pressed
+{
+    background-color: #151554;
+    border-radius: 2px;
+}
+
+QPushButton:disabled
+{
+    color: #808080;
+}
+
+QPushButton:default
+{}
+
+QPushButton:default:pressed
+{}
+
+QPushButton#letters
+{
+    font: bold;
+    font-size: 28px;
+    background-color: #4f465d;
+    border-top: 1px solid #1e1e1e;
+    border-right: 1px solid #1e1e1e;
+}
+
+QPushButton:pressed#letters, QPushButton:pressed#chosen_letters
+{
+    background-color: qradialgradient(
+        cx: 0.5, cy: 0.5,
+        fx: 0.5, fy: 0.5,
+        radius: 2,
+        stop: 0.15 #26263d,
+        stop: 0.3 #2a2a46
+    );
+}
+
+QPushButton#chosen_letters
+{
+    font: bold;
+    font-size: 28px;
+    background-color: #3f364d;
+    border-top: 1px solid #1e1e1e;
+    border-right: 1px solid #1e1e1e;
+}

@@ -33,7 +33,7 @@ class ScrabbleApplication(QWidget):
 
     # размеры окна и виджетов
     _width = 450  # 450 px
-    _height = 805  # 800px
+    _height = 805  # 805 px
     _chip_size = _width // 9  # размер кнопки с буквой в px
     _row_size = _chip_size * (_width // _chip_size)  # длина линии кнопок в px
 
@@ -43,6 +43,14 @@ class ScrabbleApplication(QWidget):
     _green_chips_folder_path = 'resources/app_images/chips/green/'
     _icon_path = 'resources/app_images/icon.png'  # иконка приложения
 
+    # путь к разметке
+    _stylesheet_path = 'resources/app.stylesheet'
+
+    # пути к иконкам
+    _upload_img_icon_path = 'resources/app_images/button_icons/icon_open.png'
+    _drop_img_icon_path = 'resources/app_images/button_icons/icon_drop.png'
+    _start_icon_path = 'resources/app_images/button_icons/icon_start.png'
+
     # словари с буквами
     _used_letters = dict()  # словарь с кол-вом букв, которые уже есть на доске
     _chosen_letters = dict()  # словарь с буквами, которые выбрал юзер
@@ -50,6 +58,7 @@ class ScrabbleApplication(QWidget):
     # кнопки
     _letters_buttons = []  # массив кнопок с буквами 'А'-'Я' и '*'
     _letters_on_buttons = []  # массив букв к кнопкам
+    _chosen_chips_buttons = []  # массив кнопок выбранных букв
     _empty_buttons = []
     _chosen_chips_buttons = []  # выбранные буквы. Массив из 7 кнопок
     _drop_button = None  # кнопка 'сбросить счетчик букв'
@@ -58,11 +67,10 @@ class ScrabbleApplication(QWidget):
 
     # labels
     _chosen_chips_labels = None
-    _chosen_chips_label_text = 'Выбранные\nфишки:'
+    _chosen_chips_label_text = 'Выбранные\nбуквы:'
 
     _msg_label = None
-    _msg_start = ''
-    # _msg_start = 'Загрузите изображение'
+    _msg_start = 'Загрузите изображение'
     _msg_image_uploaded = 'Выберите ваши фишки'
     _msg_got_hint = 'Подсказки отображены на доске'
     _msg_no_hints = 'Ни одной подсказки не найдено'
@@ -86,6 +94,9 @@ class ScrabbleApplication(QWidget):
         Инициализация приложения
         """
         super().__init__(flags=Qt.Widget)
+        f = open(self._stylesheet_path, 'r')
+        self.styleData = f.read()
+        f.close()
         self.init_buttons()
         self.init_labels()
         self.init_ui()
@@ -95,6 +106,10 @@ class ScrabbleApplication(QWidget):
         """
         Инициализация интерфейса
         """
+
+        # Подгрузка файла разметки
+        self.setStyleSheet(self.styleData)
+        # Параметры окна
         size = QDesktopWidget().screenGeometry(-1)
         width = size.width()
         height = size.height()
@@ -129,12 +144,18 @@ class ScrabbleApplication(QWidget):
 
         # кнопка загрузки изображения
         btn = QPushButton(self)
-        btn.setText('Загрузить изображение')
+        btn.setText('Открыть')
+        btn.setIcon(QIcon(self._upload_img_icon_path))
+        btn.setIconSize(QSize(20, 20))
+
         btn.clicked.connect(self.image_uploaded)
         self._upload_img_button = btn
 
         # кнопка старта алгоритма
         start_btn = QPushButton(self)
+        start_btn.setDisabled(True)
+        start_btn.setIcon(QIcon(self._start_icon_path))
+        start_btn.setIconSize(QSize(20, 20))
         start_btn.setText('Готово')
         start_btn.clicked.connect(self.start_btn_pressed)
         self._start_button = start_btn
@@ -143,7 +164,8 @@ class ScrabbleApplication(QWidget):
         self._chosen_chips_buttons = []
         for i in range(7):
             btn = QPushButton(self)
-            btn.setIconSize(QSize(self._chip_size, self._chip_size))
+            btn.setObjectName("chosen_letters")
+            btn.setDisabled(True)
             self._chosen_chips_buttons.append(btn)
 
         # кнопки с фишками-буквами
@@ -156,9 +178,9 @@ class ScrabbleApplication(QWidget):
                 letter_on_button = chr(1072 + i)
             self._letters_on_buttons.append(letter_on_button)
             btn = QPushButton(self)
-            image_path = self._blue_chips_folder_path + str(i + 1) + '.jpg'
-            btn.setIcon(QIcon(image_path))
-            btn.setIconSize(QSize(self._chip_size, self._chip_size))
+            btn.setObjectName("letters")
+            btn.setText(self._letters_on_buttons[i].upper())
+            btn.setDisabled(True)
             btn.clicked.connect(self.letter_btn_pressed)
             self._letters_buttons.append(btn)
 
@@ -168,7 +190,11 @@ class ScrabbleApplication(QWidget):
             self._empty_buttons.append(btn)
 
         # кнопка сброса счетчика
-        drop_button = QPushButton('Сбросить', self)
+        drop_button = QPushButton(self)
+        drop_button.setDisabled(True)
+        drop_button.setIcon(QIcon(self._drop_img_icon_path))
+        drop_button.setIconSize(QSize(20, 20))
+        drop_button.setObjectName("drop")
         drop_button.clicked.connect(self.drop_btn_pressed)
         self._drop_button = drop_button
 
@@ -185,6 +211,7 @@ class ScrabbleApplication(QWidget):
         for i in range(225):
             label = QLabel(self)
             label.setAlignment(Qt.AlignCenter)
+            label.setObjectName('image')
             label.setText('')
             label.setStyleSheet('font-size: 22px;')
             self._hints_labels.append(label)
@@ -235,7 +262,7 @@ class ScrabbleApplication(QWidget):
         #     return
 
         board = [
-            ['', 'я', '', '', '', '', '', '', '', '', '', '', '', '', ''],
+            ['', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
             ['', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
             ['', '', '', '', '', '', '', 'м', '', 'т', '', '', '', '', ''],
             ['', '', '', '', '', '', '', 'е', '', 'о', '', '', '', '', ''],
@@ -248,8 +275,8 @@ class ScrabbleApplication(QWidget):
             ['', '', '', '', '', 'л', '', '', '', 'к', 'и', 'т', '', '', ''],
             ['', '', '', '', 'с', 'о', 'л', 'ь', '', 'о', '', '', '', '', ''],
             ['', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
-            ['', 'р', '', '', '', '', '', '', '', '', '', '', '', '', ''],
-            ['', '', '', '', '', '', '', '', '', '', '', '', '', 'у', ''],
+            ['', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
+            ['', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
         ]
 
         # удаляем помехи из таблицы
@@ -275,6 +302,14 @@ class ScrabbleApplication(QWidget):
         if is_board_letters_amount_right(self._board):
 
             self._status = True  # запускаем приложение
+
+            # Разблокировка кнопок
+            self._start_button.setDisabled(False)
+            for i in range(33):
+                self._letters_buttons[i].setDisabled(False)
+            self._drop_button.setDisabled(False)
+
+            self.init_dicts()  # инициализируем словари
             self._msg_label.setText(self._msg_image_uploaded)
             self.clear_widgets()
         else:
@@ -297,7 +332,7 @@ class ScrabbleApplication(QWidget):
         # сбрасываем все выбранные фишки
         for i in range(7):
             btn = self._chosen_chips_buttons[i]
-            btn.setIcon(QIcon())
+            btn.setText("")
             self._chosen_chips_buttons[i] = btn
 
         # очистка подсказки
@@ -328,20 +363,11 @@ class ScrabbleApplication(QWidget):
                 # проверка на наличие в игре достаточного количества таких фишек
                 if self._chosen_letters[letter] + self._used_letters[letter] < \
                         LETTERS_AMOUNT[letter]:
-                    # путь к папке с изображениями фишек
-                    chips_img_path = self._blue_chips_folder_path
-                    chips_img_path += 'letter' + str(i + 1) + '.jpg'
+                    self._letters_buttons[i].setDisabled(False)
                 else:
-                    chips_img_path = self._red_chips_folder_path
-                    chips_img_path += 'letter' + str(i + 1) + '.jpg'
+                    self._letters_buttons[i].setDisabled(True)
             else:
-                chips_img_path = self._red_chips_folder_path
-                chips_img_path += 'letter' + str(i + 1) + '.jpg'
-
-            # получаем путь к файлу изображения кнопки
-            image_path = chips_img_path  # путь к файлу
-            # устанавливаем правильную иконку на кнопку
-            self._letters_buttons[i].setIcon(QIcon(image_path))
+                self._letters_buttons[i].setDisabled(True)
 
     def draw_widgets(self):
         """
@@ -425,9 +451,6 @@ class ScrabbleApplication(QWidget):
         """
         Добавление фишки к выбранным фишкам, если это возможно
         """
-        # кнопка не работает, если приложение заблокировано
-        if not self._status:
-            return
 
         # если кнопка была активирована нажатием на нее, а не клавиатурой
         if not letter:
@@ -454,18 +477,15 @@ class ScrabbleApplication(QWidget):
                 chosen_chip_position = sum(self._chosen_letters.values())
                 btn = self._chosen_chips_buttons[chosen_chip_position]
 
-                # путь к файлу-картинке
-                image_filename = 'letter' + str(chosen_chip_index + 1) + '.jpg'
-                image_path = self._blue_chips_folder_path + image_filename
-
-                btn.setIcon(QIcon(image_path))
+                btn.setText(str(
+                    self._letters_on_buttons[chosen_chip_index].upper()))
 
                 # добавляем фишку в словарь выбранных фишек
                 self._chosen_letters[letter] += 1
                 # обновляем цвет фишек
                 self.update_buttons()
             else:
-                # если кол-во данны букв уже закончилось - выводим сообщение
+                # если кол-во данных букв уже закончилось - выводим сообщение
                 self._msg_label.setText(self._msg_max_chip_error
                                         + letter.upper())
         else:
@@ -479,6 +499,14 @@ class ScrabbleApplication(QWidget):
 
         key = event.key()  # ключ нажатой кнопки
         text = event.text().lower()  # текст нажатой кнопки
+
+        # замена вводимых латинских букв на кириллицу и Ё на Е
+        _eng_chars = u"`qwertyuiop[]asdfghjkl;'zxcvbnm,." \
+                     u"QWERTYUIOP{}ASDFGHJKL:\"|ZXCVBNM<>"
+        _rus_chars = u"ёйцукенгшщзхъфывапролджэячсмитьбю" \
+                     u"ЙЦУКЕНГШЩЗХЪФЫВАПРОЛДЖЭ/ЯЧСМИТЬБЮ"
+        _trans_table = dict(zip(_eng_chars, _rus_chars))
+        text = text.join([_trans_table.get(c, c) for c in text])
         if text == 'ё':
             text = 'е'
 
