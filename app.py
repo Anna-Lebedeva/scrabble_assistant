@@ -33,7 +33,7 @@ class ScrabbleApplication(QWidget):
 
     # размеры окна и виджетов
     _width = 450  # 450 px
-    _height = int(_width * 1.7777777)  # 800px
+    _height = 805  # 800px
     _chip_size = _width // 9  # размер кнопки с буквой в px
     _row_size = _chip_size * (_width // _chip_size)  # длина линии кнопок в px
 
@@ -42,7 +42,6 @@ class ScrabbleApplication(QWidget):
     _red_chips_folder_path = 'resources/app_images/chips/red/'
     _green_chips_folder_path = 'resources/app_images/chips/green/'
     _icon_path = 'resources/app_images/icon.png'  # иконка приложения
-    # _background_path = 'resources/app_images/background.jpg'  # фон
 
     # словари с буквами
     _used_letters = dict()  # словарь с кол-вом букв, которые уже есть на доске
@@ -51,6 +50,7 @@ class ScrabbleApplication(QWidget):
     # кнопки
     _letters_buttons = []  # массив кнопок с буквами 'А'-'Я' и '*'
     _letters_on_buttons = []  # массив букв к кнопкам
+    _empty_buttons = []
     _chosen_chips_buttons = []  # выбранные буквы. Массив из 7 кнопок
     _drop_button = None  # кнопка 'сбросить счетчик букв'
     _upload_img_button = None  # кнопка 'сделать фото' / 'загрузить картинку'
@@ -61,10 +61,11 @@ class ScrabbleApplication(QWidget):
     _chosen_chips_label_text = 'Выбранные\nфишки:'
 
     _msg_label = None
-    _msg_start = 'Загрузите фото'
+    _msg_start = ''
+    # _msg_start = 'Загрузите изображение'
     _msg_image_uploaded = 'Выберите ваши фишки'
     _msg_got_hint = 'Подсказки отображены на доске'
-    _msg_no_hints = 'Ни одного хода не найдено'
+    _msg_no_hints = 'Ни одной подсказки не найдено'
     _msg_too_many_letters_error = 'Кол-во некоторых букв на доске ' \
                                   'превышает допустимое игрой значение'
     _msg_max_chips_error = 'Одновременно можно держать только 7 фишек'
@@ -72,7 +73,7 @@ class ScrabbleApplication(QWidget):
     _msg_no_img_no_chips_error = 'Загрузите изображение и выберите ваши фишки'
     _msg_no_chips_error = 'Вы не выбрали ни одной фишки'
     _msg_no_img_error = 'Вы не загрузили изображение'
-    _msg_scan_error = 'Ошибка. Доска не распознана. Загрузите другую фотографию'
+    _msg_scan_error = 'Ошибка: доска не распознана'
 
     _img_label = None  # label для изображения доски
     _board_img = None  # обрезанное изображение доски
@@ -134,7 +135,7 @@ class ScrabbleApplication(QWidget):
 
         # кнопка старта алгоритма
         start_btn = QPushButton(self)
-        start_btn.setText('Принять')
+        start_btn.setText('Готово')
         start_btn.clicked.connect(self.start_btn_pressed)
         self._start_button = start_btn
 
@@ -161,6 +162,11 @@ class ScrabbleApplication(QWidget):
             btn.clicked.connect(self.letter_btn_pressed)
             self._letters_buttons.append(btn)
 
+        # пустые кнопки в конце клавиатуры
+        for i in range(3):
+            btn = QPushButton(self)
+            self._empty_buttons.append(btn)
+
         # кнопка сброса счетчика
         drop_button = QPushButton('Сбросить', self)
         drop_button.clicked.connect(self.drop_btn_pressed)
@@ -182,12 +188,6 @@ class ScrabbleApplication(QWidget):
             label.setText('')
             label.setStyleSheet('font-size: 22px;')
             self._hints_labels.append(label)
-
-        # chosen chips label
-        label = QLabel(self)
-        label.setText(self._chosen_chips_label_text)
-        label.setAlignment(Qt.AlignCenter)
-        self._chosen_chips_labels = label
 
         # msg label
         label = QLabel(self)
@@ -218,6 +218,10 @@ class ScrabbleApplication(QWidget):
         except (CutException, AttributeError):
             self._img_label.setPixmap(QPixmap())  # убираем изображение доски
             self._msg_label.setText(self._msg_scan_error)  # error msg
+            # todo: блокировка приложения
+            # todo: disable на все кнопки, кроме загрузки изображения
+            # fixme баг с вызовом clear_widgets()
+            # self.clear_widgets()
             return
 
         # распознавание доски с помощью натренированной модели
@@ -271,7 +275,6 @@ class ScrabbleApplication(QWidget):
         if is_board_letters_amount_right(self._board):
 
             self._status = True  # запускаем приложение
-            self.init_dicts()  # инициализируем словари
             self._msg_label.setText(self._msg_image_uploaded)
             self.clear_widgets()
         else:
@@ -363,34 +366,28 @@ class ScrabbleApplication(QWidget):
             label.move(x_pos + 1, y_pos + current_height + 1)
         current_height += height
 
-        # прорисовка кнопки для выбора фото
-        height = self._chip_size
-        self._upload_img_button.resize(self._width // 2, height)
-        self._upload_img_button.move(0, current_height)
-
-        # прорисовка кнопки старта
-        self._start_button.resize(self._width // 2, height)
-        self._start_button.move(self._width // 2, current_height)
+        # прорисовка msg label
+        height = self._chip_size - 5
+        self._msg_label.resize(self._width, height)
+        self._msg_label.move(0, current_height)
         current_height += height
 
-        # прорисовка chosen chips label
         height = self._chip_size
-        self._chosen_chips_labels.resize(self._chip_size * 2, self._chip_size)
-        self._chosen_chips_labels.move(0, current_height)
-
         # прорисовка выбранных букв
         for i in range(len(self._chosen_chips_buttons)):
             self._chosen_chips_buttons[i].resize(self._chip_size,
                                                  self._chip_size)
-            self._chosen_chips_buttons[i].move((i + 2) * self._chip_size,
+            self._chosen_chips_buttons[i].move(i * self._chip_size,
                                                current_height)
+
+        # прорисовка кнопки "сброс"
+        self._drop_button.resize(self._chip_size * 2, self._chip_size)
+        self._drop_button.move(7 * self._chip_size, current_height)
+
         current_height += height
 
-        # прорисовка msg label
-        height = self._chip_size
-        self._msg_label.resize(self._width, height)
-        self._msg_label.move(0, current_height)
-        current_height += height
+        # разрыв в 5 пикселей
+        current_height += 5
 
         # прорисовка кнопок с буквами для выбора
         index = 0  # суммарная длина всех прошлых кнопок
@@ -401,11 +398,28 @@ class ScrabbleApplication(QWidget):
             index += self._chip_size
             btn.move(x_pos, y_pos + current_height)
 
-        # прорисовка кнопки "сброс"
-        self._drop_button.resize(self._chip_size * 3, self._chip_size)
-        x_pos = index % self._row_size
-        y_pos = index // self._row_size * self._chip_size
-        self._drop_button.move(x_pos, y_pos + current_height)
+        # три кнопки в конце клавиатуры
+        for btn in self._empty_buttons:
+            btn.resize(self._chip_size, self._chip_size)
+            x_pos = index % self._row_size
+            y_pos = index // self._row_size * self._chip_size
+            index += self._chip_size
+            btn.move(x_pos, y_pos + current_height)
+
+        current_height += 4 * height
+
+        # разрыв в 5 пикселей
+        current_height += 5
+
+        # прорисовка кнопки для выбора фото
+        height = self._chip_size
+        self._upload_img_button.resize(self._width // 2, height)
+        self._upload_img_button.move(0, current_height)
+
+        # прорисовка кнопки старта
+        self._start_button.resize(self._width // 2, height)
+        self._start_button.move(self._width // 2, current_height)
+        current_height += height
 
     def letter_btn_pressed(self, letter: str = None):
         """
