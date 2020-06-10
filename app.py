@@ -2,7 +2,7 @@ import sys
 from collections import Counter
 
 from PyQt5.QtCore import QSize, Qt
-from PyQt5.QtGui import QIcon, QPixmap, QKeyEvent
+from PyQt5.QtGui import QIcon, QPixmap, QKeyEvent, QFontDatabase
 from PyQt5.QtWidgets import QApplication, QWidget, QPushButton, QLabel, \
     QDesktopWidget, QFileDialog
 
@@ -44,7 +44,7 @@ class ScrabbleApplication(QWidget):
     _icon_path = 'resources/app_images/icon.png'  # иконка приложения
 
     # путь к разметке
-    _stylesheet_path = 'resources/app.stylesheet'
+    _stylesheet_path = 'resources/stylesheet/app.stylesheet'
 
     # пути к иконкам
     _upload_img_icon_path = 'resources/app_images/button_icons/icon_open.png'
@@ -67,17 +67,16 @@ class ScrabbleApplication(QWidget):
     # labels
     _chosen_chips_labels = None
     _chosen_chips_label_text = 'Выбранные\nбуквы:'
-
     _msg_label = None
     _msg_start = 'Загрузите изображение'
-    _msg_image_uploaded = 'Выберите либо введите с клавиатуры ваши фишки'
+    _msg_image_uploaded = 'Выберите или введите буквы'
     _msg_got_hint = 'Подсказки отображены на доске'
     _msg_no_hints = 'Ни одной подсказки не найдено'
     _msg_too_many_letters_error = 'Кол-во некоторых букв на доске ' \
                                   'превышает допустимое игрой значение'
-    _msg_max_chips_error = 'Одновременно можно держать только 7 фишек'
-    _msg_max_chip_error = 'В игре больше нет фишек '
-    _msg_no_img_no_chips_error = 'Загрузите изображение и выберите ваши фишки'
+    _msg_max_chips_error = 'Вы набрали максимум фишек'
+    _msg_max_chip_error = 'В игре больше нет фишек с этой буквой'
+    _msg_no_img_no_chips_error = 'Загрузите изображение'
     _msg_no_chips_error = 'Вы не выбрали ни одной фишки'
     _msg_no_img_error = 'Вы не загрузили изображение'
     _msg_scan_error = 'Доска не распознана, попробуйте ещё раз'
@@ -92,10 +91,12 @@ class ScrabbleApplication(QWidget):
         """
         Инициализация приложения
         """
+        # Считывание файла разметки и внешнего шрифта
         super().__init__(flags=Qt.Widget)
         f = open(self._stylesheet_path, 'r')
         self.styleData = f.read()
         f.close()
+        QFontDatabase.addApplicationFont("resources/fonts/Ubuntu-R.ttf")
         self.init_buttons()
         self.init_labels()
         self.init_ui()

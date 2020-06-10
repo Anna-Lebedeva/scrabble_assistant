@@ -3,12 +3,12 @@ QWidget
 {
     color: #F0F0F0;
     background-color: #323232;
-    font: 18px "Calibri";
+    font: 18px "Ununtu";
 }
 
 QLabel
 {
-    font: 16px "Calibri";
+    font-size: 16px;
     background-color: None;
 }
 
@@ -41,7 +41,7 @@ QPushButton:disabled
 
 QPushButton#letters
 {
-    font: bold;
+    /*font: bold;*/
     font-size: 28px;
     background-color: #4f465d;
 }
