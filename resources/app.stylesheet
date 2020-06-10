@@ -8,8 +8,6 @@ QWidget
 
 QLabel
 {
-    border-top: 1px solid #1e1e1e;
-    border-right: 1px solid #1e1e1e;
     font: 16px "Calibri";
     background-color: None;
 }
@@ -21,54 +19,41 @@ QLabel#image
 
 QPushButton
 {
-    /*background-color: QLinearGradient( x1: 0, y1: 0, x2: 0, y2: 1, stop: 0 #46465d, stop: 0.1 #44445b, stop: 0.5 #404050, stop: 0.9 #44445b, stop: 1 #46465d);*/
     background-color: #46465d;
-    border-width: 1px;
-    border-color: #1e1e1e;
-    border-style: solid;
+    border: 1px solid #1e1e1e;
 }
 
 QPushButton:hover
 {
-    border: 2px solid QLinearGradient( x1: 0, y1: 0, x2: 0, y2: 1,
-                                       stop: 0 #7780a1, stop: 1 #9ca177);
+    background-color: #56566d;
 }
 
 QPushButton:pressed
 {
-    background-color: #151554;
+    background-color: #36364d;
     border-radius: 2px;
 }
 
 QPushButton:disabled
 {
-    color: #808080;
+    color: #80808f;
 }
-
-QPushButton:default
-{}
-
-QPushButton:default:pressed
-{}
 
 QPushButton#letters
 {
     font: bold;
     font-size: 28px;
     background-color: #4f465d;
-    border-top: 1px solid #1e1e1e;
-    border-right: 1px solid #1e1e1e;
 }
 
-QPushButton:pressed#letters, QPushButton:pressed#chosen_letters
+QPushButton:hover#letters
 {
-    background-color: qradialgradient(
-        cx: 0.5, cy: 0.5,
-        fx: 0.5, fy: 0.5,
-        radius: 2,
-        stop: 0.15 #26263d,
-        stop: 0.3 #2a2a46
-    );
+    background-color: #5f566d;
+}
+
+QPushButton:pressed#letters
+{
+    background-color: #3f364d;
 }
 
 QPushButton#chosen_letters
@@ -78,4 +63,19 @@ QPushButton#chosen_letters
     background-color: #3f364d;
     border-top: 1px solid #1e1e1e;
     border-right: 1px solid #1e1e1e;
+}
+
+QPushButton#drop
+{
+    background-color: #3f364d;
+}
+
+QPushButton:hover#drop
+{
+    background-color: #4f465d;
+}
+
+QPushButton:pressed#drop
+{
+    background-color: #2f263d;
 }

@@ -59,8 +59,7 @@ class ScrabbleApplication(QWidget):
     _letters_buttons = []  # массив кнопок с буквами 'А'-'Я' и '*'
     _letters_on_buttons = []  # массив букв к кнопкам
     _chosen_chips_buttons = []  # массив кнопок выбранных букв
-    _empty_buttons = []
-    _chosen_chips_buttons = []  # выбранные буквы. Массив из 7 кнопок
+    _empty_buttons = []  # Кнопки-заглушки
     _drop_button = None  # кнопка 'сбросить счетчик букв'
     _upload_img_button = None  # кнопка 'сделать фото' / 'загрузить картинку'
     _start_button = None  # кнопка по нажатии запускает весь алгоритм
@@ -71,7 +70,7 @@ class ScrabbleApplication(QWidget):
 
     _msg_label = None
     _msg_start = 'Загрузите изображение'
-    _msg_image_uploaded = 'Выберите ваши фишки'
+    _msg_image_uploaded = 'Выберите либо введите с клавиатуры ваши фишки'
     _msg_got_hint = 'Подсказки отображены на доске'
     _msg_no_hints = 'Ни одной подсказки не найдено'
     _msg_too_many_letters_error = 'Кол-во некоторых букв на доске ' \
@@ -81,7 +80,7 @@ class ScrabbleApplication(QWidget):
     _msg_no_img_no_chips_error = 'Загрузите изображение и выберите ваши фишки'
     _msg_no_chips_error = 'Вы не выбрали ни одной фишки'
     _msg_no_img_error = 'Вы не загрузили изображение'
-    _msg_scan_error = 'Ошибка: доска не распознана'
+    _msg_scan_error = 'Доска не распознана, попробуйте ещё раз'
 
     _img_label = None  # label для изображения доски
     _board_img = None  # обрезанное изображение доски
@@ -187,6 +186,8 @@ class ScrabbleApplication(QWidget):
         # пустые кнопки в конце клавиатуры
         for i in range(3):
             btn = QPushButton(self)
+            btn.setObjectName("letters")
+            btn.setDisabled(True)
             self._empty_buttons.append(btn)
 
         # кнопка сброса счетчика
@@ -245,8 +246,11 @@ class ScrabbleApplication(QWidget):
         except (CutException, AttributeError):
             self._img_label.setPixmap(QPixmap())  # убираем изображение доски
             self._msg_label.setText(self._msg_scan_error)  # error msg
-            # todo: блокировка приложения
-            # todo: disable на все кнопки, кроме загрузки изображения
+            # блокировка кнопок
+            self._start_button.setDisabled(True)
+            for i in range(33):
+                self._letters_buttons[i].setDisabled(True)
+            self._drop_button.setDisabled(True)
             # fixme баг с вызовом clear_widgets()
             # self.clear_widgets()
             return
@@ -539,6 +543,7 @@ class ScrabbleApplication(QWidget):
             return
 
         self.clear_widgets()
+        self._start_button.setDisabled(False)
 
     def start_btn_pressed(self):
         """
@@ -570,6 +575,9 @@ class ScrabbleApplication(QWidget):
                 # выводим стоимость подсказки
                 self._msg_label.setText(self._msg_got_hint)
                 self._got_hints = True
+                for i in range(33):
+                    self._letters_buttons[i].setDisabled(True)
+                self._start_button.setDisabled(True)
             else:
                 self._msg_label.setText(self._msg_no_hints)
 
