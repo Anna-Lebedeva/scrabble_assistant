@@ -1,7 +1,7 @@
 QWidget {
     color: #F0F0F0;
     background-color: #323232;
-    font-size: 18px;
+    font: 18px "Ubuntu";
 }
 
 QLabel {
