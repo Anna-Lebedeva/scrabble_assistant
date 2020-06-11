@@ -22,10 +22,6 @@ class ScrabbleApplication(QWidget):
     Using PyQT5 version 5.14.2
     """
 
-    # может ли приложение корректно работать дальше
-    # при status = False не работают никакие кнопки, кроме "загрузить фото"
-    # при status = True работает все
-    _status = False
     _hints_amount = 5  # сколько подсказок выдавать
 
     # доска в виде двумерного символьного массива
@@ -37,16 +33,31 @@ class ScrabbleApplication(QWidget):
     _chip_size = _width // 9  # размер кнопки с буквой в px
     _row_size = _chip_size * (_width // _chip_size)  # длина линии кнопок в px
 
-    # пути к изображениям
-    _blue_chips_folder_path = 'resources/app_images/chips/blue/'
-    _red_chips_folder_path = 'resources/app_images/chips/red/'
-    _green_chips_folder_path = 'resources/app_images/chips/green/'
-    _icon_path = 'resources/app_images/icon.png'  # иконка приложения
+    # css цвета для вывода ценностей подсказок
+    _colors = ['#4E8E55', '#A0504E', '#4B659E']
+    # _colors = ['#4E8E55', '#A0504E', '#4B659E', '#FFFF00', '#FF00FF']
 
-    # путь к разметке
+    # пути к папкам с фишками разных цветов
+    # фишки используются для вывода подсказок на доске
+    _chips_folders_paths = [
+        'resources/app_images/chips/green/',
+        'resources/app_images/chips/red/',
+        'resources/app_images/chips/blue/'
+        # 'resources/app_images/chips/green/',
+        # 'resources/app_images/chips/light_blue/',
+        # 'resources/app_images/chips/orange/',
+        # 'resources/app_images/chips/violet/',
+        # 'resources/app_images/chips/pink/'
+    ]
+
+    # путь к css
     _stylesheet_path = 'resources/stylesheet/app.css'
 
+    # путь к шрифту
+    _font = 'resources/fonts/Ubuntu-R.ttf'
+
     # пути к иконкам
+    _app_icon_path = 'resources/app_images/icon.png'  # иконка приложения
     _upload_img_icon_path = 'resources/app_images/button_icons/icon_open.png'
     _drop_img_icon_path = 'resources/app_images/button_icons/icon_drop.png'
     _start_icon_path = 'resources/app_images/button_icons/icon_start.png'
@@ -97,7 +108,7 @@ class ScrabbleApplication(QWidget):
         self.styleData = f.read()
         f.close()
         # fixme: что-то с аргументами
-        QFontDatabase.addApplicationFont("resources/fonts/Ubuntu-R.ttf")
+        QFontDatabase.addApplicationFont(self._font)
         self.init_buttons()
         self.init_labels()
         self.init_ui()
@@ -120,7 +131,7 @@ class ScrabbleApplication(QWidget):
         self.setMaximumSize(self._width, self._height)
         self.setMinimumSize(self._width, self._height)
         self.setWindowTitle('Scrabble')
-        self.setWindowIcon(QIcon(self._icon_path))
+        self.setWindowIcon(QIcon(self._app_icon_path))
         self.show()
 
     def init_dicts(self):
@@ -305,8 +316,6 @@ class ScrabbleApplication(QWidget):
         # если кол-во всех букв на доске не больше допустимого
         if is_board_letters_amount_right(self._board):
 
-            self._status = True  # запускаем приложение
-
             # Разблокировка кнопок
             self._start_button.setDisabled(False)
             for i in range(33):
@@ -319,7 +328,6 @@ class ScrabbleApplication(QWidget):
         else:
             # если превышено кол-во хоть одной из букв
             self._msg_label.setText(self._msg_too_many_letters_error)
-            self._status = False  # блокируем приложение
 
     def clear_widgets(self):
         """
@@ -350,6 +358,7 @@ class ScrabbleApplication(QWidget):
         for label in self._hints_labels:
             label.setPixmap(QPixmap())
             label.setText('')
+            label.setStyleSheet('')
 
     def update_buttons(self):
         """
@@ -525,7 +534,7 @@ class ScrabbleApplication(QWidget):
             self.drop_btn_pressed()
         # если нажатая кнопка - один символ
         elif len(text) == 1:
-            # если это латинская буква в нижнем регистре
+            # если это "а"-"я"
             if 1072 <= ord(text) <= 1103:
                 # производим нажатие нужной кнопки
                 self.letter_btn_pressed(text)
@@ -538,10 +547,6 @@ class ScrabbleApplication(QWidget):
         Сброс виджетов
         """
 
-        # кнопка не работает, если приложение заблокировано
-        if not self._status:
-            return
-
         self.clear_widgets()
         self._start_button.setDisabled(False)
 
@@ -549,10 +554,6 @@ class ScrabbleApplication(QWidget):
         """
         Запуск алгоритма
         """
-
-        # кнопка не работает, если приложение заблокировано
-        if not self._status:
-            return
 
         # очистка подсказки, если запуск идет не в первый раз
         if self._got_hints:
@@ -588,9 +589,14 @@ class ScrabbleApplication(QWidget):
 
         # объединение доски с подсказками и их ценностями
         combined_board = get_board_with_hints(self._board, hints)
-        color_index = 0  # индекс цвета для вывода подсказок
 
+        # идем по всем полученный подсказкам
         for i in range(len(hints)):
+
+            # определяем цвет подсказки
+            # если цвета закончились - идем по новому кругу
+            color_index = i % len(self._colors)
+
             # идем по доске подсказок
             for y in range(len(hints[i])):
                 for x in range(len(hints[i][y])):
@@ -605,30 +611,34 @@ class ScrabbleApplication(QWidget):
                         else:
                             chip_index = ord(hints[i][y][x]) - 1072
 
-                        # размер одной фишки на изображении
-                        hint_size = self._width // 15  # 30px
-                        # находим нужный label в массиве
-                        hint_label = self._hints_labels[y * 15 + x]
-                        # выбор файла изображения
-                        img_folder = self._green_chips_folder_path
+                        img_folder = self._chips_folders_paths[color_index]
                         img_filename = 'letter' + str(chip_index + 1) + '.jpg'
                         pix = QPixmap(img_folder + img_filename)
+
+                        # размер одной фишки на изображении
+                        hint_size = self._width // 15  # 30px
                         # масштабирование изображения под фишку
                         pix = pix.scaledToWidth(hint_size)
                         pix = pix.scaledToHeight(hint_size)
+
+                        # находим нужный label в массиве
+                        hint_label = self._hints_labels[y * 15 + x]
                         # установка изображения
                         hint_label.setPixmap(pix)
+
+            # отрисовка ценности подсказки
             # определяем слово как гориз. или верт.
             # по приоритетам находим лучшую точку
             # рисуем
-
             y, x = get_hint_value_coord(hints[i], combined_board)
             combined_board[y][x] = '$'
             label = self._hints_labels[y * 15 + x]
             label.setText(str(values[i]))
-            label.setStyleSheet('font-size: 22px; color: red;')
-
-            color_index += 1
+            # todo: дизайн
+            label.setStyleSheet('font-size: 20px; color: '
+                                + self._colors[color_index] +
+                                '; font-weight: bold; ' +
+                                'background-color: black;')
 
 
 if __name__ == '__main__':
