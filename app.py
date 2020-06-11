@@ -44,7 +44,7 @@ class ScrabbleApplication(QWidget):
     _icon_path = 'resources/app_images/icon.png'  # иконка приложения
 
     # путь к разметке
-    _stylesheet_path = 'resources/stylesheet/app.stylesheet'
+    _stylesheet_path = 'resources/stylesheet/app.css'
 
     # пути к иконкам
     _upload_img_icon_path = 'resources/app_images/button_icons/icon_open.png'
@@ -69,14 +69,14 @@ class ScrabbleApplication(QWidget):
     _chosen_chips_label_text = 'Выбранные\nбуквы:'
     _msg_label = None
     _msg_start = 'Загрузите изображение'
-    _msg_image_uploaded = 'Выберите или введите буквы'
+    _msg_image_uploaded = 'Выберите фишки'
     _msg_got_hint = 'Подсказки отображены на доске'
     _msg_no_hints = 'Ни одной подсказки не найдено'
     _msg_too_many_letters_error = 'Кол-во некоторых букв на доске ' \
                                   'превышает допустимое игрой значение'
     _msg_max_chips_error = 'Вы набрали максимум фишек'
-    _msg_max_chip_error = 'В игре больше нет фишек с этой буквой'
-    _msg_no_img_no_chips_error = 'Загрузите изображение'
+    _msg_max_chip_error = 'В игре больше нет фишек с буквой '
+    _msg_no_img_no_chips_error = 'Загрузите изображение и выберите фишки'
     _msg_no_chips_error = 'Вы не выбрали ни одной фишки'
     _msg_no_img_error = 'Вы не загрузили изображение'
     _msg_scan_error = 'Доска не распознана, попробуйте ещё раз'
@@ -96,6 +96,7 @@ class ScrabbleApplication(QWidget):
         f = open(self._stylesheet_path, 'r')
         self.styleData = f.read()
         f.close()
+        # fixme: что-то с аргументами
         QFontDatabase.addApplicationFont("resources/fonts/Ubuntu-R.ttf")
         self.init_buttons()
         self.init_labels()
@@ -248,12 +249,10 @@ class ScrabbleApplication(QWidget):
             self._img_label.setPixmap(QPixmap())  # убираем изображение доски
             self._msg_label.setText(self._msg_scan_error)  # error msg
             # блокировка кнопок
-            self._start_button.setDisabled(True)
             for i in range(33):
                 self._letters_buttons[i].setDisabled(True)
             self._drop_button.setDisabled(True)
-            # fixme баг с вызовом clear_widgets()
-            # self.clear_widgets()
+            self._start_button.setDisabled(True)
             return
 
         # распознавание доски с помощью натренированной модели
@@ -281,7 +280,7 @@ class ScrabbleApplication(QWidget):
             ['', '', '', '', 'с', 'о', 'л', 'ь', '', 'о', '', '', '', '', ''],
             ['', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
             ['', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
-            ['', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
+            ['', '', 'ш', '', '', '', 'у', '', '', '', 'м', '', '', '', ''],
         ]
 
         # удаляем помехи из таблицы

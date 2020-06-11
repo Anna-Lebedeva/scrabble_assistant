@@ -1,81 +1,66 @@
-
-QWidget
-{
+QWidget {
     color: #F0F0F0;
     background-color: #323232;
-    font: 18px "Ununtu";
+    font-size: 18px;
 }
 
-QLabel
-{
+QLabel {
     font-size: 16px;
-    background-color: None;
+    background: none;
 }
 
-QLabel#image
-{
+QLabel#image {
     border: None
 }
 
-QPushButton
-{
+QPushButton {
     background-color: #46465d;
     border: 1px solid #1e1e1e;
 }
 
-QPushButton:hover
-{
+QPushButton:hover {
     background-color: #56566d;
 }
 
-QPushButton:pressed
-{
+QPushButton:pressed {
     background-color: #36364d;
     border-radius: 2px;
 }
 
-QPushButton:disabled
-{
+QPushButton:disabled {
     color: #80808f;
 }
 
-QPushButton#letters
-{
-    /*font: bold;*/
+QPushButton#letters {
+    font-weight: bold;
     font-size: 28px;
     background-color: #4f465d;
 }
 
-QPushButton:hover#letters
-{
+QPushButton#letters:hover {
     background-color: #5f566d;
 }
 
-QPushButton:pressed#letters
-{
+QPushButton#letters:pressed {
     background-color: #3f364d;
 }
 
-QPushButton#chosen_letters
-{
-    font: bold;
+QPushButton#chosen_letters {
+    font-weight: bold;
     font-size: 28px;
     background-color: #3f364d;
     border-top: 1px solid #1e1e1e;
     border-right: 1px solid #1e1e1e;
 }
 
-QPushButton#drop
-{
+QPushButton#drop {
     background-color: #3f364d;
 }
 
-QPushButton:hover#drop
-{
+QPushButton#drop:hover {
     background-color: #4f465d;
 }
 
-QPushButton:pressed#drop
-{
+QPushButton#drop:pressed {
     background-color: #2f263d;
 }
