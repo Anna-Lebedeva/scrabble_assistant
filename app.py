@@ -34,20 +34,20 @@ class ScrabbleApplication(QWidget):
     _row_size = _chip_size * (_width // _chip_size)  # длина линии кнопок в px
 
     # css цвета для вывода ценностей подсказок
-    _colors = ['#4E8E55', '#A0504E', '#4B659E']
-    # _colors = ['#4E8E55', '#A0504E', '#4B659E', '#FFFF00', '#FF00FF']
+    # _colors = ['#4E8E55', '#A0504E', '#4B659E']
+    _colors = ['#419A48', '#328CAE', '#A9A50E', '#6D4895', '#D62A98']
 
     # пути к папкам с фишками разных цветов
     # фишки используются для вывода подсказок на доске
     _chips_folders_paths = [
-        'resources/app_images/chips/green/',
-        'resources/app_images/chips/red/',
-        'resources/app_images/chips/blue/'
         # 'resources/app_images/chips/green/',
-        # 'resources/app_images/chips/light_blue/',
-        # 'resources/app_images/chips/orange/',
-        # 'resources/app_images/chips/violet/',
-        # 'resources/app_images/chips/pink/'
+        # 'resources/app_images/chips/red/',
+        # 'resources/app_images/chips/blue/'
+        'resources/app_images/chips/green/',
+        'resources/app_images/chips/light_blue/',
+        'resources/app_images/chips/yellow/',
+        'resources/app_images/chips/violet/',
+        'resources/app_images/chips/pink/'
     ]
 
     # путь к css
@@ -227,7 +227,6 @@ class ScrabbleApplication(QWidget):
             label.setAlignment(Qt.AlignCenter)
             label.setObjectName('image')
             label.setText('')
-            label.setStyleSheet('font-size: 22px;')
             self._hints_labels.append(label)
 
         # msg label
@@ -243,7 +242,7 @@ class ScrabbleApplication(QWidget):
 
         fd = QFileDialog()  # диалоговое окно для выбора файла
         option = fd.Options()  # стандартный выбор файла
-        img_path = fd.getOpenFileName(self, caption="Выбор фотографии",
+        img_path = fd.getOpenFileName(self, caption="Выбор изображения",
                                       filter="Image files (*.jpg)",
                                       options=option)[0]
 
@@ -260,8 +259,7 @@ class ScrabbleApplication(QWidget):
             self._img_label.setPixmap(QPixmap())  # убираем изображение доски
             self._msg_label.setText(self._msg_scan_error)  # error msg
             # блокировка кнопок
-            for i in range(33):
-                self._letters_buttons[i].setDisabled(True)
+            [self._letters_buttons[i].setDisabled(True) for i in range(33)]
             self._drop_button.setDisabled(True)
             self._start_button.setDisabled(True)
             return
@@ -318,8 +316,7 @@ class ScrabbleApplication(QWidget):
 
             # Разблокировка кнопок
             self._start_button.setDisabled(False)
-            for i in range(33):
-                self._letters_buttons[i].setDisabled(False)
+            [self._letters_buttons[i].setDisabled(False) for i in range(33)]
             self._drop_button.setDisabled(False)
 
             self.init_dicts()  # инициализируем словари
@@ -346,6 +343,9 @@ class ScrabbleApplication(QWidget):
             btn = self._chosen_chips_buttons[i]
             btn.setText("")
             self._chosen_chips_buttons[i] = btn
+        # сбрасываем фон номеров подсказок
+        for i in range(225):
+            self._hints_labels[i].setStyleSheet('background-color: None;')
 
         # очистка подсказки
         self.clear_hint()
@@ -358,7 +358,6 @@ class ScrabbleApplication(QWidget):
         for label in self._hints_labels:
             label.setPixmap(QPixmap())
             label.setText('')
-            label.setStyleSheet('')
 
     def update_buttons(self):
         """
@@ -398,7 +397,7 @@ class ScrabbleApplication(QWidget):
         index = 0  # суммарная длина всех прошлых labels
         label_size = self._width // 15
         for label in self._hints_labels:
-            label.resize(label_size - 1, label_size - 1)
+            label.resize(label_size - 2, label_size - 2)
             x_pos = index % self._width
             y_pos = index // self._width * label_size
             index += label_size
@@ -528,10 +527,17 @@ class ScrabbleApplication(QWidget):
             self.close()
         # запуск алгоритма по нажатию Enter
         elif key == Qt.Key_Return:
-            self.start_btn_pressed()
+            self._start_button.animateClick(100)
         # сброс по нажатию Backspace
         elif key == Qt.Key_Backspace:
-            self.drop_btn_pressed()
+            self._drop_button.animateClick(100)
+        # todo: убрать по готовности приложения
+        # Перепривязка файла разметки
+        elif key == Qt.Key_Alt:
+            f = open(self._stylesheet_path, 'r')
+            self.styleData = f.read()
+            f.close()
+            self.setStyleSheet(self.styleData)
         # если нажатая кнопка - один символ
         elif len(text) == 1:
             # если это "а"-"я"
@@ -576,11 +582,11 @@ class ScrabbleApplication(QWidget):
                 # выводим стоимость подсказки
                 self._msg_label.setText(self._msg_got_hint)
                 self._got_hints = True
-                for i in range(33):
-                    self._letters_buttons[i].setDisabled(True)
-                self._start_button.setDisabled(True)
             else:
                 self._msg_label.setText(self._msg_no_hints)
+
+            [self._letters_buttons[i].setDisabled(True) for i in range(33)]
+            self._start_button.setDisabled(True)
 
     def draw_hint(self, hints: [[[str]]], values: [int]):
         """
@@ -635,10 +641,8 @@ class ScrabbleApplication(QWidget):
             label = self._hints_labels[y * 15 + x]
             label.setText(str(values[i]))
             # todo: дизайн
-            label.setStyleSheet('font-size: 20px; color: '
-                                + self._colors[color_index] +
-                                '; font-weight: bold; ' +
-                                'background-color: black;')
+            label.setStyleSheet('color: ' + self._colors[color_index] +
+                                '; background-color: #323232;')
 
 
 if __name__ == '__main__':
