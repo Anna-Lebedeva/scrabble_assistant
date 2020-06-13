@@ -6,13 +6,13 @@ from PyQt5.QtGui import QIcon, QPixmap, QKeyEvent, QFontDatabase
 from PyQt5.QtWidgets import QApplication, QWidget, QPushButton, QLabel, \
     QDesktopWidget, QFileDialog
 
-from CV.scan import cut_by_external_contour, cut_by_internal_contour
 from CV.exceptions import CutException
+from CV.scan import cut_by_external_contour, cut_by_internal_contour
+from assistant.hint import get_board_with_hints, get_hint_value_coord
 from assistant.read_files import read_image, write_image
 from assistant.scrabble_assistant import LETTERS_AMOUNT
 from assistant.scrabble_assistant import get_used_letters, get_n_hints, \
     is_board_letters_amount_right, delete_alone_letters
-from assistant.hint import get_board_with_hints, get_hint_value_coord
 
 
 # author - Pavel
@@ -35,7 +35,11 @@ class ScrabbleApplication(QWidget):
 
     # css цвета для вывода ценностей подсказок
     # _colors = ['#4E8E55', '#A0504E', '#4B659E']
-    _colors = ['#419A48', '#328CAE', '#A9A50E', '#6D4895', '#D62A98']
+    _colors = ['rgba(65, 154, 72, 160)',   # зелёный
+               'rgba(50, 140, 174, 160)',  # голубой
+               'rgba(169, 165, 14, 160)',  # жёлтый
+               'rgba(109, 72, 149, 160)',  # фиолетовый
+               'rgba(214, 42, 152, 160)']  # розовый
 
     # пути к папкам с фишками разных цветов
     # фишки используются для вывода подсказок на доске
@@ -76,8 +80,6 @@ class ScrabbleApplication(QWidget):
     _start_button = None  # кнопка по нажатии запускает весь алгоритм
 
     # labels
-    _chosen_chips_labels = None
-    _chosen_chips_label_text = 'Выбранные\nбуквы:'
     _msg_label = None
     _msg_start = 'Загрузите изображение'
     _msg_image_uploaded = 'Выберите фишки'
@@ -87,7 +89,7 @@ class ScrabbleApplication(QWidget):
                                   'превышает допустимое игрой значение'
     _msg_max_chips_error = 'Вы набрали максимум фишек'
     _msg_max_chip_error = 'В игре больше нет фишек с буквой '
-    _msg_no_img_no_chips_error = 'Загрузите изображение и выберите фишки'
+    _msg_max_chip_aster_error = 'В игре больше нет фишек со звёздочкой'
     _msg_no_chips_error = 'Вы не выбрали ни одной фишки'
     _msg_no_img_error = 'Вы не загрузили изображение'
     _msg_scan_error = 'Доска не распознана, попробуйте ещё раз'
@@ -257,6 +259,7 @@ class ScrabbleApplication(QWidget):
             img = cut_by_internal_contour(img)  # обрезка по внутреннему контуру
         except (CutException, AttributeError):
             self._img_label.setPixmap(QPixmap())  # убираем изображение доски
+            self.clear_hint()
             self._msg_label.setText(self._msg_scan_error)  # error msg
             # блокировка кнопок
             [self._letters_buttons[i].setDisabled(True) for i in range(33)]
@@ -304,8 +307,7 @@ class ScrabbleApplication(QWidget):
         # считываем изображение
         img = QPixmap('resources/app_images/user_image.jpg')
         # уменьшаем до размеров экрана
-        img = img.scaledToHeight(self._width)
-        img = img.scaledToWidth(self._width)
+        img = img.scaled(self._width, self._width)
 
         # сохраняем
         self._board_img = img
@@ -401,7 +403,7 @@ class ScrabbleApplication(QWidget):
             x_pos = index % self._width
             y_pos = index // self._width * label_size
             index += label_size
-            label.move(x_pos + 1, y_pos + current_height + 1)
+            label.move(x_pos + 2, y_pos + current_height + 2)
         current_height += height
 
         # прорисовка msg label
@@ -463,7 +465,6 @@ class ScrabbleApplication(QWidget):
         """
         Добавление фишки к выбранным фишкам, если это возможно
         """
-
         # если кнопка была активирована нажатием на нее, а не клавиатурой
         if not letter:
             # определяем какая именно кнопка вызвала функцию
@@ -496,13 +497,6 @@ class ScrabbleApplication(QWidget):
                 self._chosen_letters[letter] += 1
                 # обновляем цвет фишек
                 self.update_buttons()
-            else:
-                # если кол-во данных букв уже закончилось - выводим сообщение
-                self._msg_label.setText(self._msg_max_chip_error
-                                        + letter.upper())
-        else:
-            # если 7 фишек уже выбрано - выводим об этом сообщение
-            self._msg_label.setText(self._msg_max_chips_error)
 
     def keyPressEvent(self, event: QKeyEvent):
         """
@@ -513,6 +507,8 @@ class ScrabbleApplication(QWidget):
         text = event.text().lower()  # текст нажатой кнопки
 
         # замена вводимых латинских букв на кириллицу и Ё на Е
+        # комментарий ниже указывает PyCharm не проверять строки на опечатки
+        # noinspection SpellCheckingInspection
         _eng_chars = u"`qwertyuiop[]asdfghjkl;'zxcvbnm,." \
                      u"QWERTYUIOP{}ASDFGHJKL:\"|ZXCVBNM<>"
         _rus_chars = u"ёйцукенгшщзхъфывапролджэячсмитьбю" \
@@ -527,10 +523,11 @@ class ScrabbleApplication(QWidget):
             self.close()
         # запуск алгоритма по нажатию Enter
         elif key == Qt.Key_Return:
-            self._start_button.animateClick(100)
+            self._start_button.animateClick()
         # сброс по нажатию Backspace
         elif key == Qt.Key_Backspace:
-            self._drop_button.animateClick(100)
+            self._drop_button.animateClick()
+
         # todo: убрать по готовности приложения
         # Перепривязка файла разметки
         elif key == Qt.Key_Alt:
@@ -538,15 +535,35 @@ class ScrabbleApplication(QWidget):
             self.styleData = f.read()
             f.close()
             self.setStyleSheet(self.styleData)
+
         # если нажатая кнопка - один символ
         elif len(text) == 1:
             # если это "а"-"я"
             if 1072 <= ord(text) <= 1103:
-                # производим нажатие нужной кнопки
-                self.letter_btn_pressed(text)
-            # отдельная обработка звездочки
+                # если кнопка выключена, приложение не на начальном экране
+                # и строка выбранных фишек не заполнена,
+                # выводим сообщение, что кончились фишки с такой буквой
+                if not self._letters_buttons[ord(text) - 1072].isEnabled() \
+                        and self._start_button.isEnabled():
+                    if sum(self._chosen_letters.values()) != 7:
+                        self._msg_label.setText(self._msg_max_chip_error
+                                                + text.upper())
+                    # если 7 фишек уже выбрано, выводим об этом сообщение
+                    else:
+                        self._msg_label.setText(self._msg_max_chips_error)
+                # иначе производим нажатие нужной кнопки
+                else:
+                    self._letters_buttons[ord(text) - 1072].animateClick()
+            # аналогично, обработка звездочки
             elif text == '*':
-                self.letter_btn_pressed('*')
+                if not self._letters_buttons[32].isEnabled() \
+                        and self._start_button.isEnabled():
+                    if sum(self._chosen_letters.values()) != 7:
+                        self._msg_label.setText(self._msg_max_chip_aster_error)
+                    else:
+                        self._msg_label.setText(self._msg_max_chips_error)
+                else:
+                    self._letters_buttons[32].animateClick()
 
     def drop_btn_pressed(self):
         """
@@ -565,9 +582,7 @@ class ScrabbleApplication(QWidget):
         if self._got_hints:
             self.clear_hint()
 
-        if sum(self._chosen_letters.values()) == 0 and self._board_img is None:
-            self._msg_label.setText(self._msg_no_img_no_chips_error)
-        elif sum(self._chosen_letters.values()) == 0:
+        if sum(self._chosen_letters.values()) == 0:
             self._msg_label.setText(self._msg_no_chips_error)
         elif self._board_img is None:
             self._msg_label.setText(self._msg_no_img_error)
@@ -596,7 +611,7 @@ class ScrabbleApplication(QWidget):
         # объединение доски с подсказками и их ценностями
         combined_board = get_board_with_hints(self._board, hints)
 
-        # идем по всем полученный подсказкам
+        # идем по всем полученным подсказкам
         for i in range(len(hints)):
 
             # определяем цвет подсказки
@@ -619,13 +634,12 @@ class ScrabbleApplication(QWidget):
 
                         img_folder = self._chips_folders_paths[color_index]
                         img_filename = 'letter' + str(chip_index + 1) + '.jpg'
-                        pix = QPixmap(img_folder + img_filename)
 
-                        # размер одной фишки на изображении
-                        hint_size = self._width // 15  # 30px
+                        # размер одной фишки на изображении,
                         # масштабирование изображения под фишку
-                        pix = pix.scaledToWidth(hint_size)
-                        pix = pix.scaledToHeight(hint_size)
+                        size = self._width // 15 - 2  # 28px
+                        pix = QPixmap(img_folder + img_filename).\
+                            scaled(size, size)
 
                         # находим нужный label в массиве
                         hint_label = self._hints_labels[y * 15 + x]
@@ -640,9 +654,9 @@ class ScrabbleApplication(QWidget):
             combined_board[y][x] = '$'
             label = self._hints_labels[y * 15 + x]
             label.setText(str(values[i]))
-            # todo: дизайн
-            label.setStyleSheet('color: ' + self._colors[color_index] +
-                                '; background-color: #323232;')
+            label.setStyleSheet('color: white; '
+                                'background-color: '
+                                + self._colors[color_index])
 
 
 if __name__ == '__main__':
