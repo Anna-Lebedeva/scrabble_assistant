@@ -4,10 +4,17 @@ import cv2
 from CV.scan import cut_by_external_contour
 from CV.scan import cut_by_internal_contour
 from CV.scan import cut_board_on_cells
-from CV.scan import colored_to_cropped_threshold
+from CV.scan import adaptive_equalization
+from CV.scan import IMAGE_RESOLUTION
 
 path_to_input = '../../!raw_images_to_cut/'
 path_to_output = '../dataset_image/'
+function_to_apply_to_images = adaptive_equalization
+
+# (Пере-)создание папок-категорий
+for i in range(1, 34):
+    rmtree(path_to_output + str(i), ignore_errors=True)
+    os.mkdir(path_to_output + str(i))
 
 for k, f in enumerate(os.listdir(path_to_input), 1):
     img = cv2.imread(path_to_input + f)
@@ -15,17 +22,26 @@ for k, f in enumerate(os.listdir(path_to_input), 1):
     internal_crop = cut_by_internal_contour(external_crop)
     board_squares = cut_board_on_cells(internal_crop)
 
-    empty = [4, 6]
-    green = [4, 7]
-    blue = [5, 5]
-    yellow = [6, 2]
-    red = [8, 1]
-    white = [8, 8]
-    all = [empty, green, blue, yellow, red, white]
-    for current in all:
-        img = board_squares[current[0] - 1][current[1] - 1]
-        img = cv2.resize(img, (28, 28))
-        cv2.imwrite(path_to_output + "Empty/" + str(current[0] * current[1]) + "_" + f, img)
+    row = 1
+    for i in range(15):
+        img = board_squares[row - 1][i]
+        img = function_to_apply_to_images(img)
+        img = cv2.resize(img, (IMAGE_RESOLUTION, IMAGE_RESOLUTION))
+        cv2.imwrite(path_to_output + str(i + 1) + "/" + f, img)
+
+    row = 2
+    for i in range(15):
+        img = board_squares[row - 1][i]
+        img = function_to_apply_to_images(img)
+        img = cv2.resize(img, (IMAGE_RESOLUTION, IMAGE_RESOLUTION))
+        cv2.imwrite(path_to_output + str(i + 16) + "/" + f, img)
+
+    row = 3
+    for i in range(3):
+        img = board_squares[row - 1][i]
+        img = function_to_apply_to_images(img)
+        img = cv2.resize(img, (IMAGE_RESOLUTION, IMAGE_RESOLUTION))
+        cv2.imwrite(path_to_output + str(i + 31) + "/" + f, img)
 
     # Вывод процента выполнения
     print(f, str(round(k / len(os.listdir(path_to_input)) * 100, 1)) + "%")
