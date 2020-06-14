@@ -2,15 +2,17 @@ from pathlib import Path
 
 import numpy as np
 from joblib import load
-from skimage import img_as_float
 from skimage.color import rgb2gray
+from skimage.restoration import denoise_nl_means
 
 
 # Автор: Матвей
 # fixme: НЕ ДОДЕЛАНО / ПРОВЕРОК НЕТ
+
+
 def classify_images(board: [np.ndarray],
                     classifier_path: Path,
-                    scaler_path: Path) -> ([[int]], [[int]]):
+                    scaler_path: Path = None) -> ([[int]], [[int]]):
     """Приводит картинку к серому. Где каждый пиксель представлен интенсивностью белого.
     Загружает дамп обученной модели. И выдает предсказания для каждой клетки.
     :param board: Массив 15х15х3, где каждый пиксель представлен интенсивностями rgb.
@@ -26,27 +28,29 @@ def classify_images(board: [np.ndarray],
     flat_array = np.zeros(shape=(225, 784))
 
     for i in range(len(images)):
-        flat_array[i] = np.around(img_as_float(rgb2gray(images[i])).ravel(), decimals=2)
+        flat_array[i] = denoise_nl_means(rgb2gray(images[i]), patch_size=2).ravel()
         # Переводим RGB в оттенки серого (из массива х3 получаем число).
         # Переводим в интенсивность белого в диапазон от 0 до 1.
         # Разворачиваем массив 28x28 в 784.
         # Округляем до 2-х знаков после запятой.
 
-    lr_clf = load(Path.cwd().parent / classifier_path)  # Загружаем обученный классикатор
-    scaler = load(Path.cwd().parent / scaler_path)  # Загружаем обученный шкалировщик
-    std_images = scaler.transform(flat_array)  # Шкалируем выборку
+    clf = load(Path.cwd().parent / classifier_path)  # Загружаем обученный классикатор
 
-    # Для шкалированных данных
-    std_predictions = lr_clf.predict(std_images)
-    std_predictions_log_probability = lr_clf.predict_log_proba(std_images)
-    std_predictions_probability = lr_clf.predict_proba(std_images)
+    if scaler_path:
+        scaler = load(Path.cwd().parent / scaler_path)  # Загружаем обученный шкалировщик
+        std_images = scaler.transform(flat_array)  # Шкалируем выборку
+
+        # Для шкалированных данных
+        std_predictions = clf.predict(std_images)
+        std_predictions_log_probability = clf.predict_log_proba(std_images)
+        std_predictions_probability = clf.predict_proba(std_images)
 
     # Для не шкалированных данных
-    # predictions = lr_clf.predict(flat_array)
+    predictions = clf.predict(flat_array)
     # predictions_log_probability = lr_clf.predict_log_proba(flat_array)
     # predictions_probability = lr_clf.predict_proba(flat_array)
 
-    return list(std_predictions.reshape(15, 15))  # , \
+    return list(predictions.reshape(15, 15))  # , \
     # list(std_predictions_probability.reshape(15, 15))
 
 

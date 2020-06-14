@@ -114,4 +114,6 @@ def is_word_fit_to_pattern(word: str, pattern: re.Pattern) -> bool:
     :return:
     """
 
+
+    #  fixme: вернуть индексы
     return bool(pattern.search(word))
