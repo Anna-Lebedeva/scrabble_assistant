@@ -311,46 +311,36 @@ def colored_to_cropped_threshold(img: np.ndarray) -> np.ndarray:
     return cropped
 
 
-def adaptive_equalization(img: np.ndarray) -> np.ndarray:
-    # adaptive
-    img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-    clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8, 8))
-    # equ = clahe.apply(img)
-    #
-    # equ = cv2.convertScaleAbs(img, alpha=1, beta=0)
-    equ = img
-    # non adaptive
-    # equ = cv2.equalizeHist(img)
-
-    return equ
+# def adaptive_equalization(img: np.ndarray) -> np.ndarray:
+#     # adaptive
+#     img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+#     clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8, 8))
+#     # equ = clahe.apply(img)
+#     #
+#     # equ = cv2.convertScaleAbs(img, alpha=1, beta=0)
+#     equ = img
+#     # non adaptive
+#     # equ = cv2.equalizeHist(img)
+#
+#     return equ
 
 
 if __name__ == "__main__":
     pass
 
-    image = cv2.imread('../ML/2/test1_resized.jpg')
+    image = cv2.imread('test1.jpg')
+    image = resize(image, 1000)
 
     # external_crop = cut_by_external_contour(image)
-    gray = to_gray(image, [0, 0, 1])
-    binary = adjust_sigmoid(gray)
-    thresh = threshold_isodata(binary)
-    internal_crop = cut_by_internal_contour(binary)
-    # board_squares = cut_board_on_cells(internal_crop)
+    bw_img = to_binary(to_gray(image, [0, 0, 1]))
+    internal_crop = cut_by_internal_contour(bw_img)
+    board_squares = cut_board_on_cells(internal_crop)
 
-    cv2.imshow("", resize(binary, 800))
-    #binary_img = to_binary(to_gray(image, [1, 0, 0]))
-
-    # eq = adaptive_equalization(board_squares[5][3])
-    # cv2.imshow("", resize(eq, 100))
-    # cv2.imshow("", board_squares[0][0])
-    # cv2.waitKey()
-    # cv2.destroyAllWindows()
-    #
-    # for j in range(15):
-    #     for i in range(15):
-    #         cv2.imshow('Cell', board_squares[j][i])
-    #         cv2.waitKey()
-    #         cv2.destroyAllWindows()
+    for j in range(15):
+        for i in range(15):
+            cv2.imshow('Cell', board_squares[j][i])
+            cv2.waitKey()
+            cv2.destroyAllWindows()
 
     # # тест распознавания изображений:
     # clf_path = Path.cwd().parent / CLASSIFIER_DUMP_PATH

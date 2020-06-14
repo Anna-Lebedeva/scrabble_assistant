@@ -66,8 +66,7 @@ def to_binary(image_gray: np.ndarray) -> np.ndarray:
     img_adj = adjust_sigmoid(image_gray)  # Регулируем контраст (сигмовидная коррекция)
 
     # Находим порог для изображения и возвращаем изображение в ЧБ
-    return img_adj > threshold_isodata(img_adj)
-
+    return np.array(img_adj > threshold_isodata(img_adj), dtype='uint8')
 
 
 if __name__ == "__main__":
