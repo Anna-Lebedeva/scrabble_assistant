@@ -4,12 +4,10 @@ import cv2
 from CV.scan import cut_by_external_contour
 from CV.scan import cut_by_internal_contour
 from CV.scan import cut_board_on_cells
-from CV.scan import adaptive_equalization
 from CV.scan import IMAGE_RESOLUTION
 
 path_to_input = '../../!raw_images_to_cut/'
-path_to_output = '../dataset_image/'
-function_to_apply_to_images = adaptive_equalization
+path_to_output = '../2/'
 
 # (Пере-)создание папок-категорий
 for i in range(1, 34):
@@ -25,21 +23,21 @@ for k, f in enumerate(os.listdir(path_to_input), 1):
     row = 1
     for i in range(15):
         img = board_squares[row - 1][i]
-        img = function_to_apply_to_images(img)
+
         img = cv2.resize(img, (IMAGE_RESOLUTION, IMAGE_RESOLUTION))
         cv2.imwrite(path_to_output + str(i + 1) + "/" + f, img)
 
     row = 2
     for i in range(15):
         img = board_squares[row - 1][i]
-        img = function_to_apply_to_images(img)
+
         img = cv2.resize(img, (IMAGE_RESOLUTION, IMAGE_RESOLUTION))
         cv2.imwrite(path_to_output + str(i + 16) + "/" + f, img)
 
     row = 3
     for i in range(3):
         img = board_squares[row - 1][i]
-        img = function_to_apply_to_images(img)
+
         img = cv2.resize(img, (IMAGE_RESOLUTION, IMAGE_RESOLUTION))
         cv2.imwrite(path_to_output + str(i + 31) + "/" + f, img)
 

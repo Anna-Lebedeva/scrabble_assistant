@@ -4,6 +4,8 @@ import cv2
 import numpy as np
 from imutils import grab_contours
 from imutils import resize
+from skimage.exposure import adjust_sigmoid
+from skimage.filters import threshold_isodata
 from skimage.io import imshow
 
 from CV.transform import four_point_transform
@@ -124,7 +126,7 @@ def cut_by_internal_contour(img: np.ndarray,
         (h, w) = img.shape[:2]  # получение размеров игровой доски
         # обрезка
         cropped = img[round(top * w / 100):round(h * (1 - bot / 100)),
-                  round(left * h / 100):round(w * (1 - right / 100))]
+                      round(left * h / 100):round(w * (1 - right / 100))]
 
         (h, w) = cropped.shape[:2]  # получение размеров игрового поля
 
@@ -326,35 +328,27 @@ def adaptive_equalization(img: np.ndarray) -> np.ndarray:
 if __name__ == "__main__":
     pass
 
-    image = cv2.imread('test1.jpg')
-    # image = cv2.imread('../resources/app_images/test.jpg')
+    image = cv2.imread('../ML/2/test1_resized.jpg')
 
-    # image = cv2.imread('../resources/app_images/test.jpg', 0)
-    # equ = cv2.equalizeHist(image)
-    #
-    # # create a CLAHE object (Arguments are optional).
-    # clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8, 8))
-    # cl1 = clahe.apply(image)
+    # external_crop = cut_by_external_contour(image)
+    gray = to_gray(image, [0, 0, 1])
+    binary = adjust_sigmoid(gray)
+    thresh = threshold_isodata(binary)
+    internal_crop = cut_by_internal_contour(binary)
+    # board_squares = cut_board_on_cells(internal_crop)
 
-    external_crop = cut_by_external_contour(image)
-    internal_crop = cut_by_internal_contour(external_crop)
-    board_squares = cut_board_on_cells(internal_crop)
-    eq = adaptive_equalization(board_squares[0][0])
-
-    imshow(image)
+    cv2.imshow("", resize(binary, 800))
     #binary_img = to_binary(to_gray(image, [1, 0, 0]))
 
     # eq = adaptive_equalization(board_squares[5][3])
-    cv2.imshow("", resize(eq, 100))
+    # cv2.imshow("", resize(eq, 100))
     # cv2.imshow("", board_squares[0][0])
-    cv2.waitKey()
-    cv2.destroyAllWindows()
-
-    # for i in range(15):
-    #     for img in board_squares[i]:
-    #         eq = adaptive_equalization(img)
-    #         board_squares[i][img] = eq
-    #         cv2.imshow(img, board_squares[i][img])
+    # cv2.waitKey()
+    # cv2.destroyAllWindows()
+    #
+    # for j in range(15):
+    #     for i in range(15):
+    #         cv2.imshow('Cell', board_squares[j][i])
     #         cv2.waitKey()
     #         cv2.destroyAllWindows()
 
