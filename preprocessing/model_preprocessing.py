@@ -11,12 +11,12 @@ import pandas as pd
 from joblib import dump
 from skimage.color import rgb2gray
 from skimage.io import imread
-from skimage.filters import apply_hysteresis_threshold, try_all_threshold
-
 from skimage.restoration import denoise_nl_means
 from skimage.util import dtype
-from sklearn.linear_model import LogisticRegression
+from skimage.exposure import adjust_sigmoid
+from skimage.filters import try_all_threshold, threshold_isodata
 
+from sklearn.linear_model import LogisticRegression
 from sklearn.preprocessing import StandardScaler
 
 DATASET_PATH = Path('ML') / Path('color_dataset')
@@ -24,7 +24,7 @@ CLASSIFIER_DUMP_PATH = Path('ML') / Path('classifier.joblib')
 SCALER_DUMP_PATH = Path('ML') / Path('scaler.joblib')
 
 
-# pca t-sne rfecv psnr ecv deno
+# t-sne psnr ecv deno
 
 
 def to_gray(rgb: np.ndarray, coefficients: [float], force_copy=False) -> np.ndarray:
@@ -55,6 +55,19 @@ def to_gray(rgb: np.ndarray, coefficients: [float], force_copy=False) -> np.ndar
     coeffs = np.array(coefficients, dtype=rgb.dtype)
 
     return rgb @ coeffs
+
+
+def to_binary(image_gray: np.ndarray) -> np.ndarray:
+    """
+    Переводит изображение из оттенокв серого в черно-белое.
+    :param image_gray: изображение в оттенках серого
+    :return: изображение в ЧБ формате
+    """
+    img_adj = adjust_sigmoid(image_gray)  # Регулируем контраст (сигмовидная коррекция)
+
+    # Находим порог для изображения и возвращаем изображение в ЧБ
+    return img_adj > threshold_isodata(img_adj)
+
 
 
 if __name__ == "__main__":
