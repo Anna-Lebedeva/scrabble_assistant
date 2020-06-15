@@ -95,7 +95,7 @@ def cut_by_external_contour(img: np.ndarray) -> np.ndarray:
             # оптимальный параметр от 0.02 * периметр до 0.06 * периметр
             approx = cv2.approxPolyDP(c, 0.04 * peri, True)
 
-            # просто берем самый большой контур с 4 точками
+            # берем самый большой контур с 4 точками
             if len(approx) == 4:
                 screen_cnt = approx
                 break
@@ -190,7 +190,7 @@ def cut_board_on_cells(img: np.ndarray) -> [np.ndarray]:
             cropped = cv2.resize(cropped, (IMAGE_RESOLUTION, IMAGE_RESOLUTION))
             squares[j - 1].append(cropped)
 
-    return squares
+    return np.array(squares)
 
 
 # todo: сделать вывод дмухмерного массива предсказаний
@@ -330,14 +330,6 @@ if __name__ == "__main__":
 
     image = cv2.imread('test1.jpg')
     image = resize(image, 1000)
-    cv2.imshow('AFTER RESIZE', image)
-
-    gray_img = to_gray(image, [0, 0, 1])
-    cv2.imshow('AFTER TO_GRAY', gray_img)
-
-    adj_img = adjust_sigmoid(gray_img)
-    cv2.imshow('AFTER ADJUST', adj_img)
-
 
     # external_crop = cut_by_external_contour(image)
     bw_img = to_binary(to_gray(image, [0, 0, 1]))

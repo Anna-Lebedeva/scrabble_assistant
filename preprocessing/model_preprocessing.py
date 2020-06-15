@@ -10,16 +10,15 @@ import numpy as np
 import pandas as pd
 from joblib import dump
 from skimage.color import rgb2gray
+from skimage.exposure import adjust_sigmoid
+from skimage.filters import threshold_isodata
 from skimage.io import imread
 from skimage.restoration import denoise_nl_means
 from skimage.util import dtype
-from skimage.exposure import adjust_sigmoid
-from skimage.filters import try_all_threshold, threshold_isodata
-
 from sklearn.linear_model import LogisticRegression
 from sklearn.preprocessing import StandardScaler
 
-DATASET_PATH = Path('ML') / Path('color_dataset')
+DATASET_PATH = Path('ML') / Path('dataset')
 CLASSIFIER_DUMP_PATH = Path('ML') / Path('classifier.joblib')
 SCALER_DUMP_PATH = Path('ML') / Path('scaler.joblib')
 
@@ -37,7 +36,7 @@ def to_gray(rgb: np.ndarray, coefficients: [float], force_copy=False) -> np.ndar
     использовать порогование.
 
     :param rgb: изображение в RGB формате. ИЗОБРАЖЕНИЕ НЕ ДОЛЖНО БЫТЬ ШУМНЫМ!
-    # todo: добавить проверку на шум
+    # todo: добавить проверку на шум / денойз
     :param coefficients: коэффициенты для в перевода в оттенки серого
     :param force_copy:
     :return: изображение в оттенках серого

@@ -5,5 +5,7 @@
 __pycache__
 /ML/dataset_image/
 /ML/color_dataset/
+/ML/dataset/
+/ML/raw_images_to_cut/
 /CV/*.jpg
 /resources/app_images/user_image.jpg

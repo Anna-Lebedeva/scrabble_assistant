@@ -4,12 +4,12 @@ import cv2
 from CV.scan import cut_by_external_contour
 from CV.scan import cut_by_internal_contour
 from CV.scan import cut_board_on_cells
-from CV.scan import adaptive_equalization
+#from CV.scan import adaptive_equalization
 from CV.scan import IMAGE_RESOLUTION
 
 path_to_input = '../../!raw_images_to_cut/'
 path_to_output = '../dataset_image/'
-function_to_apply_to_images = adaptive_equalization
+#function_to_apply_to_images = adaptive_equalization
 
 for k, f in enumerate(os.listdir(path_to_input), 1):
     img = cv2.imread(path_to_input + f)
