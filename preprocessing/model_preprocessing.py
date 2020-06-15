@@ -36,12 +36,12 @@ def to_gray(rgb: np.ndarray, coefficients: [float], force_copy=False) -> np.ndar
     Это создаст более сильный контраст буквы. И мы сможем эффективнее
     использовать порогование.
 
-    :param rgb: изображение в RGB формате
+    :param rgb: изображение в RGB формате. ИЗОБРАЖЕНИЕ НЕ ДОЛЖНО БЫТЬ ШУМНЫМ!
+    # todo: добавить проверку на шум
     :param coefficients: коэффициенты для в перевода в оттенки серого
     :param force_copy:
     :return: изображение в оттенках серого
     """
-    # fixme: сейчас исходное изображение слишком шумное
 
     # Проверяем форму массива, переводим в представление с плавающей точкой.
     rgb = np.asanyarray(rgb)
@@ -66,7 +66,7 @@ def to_binary(image_gray: np.ndarray) -> np.ndarray:
     img_adj = adjust_sigmoid(image_gray)  # Регулируем контраст (сигмовидная коррекция)
 
     # Находим порог для изображения и возвращаем изображение в ЧБ
-    return np.array(img_adj > threshold_isodata(img_adj), dtype='uint8')
+    return np.array((img_adj > threshold_isodata(img_adj)), dtype=image_gray.dtype)
 
 
 if __name__ == "__main__":

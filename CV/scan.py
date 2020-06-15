@@ -126,7 +126,7 @@ def cut_by_internal_contour(img: np.ndarray,
         (h, w) = img.shape[:2]  # получение размеров игровой доски
         # обрезка
         cropped = img[round(top * w / 100):round(h * (1 - bot / 100)),
-                      round(left * h / 100):round(w * (1 - right / 100))]
+                  round(left * h / 100):round(w * (1 - right / 100))]
 
         (h, w) = cropped.shape[:2]  # получение размеров игрового поля
 
@@ -330,9 +330,18 @@ if __name__ == "__main__":
 
     image = cv2.imread('test1.jpg')
     image = resize(image, 1000)
+    cv2.imshow('AFTER RESIZE', image)
+
+    gray_img = to_gray(image, [0, 0, 1])
+    cv2.imshow('AFTER TO_GRAY', gray_img)
+
+    adj_img = adjust_sigmoid(gray_img)
+    cv2.imshow('AFTER ADJUST', adj_img)
+
 
     # external_crop = cut_by_external_contour(image)
     bw_img = to_binary(to_gray(image, [0, 0, 1]))
+    cv2.imshow('IN BW', bw_img)
     internal_crop = cut_by_internal_contour(bw_img)
     board_squares = cut_board_on_cells(internal_crop)
 
