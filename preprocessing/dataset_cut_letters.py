@@ -4,10 +4,8 @@ from pathlib import Path
 from shutil import rmtree
 
 import numpy as np
-from cv2 import cv2
 
 from skimage.io import imread, imsave
-from skimage.transform import resize
 
 from CV.scan import IMG_RES
 from CV.scan import cut_board_on_cells
@@ -16,8 +14,8 @@ from CV.scan import cut_by_internal_contour
 from CV.scan import CutException
 from preprocessing.model_preprocessing import to_gray, to_binary
 
-IMAGES_TO_CUT_PATH = '!raw_images_to_cut/1'
-DATASET_PATH = 'ML/dataset'
+IMAGES_TO_CUT_PATH = Path('ML') / Path('!raw_images_to_cut')
+DATASET_PATH = Path('ML') / Path('dataset')
 
 # authors - Misha, Matvey
 if __name__ == "__main__":
@@ -37,15 +35,14 @@ if __name__ == "__main__":
     crd_ctg = np.reshape(crd_ctg, (len(coordinates), 2))
 
     # (Пере-)создание папок-категорий будущего датасета
-    for folder in Path(Path.cwd().parent / DATASET_PATH).glob('*'):
-        rmtree(Path(Path.cwd().parent / DATASET_PATH / Path(folder)), True)
+    for folder in (Path.cwd().parent / DATASET_PATH).glob('*'):
+        rmtree(Path.cwd().parent / DATASET_PATH / Path(folder), True)
     time.sleep(3)
     for category in categories:
-        (Path(Path.cwd().parent / DATASET_PATH / Path(category))).\
-            mkdir(mode=0o777)
+        (Path.cwd().parent / DATASET_PATH / Path(category)).mkdir(mode=0o777)
 
     # Создаем генератор путей исходных изображений
-    path_gen = Path(Path.cwd().parent / IMAGES_TO_CUT_PATH).glob('*.jpg')
+    path_gen = (Path.cwd().parent / IMAGES_TO_CUT_PATH).glob('*.jpg')
     # Записываем пути
     paths = [path for path in path_gen if path.is_file()]
 
@@ -69,8 +66,7 @@ if __name__ == "__main__":
             for c in crd_ctg:
                 cell = flat_board[int(c[0])]
                 # cell = to_binary(to_gray(cell, [1, 0, 0]))  # фильтр для BGR
-                imsave(str(Path(Path.cwd().parent / DATASET_PATH
-                                / c[1] / filename)), cell)
+                imsave(str(Path.cwd().parent / DATASET_PATH / Path(c[1]) / Path(filename)), cell)
         except (CutException, UserWarning):
             bad_images.append(filename)
         # Вывод процента выполнения
