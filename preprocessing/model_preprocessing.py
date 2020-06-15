@@ -9,6 +9,7 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 from joblib import dump
+from skimage import img_as_float
 from skimage.color import rgb2gray
 from skimage.exposure import adjust_sigmoid
 from skimage.filters import threshold_isodata
@@ -80,7 +81,7 @@ if __name__ == "__main__":
         paths = [path for path in path_gen if path.is_file()]  # Записываем пути картинок
         for i in range(len(paths)):
             letters_data.loc[index] = \
-                *denoise_nl_means(rgb2gray(imread(paths[i]))).ravel(), folder
+                *np.around(img_as_float(imread(paths[i]))).ravel(), folder
             # Переводим в оттенки серого, убираем шумы
             # Картинка представляется 28*28 признаками (пикселями,
             # в каждом из которых берем интенсивность белого)

@@ -5,16 +5,15 @@ from shutil import rmtree
 import numpy as np
 
 from skimage.io import imread, imsave
-from skimage.transform import resize
 
-from CV.scan import IMG_RES
+from CV.scan import IMAGE_RESOLUTION
 from CV.scan import cut_board_on_cells
 from CV.scan import cut_by_external_contour
 from CV.scan import cut_by_internal_contour
 from preprocessing.model_preprocessing import to_gray, to_binary
 
-IMAGES_TO_CUT_PATH = Path(Path.cwd().parent / '!raw_images_to_cut/1')
-DATASET_PATH = Path(Path.cwd().parent / 'ML/dataset')
+IMAGES_TO_CUT_PATH = Path('ML') / Path('!raw_images_to_cut')
+DATASET_PATH = Path('ML') / Path('dataset')
 
 # authors - Misha, Matvey
 if __name__ == "__main__":
@@ -34,14 +33,14 @@ if __name__ == "__main__":
     crd_ctg = np.reshape(crd_ctg, (len(coordinates), 2))
 
     # (Пере-)создание папок-категорий будущего датасета
-    for folder in DATASET_PATH.glob('*'):
-        rmtree(DATASET_PATH / Path(folder), True)
+    for folder in (Path.cwd().parent / DATASET_PATH).glob('*'):
+        rmtree(Path.cwd().parent / DATASET_PATH / Path(folder), True)
     time.sleep(1)
     for category in categories:
-        (DATASET_PATH / Path(category)).mkdir(mode=0o777)
+        (Path.cwd().parent / DATASET_PATH / Path(category)).mkdir(mode=0o777)
 
     # Создаем генератор путей исходных изображений
-    path_gen = IMAGES_TO_CUT_PATH.glob('*.jpg')
+    path_gen = (Path.cwd().parent / IMAGES_TO_CUT_PATH).glob('*.jpg')
     # Записываем пути
     paths = [path for path in path_gen if path.is_file()]
 
@@ -53,14 +52,16 @@ if __name__ == "__main__":
 
         # Решейп из двухмерного в одномерный массив изображений
         flat_board = board_squares.reshape(
-            (board_squares.shape[0] * board_squares.shape[1], IMG_RES,
-             IMG_RES, 3))  # если нет фильтра то добавляется форма 3
+            (board_squares.shape[0] * board_squares.shape[1], IMAGE_RESOLUTION,
+             IMAGE_RESOLUTION, 3))  # если нет фильтра то добавляется форма 3
 
         # Обработка и запись клеток
         for c in crd_ctg:
             cell = flat_board[int(c[0])]
             # cell = to_binary(to_gray(cell, [1, 0, 0]))  # фильтр для BGR
-            imsave(str(DATASET_PATH / Path(c[1]) / Path(str(k) + '.jpg')), cell)
+            imsave(
+                str(Path.cwd().parent / DATASET_PATH / Path(c[1]) / Path(str(k) + '.jpg')),
+                cell)
 
         # Вывод процента выполнения
         print(k, 'файл,', str(round(k / len(paths) * 100, 1)) + "%")
