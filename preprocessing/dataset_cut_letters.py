@@ -1,7 +1,8 @@
 from pathlib import Path
 from shutil import rmtree
 
-import cv2
+from skimage.io import imread, imsave
+from skimage.transform import resize
 
 from CV.scan import IMAGE_RESOLUTION
 from CV.scan import cut_board_on_cells
@@ -21,26 +22,28 @@ if __name__ == "__main__":
     path_gen = (Path.cwd().parent / IMAGES_TO_CUT_PATH).glob(
         '*.jpg')  # Создаем генератор путей сырых картинок
     paths = [path for path in path_gen if path.is_file()]  # Записываем пути картинок
-    print(paths)
 
     for i in range(len(paths)):
-        image = cv2.imread(str(paths[i]))
-        # фильтр?
+        image = imread(str(paths[i]))
+
+        # image_gray = to_binary(to_gray(image, [0, 0, 1]))
+
         external_crop = cut_by_external_contour(image)
         internal_crop = cut_by_internal_contour(external_crop)
         board_squares = cut_board_on_cells(internal_crop)
         flat_board = board_squares.reshape(
-            (225, IMAGE_RESOLUTION, IMAGE_RESOLUTION,
-             3))  # если нет фильтра то добавляется форма 3
+            (board_squares.shape[0] * board_squares.shape[1], IMAGE_RESOLUTION,
+             IMAGE_RESOLUTION, 3))  # если нет фильтра то добавляется форма 3
 
-        for j in range(1, 34):
+        for j in range(33):  # Идем по доске как по одномерному массиву
             cell = flat_board[j]
-            #binary_cell = to_binary(to_gray(cell, [0, 0, 1]))
-            binary_cell = cv2.resize(cell, (IMAGE_RESOLUTION, IMAGE_RESOLUTION))
-            cv2.imwrite(
-                str(Path.cwd().parent / DATASET_PATH / Path(str(j)) / Path(
-                    str(i) + '.jpg')),
-                binary_cell)
+
+            # фильтр
+            cell_binary = to_binary(to_gray(cell, [1, 0, 0]))
+
+            cell_binary = resize(cell_binary, (IMAGE_RESOLUTION, IMAGE_RESOLUTION))
+            imsave(str(Path.cwd().parent / DATASET_PATH / Path(str(j + 1)) / Path(
+                str(i) + '.jpg')), cell_binary)
 
         # Вывод процента выполнения
         print(  # f'Обработано изображение: {paths[i]} '
