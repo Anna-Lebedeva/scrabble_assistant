@@ -13,17 +13,17 @@ from skimage import img_as_float
 from skimage.exposure import adjust_sigmoid
 from skimage.filters import threshold_isodata
 from skimage.io import imread
-from skimage.restoration import denoise_nl_means, denoise_tv_bregman
+from skimage.restoration import denoise_tv_bregman
 from skimage.util import dtype
 from sklearn.linear_model import LogisticRegression
 from sklearn.preprocessing import StandardScaler
+from sklearn.svm import SVC
+
+IMG_RESOLUTION = 64
 
 DATASET_PATH = Path('ML') / Path('dataset')
 CLASSIFIER_DUMP_PATH = Path('ML') / Path('classifier.joblib')
 SCALER_DUMP_PATH = Path('ML') / Path('scaler.joblib')
-
-
-# t-sne psnr ecv deno
 
 
 def rgb_to_gray(rgb: np.ndarray, coefficients: [float], force_copy=False) -> np.ndarray:
@@ -70,8 +70,8 @@ def gray_to_binary(image_gray: np.ndarray) -> np.ndarray:
 
 
 if __name__ == "__main__":
-    letters_data = pd.DataFrame(columns=range(28 * 28 + 1))
-    letters_data = letters_data.rename(columns={784: 'letter'})
+    letters_data = pd.DataFrame(columns=range(IMG_RESOLUTION * IMG_RESOLUTION + 1))
+    letters_data = letters_data.rename(columns={4096: 'letter'})
 
     index = 0
 
@@ -80,21 +80,19 @@ if __name__ == "__main__":
             '*.jpg')  # Создаем генератор путей картинок
         paths = [path for path in path_gen if path.is_file()]  # Записываем пути картинок
         for i in range(len(paths)):
-            letters_data.loc[index] = \
-                *denoise_nl_means(imread(paths[i])).ravel(), folder
+            letters_data.loc[index] = *img_as_float(imread(paths[i])).ravel(), folder
             # Переводим в оттенки серого, убираем шумы
-            # Картинка представляется 28*28 признаками (пикселями,
+            # Картинка представляется IMG_RESOLUTION * IMG_RESOLUTION признаками (пикселями,
             # в каждом из которых берем интенсивность белого)
             index += 1
 
     letters_data.letter = letters_data.letter.map(int)  # Переводим номер буквы в int
     letters_y = letters_data.pop('letter')  # Выделяем целевую переменную
 
-    scaler = StandardScaler()
-    std_letters_data = scaler.fit_transform(letters_data)
-    dump(scaler, Path.cwd().parent / SCALER_DUMP_PATH)
+    # scaler = StandardScaler()
+    # std_letters_data = scaler.fit_transform(letters_data)
+    # dump(scaler, Path.cwd().parent / SCALER_DUMP_PATH)
 
-    lr_clf = LogisticRegression(penalty='l1', C=1, solver='liblinear',
-                                max_iter=300, n_jobs=-1, random_state=1, verbose=True)
-    lr_clf.fit(std_letters_data, letters_y)
-    dump(lr_clf, Path.cwd().parent / CLASSIFIER_DUMP_PATH)
+    svm_clf = SVC(kernel='poly', degree=2, C=1, cache_size=1000)
+    svm_clf.fit(letters_data, letters_y)
+    dump(svm_clf, Path.cwd().parent / CLASSIFIER_DUMP_PATH)

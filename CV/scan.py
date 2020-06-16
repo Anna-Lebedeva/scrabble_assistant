@@ -1,3 +1,5 @@
+from pathlib import Path
+
 import cv2
 import numpy as np
 from imutils import grab_contours
@@ -317,7 +319,7 @@ if __name__ == "__main__":
 
     img_bw = gray_to_binary(rgb_to_gray(img_internal_crop, [0, 0, 1]))
     img_bw = img_as_ubyte(img_bw)
-    cv2.imshow('IN BW', img_bw)
+    #cv2.imshow('IN BW', img_bw)
 
     board_squares = cut_board_on_cells(img_bw)
 
@@ -328,23 +330,23 @@ if __name__ == "__main__":
     #         cv2.destroyAllWindows()
 
     # # тест распознавания изображений:
-    # clf_path = Path.cwd().parent / CLASSIFIER_DUMP_PATH
-    # sc_path = Path.cwd().parent / SCALER_DUMP_PATH
+    clf_path = Path.cwd().parent / CLASSIFIER_DUMP_PATH
+    sc_path = Path.cwd().parent / SCALER_DUMP_PATH
     #
-    # predicted_letters = classify_images(board_squares, clf_path, sc_path)
-    # pred_board = nums_to_letters(predicted_letters)
-    # for row in pred_board:
-    #     print(row)
+    predicted_letters = classify_images(board_squares, clf_path)  #, sc_path)
+    pred_board = nums_to_letters(predicted_letters)
+    for row in pred_board:
+        print(row)
     # # print(probability)
 
-    for j in range(15):
-        for i in range(15):
-            cv2.imshow("Thresh",
-                       resize(crop_letter(board_squares[j][i]),
-                              height=150))
-            cv2.imshow("Cell", resize(board_squares[j][i], 150))
-            cv2.waitKey()
-            cv2.destroyAllWindows()
+    # for j in range(15):
+    #     for i in range(15):
+    #         cv2.imshow("Thresh",
+    #                    resize(crop_letter(board_squares[j][i]),
+    #                           height=150))
+    #         cv2.imshow("Cell", resize(board_squares[j][i], 150))
+    #         cv2.waitKey()
+    #         cv2.destroyAllWindows()
 
     # cv2.imshow("Cell",
     #            resize(colored_to_cropped_threshold(board_squares[0][12]),
