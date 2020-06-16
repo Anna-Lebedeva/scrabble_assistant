@@ -1,6 +1,8 @@
 import time
 from collections import Counter
 from assistant import scrabble_assistant as sa
+from preprocessing.dictionary_preprocessing import\
+    prepare_frequency_dictionaries
 
 if __name__ == '__main__':
 
@@ -112,24 +114,24 @@ if __name__ == '__main__':
     #
     # print('Hint value = ' + str(test_value))
 
-    t = time.time()
-    test_hints, test_values = sa.get_n_hints(test_board, Counter('ааелкнм'), 10)
-    print('Time = ' + str(time.time() - t) + 's')
-
-    for hint_i in range(len(test_hints)):
-        # доска с подсказкой
-        hint = []
-        for test_i in range(len(test_hints[hint_i])):
-            hint.append([])
-            for test_j in range(len(test_hints[hint_i][test_i])):
-                if test_board[test_i][test_j] != '':
-                    hint[test_i].append(test_board[test_i][test_j])
-                else:
-                    if test_hints[hint_i][test_i][test_j] == '':
-                        hint[test_i].append(' ')
-                    else:
-                        hint[test_i].append(test_hints[hint_i][test_i][test_j].upper())
-    print('Ценность подсказок: ' + str(test_values))
+    # t = time.time()
+    # test_hints, test_values = sa.get_n_hints(test_board, Counter('ааелкнм'), 10)
+    # print('Time = ' + str(time.time() - t) + 's')
+    #
+    # for hint_i in range(len(test_hints)):
+    #     # доска с подсказкой
+    #     hint = []
+    #     for test_i in range(len(test_hints[hint_i])):
+    #         hint.append([])
+    #         for test_j in range(len(test_hints[hint_i][test_i])):
+    #             if test_board[test_i][test_j] != '':
+    #                 hint[test_i].append(test_board[test_i][test_j])
+    #             else:
+    #                 if test_hints[hint_i][test_i][test_j] == '':
+    #                     hint[test_i].append(' ')
+    #                 else:
+    #                     hint[test_i].append(test_hints[hint_i][test_i][test_j].upper())
+    # print('Ценность подсказок: ' + str(test_values))
 
     # f2 = open('resources/dictionaries/new_dictionary14.txt', 'w',
     #           encoding='utf-8')
@@ -139,3 +141,5 @@ if __name__ == '__main__':
     #         if len(line) <= 14 + 1:
     #             f2.write(line)
     # f2.close()
+
+    prepare_frequency_dictionaries('resources/dictionaries/nouns.txt')

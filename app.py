@@ -1,4 +1,5 @@
 import sys
+# import time
 from collections import Counter
 
 from PyQt5.QtCore import QSize, Qt
@@ -34,19 +35,15 @@ class ScrabbleApplication(QWidget):
     _row_size = _chip_size * (_width // _chip_size)  # длина линии кнопок в px
 
     # css цвета для вывода ценностей подсказок
-    # _colors = ['#4E8E55', '#A0504E', '#4B659E']
-    _colors = ['rgba(65, 154, 72, 160)',   # зелёный
-               'rgba(50, 140, 174, 160)',  # голубой
-               'rgba(169, 165, 14, 160)',  # жёлтый
-               'rgba(109, 72, 149, 160)',  # фиолетовый
-               'rgba(214, 42, 152, 160)']  # розовый
+    _colors = ['rgba(25, 114, 32, 160)',   # зелёный
+               'rgba(20, 140, 150, 160)',  # голубой
+               'rgba(129, 125, 0, 160)',  # жёлтый
+               'rgba(49, 30, 100, 160)',  # фиолетовый
+               'rgba(200, 30, 140, 160)']  # розовый
 
     # пути к папкам с фишками разных цветов
     # фишки используются для вывода подсказок на доске
     _chips_folders_paths = [
-        # 'resources/app_images/chips/green/',
-        # 'resources/app_images/chips/red/',
-        # 'resources/app_images/chips/blue/'
         'resources/app_images/chips/green/',
         'resources/app_images/chips/light_blue/',
         'resources/app_images/chips/yellow/',
@@ -587,10 +584,16 @@ class ScrabbleApplication(QWidget):
         elif self._board_img is None:
             self._msg_label.setText(self._msg_no_img_error)
         else:
+            # время начала
+            # t = time.time()
+
             # запуск алгоритма
             hints, values = get_n_hints(self._board,
                                         Counter(self._chosen_letters),
                                         self._hints_amount)
+            # время окончания
+            # print(time.time() - t)
+
             if len(hints) != 0:
                 # отрисовка подсказки на экране
                 self.draw_hint(hints, values)
