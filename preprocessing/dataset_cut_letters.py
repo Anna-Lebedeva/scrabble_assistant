@@ -6,13 +6,13 @@ import numpy as np
 
 from skimage.io import imread, imsave
 
-from CV.scan import IMAGE_RESOLUTION
+from CV.scan import IMAGE_RESOLUTION, crop_letters
 from CV.scan import cut_board_on_cells
 from CV.scan import cut_by_external_contour
 from CV.scan import cut_by_internal_contour
 from preprocessing.model_preprocessing import to_gray, to_binary
 
-IMAGES_TO_CUT_PATH = Path('ML') / Path('!raw_images_to_cut')
+IMAGES_TO_CUT_PATH = Path('ML') / Path('raw_images_to_cut')
 DATASET_PATH = Path('ML') / Path('dataset')
 
 # authors - Misha, Matvey
@@ -57,11 +57,14 @@ if __name__ == "__main__":
 
         # Обработка и запись клеток
         for c in crd_ctg:
-            cell = flat_board[int(c[0])]
-            # cell = to_binary(to_gray(cell, [1, 0, 0]))  # фильтр для BGR
+            img_cell = flat_board[int(c[0])]
+
+            img_cell = to_binary(to_gray(img_cell, [1, 0, 0]))  # фильтр для RGB
+            img_letter = crop_letters(img_cell)  # Вырезка буквы
+
             imsave(
                 str(Path.cwd().parent / DATASET_PATH / Path(c[1]) / Path(str(k) + '.jpg')),
-                cell)
+                img_letter)
 
         # Вывод процента выполнения
         print(k, 'файл,', str(round(k / len(paths) * 100, 1)) + "%")

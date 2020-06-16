@@ -4,16 +4,14 @@ import cv2
 import numpy as np
 from imutils import grab_contours
 from imutils import resize
-from skimage.exposure import adjust_sigmoid
-from skimage.filters import threshold_isodata
-from skimage.io import imshow
+from skimage import img_as_ubyte
 
 from CV.transform import four_point_transform
 from CV.exceptions import CutException
 
 from ML.letter_recognition import classify_images, nums_to_letters
 from preprocessing.model_preprocessing import CLASSIFIER_DUMP_PATH, \
-    SCALER_DUMP_PATH, to_binary, to_gray
+    SCALER_DUMP_PATH, rgb_to_gray, gray_to_binary
 
 # from keras.models import model_from_json
 # import pickle
@@ -275,73 +273,59 @@ def cut_board_on_cells(img: np.ndarray) -> [np.ndarray]:
 
 
 # author - Sergei, Mikhail
-def colored_to_cropped_threshold(img: np.ndarray) -> np.ndarray:
+def crop_letters(img_bin: np.ndarray) -> np.ndarray:
     """
     Делает изображение чёрно-белым по порогу и отрезает лишнее
-    :param img: Изображение на вход
+    :param img_bin: Пороговое изображение на вход
     :return: Пороговое обрезанное изображение
     """
 
-    gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+    #gray = to_gray(img, [0, 1, 1])
     # blur = cv2.GaussianBlur(gray, (7, 7), 0)
     # blur = cv2.blur(gray, (3, 3))
     # edges = cv2.Canny(gray, 150, 255)
-    _, thresh = cv2.threshold(gray, 150, 255, cv2.THRESH_BINARY)
+    #_, thresh = cv2.threshold(gray, 150, 255, cv2.THRESH_BINARY)
+    # thresh = to_binary(to_gray(img, [0, 0, 1]))
     # thresh = cv2.adaptiveThreshold(gray, 255, cv2.ADAPTIVE_THRESH_MEAN_C,
     #                                cv2.THRESH_BINARY, blockSize=31, C=5)
-    # thresh = cv2.erode(thresh, np.ones((3, 3), np.uint8), iterations=1)
+    img_bin = cv2.erode(img_bin, np.ones((3, 3), np.uint8), iterations=1)
 
     # Поиск контуров
-    cropped = thresh.copy()
-    # contours, hierarchy = cv2.findContours(cropped, cv2.RETR_EXTERNAL,
-    #                                        cv2.CHAIN_APPROX_NONE)
+    cropped = img_bin.copy()
+    contours, hierarchy = cv2.findContours(cropped, cv2.RETR_EXTERNAL,
+                                           cv2.CHAIN_APPROX_NONE)
 
     # Перебор контуров. Если периметр достаточно большой,
     # решаем, что это буква и обрезаем картинку по
     # её левому нижнему углу
-    # for idx, contour in enumerate(contours):
-    #     perimeter = cv2.arcLength(contour, True)
-    #     (x, y, w, h) = cv2.boundingRect(contour)
-    #     if perimeter > 215:
-    #         cropped = cropped[0:y + h, x:x + y + h]
-    #         break
+    for idx, contour in enumerate(contours):
+        perimeter = cv2.arcLength(contour, True)
+        (x, y, w, h) = cv2.boundingRect(contour)
+        if perimeter > 215:
+            cropped = cropped[0:y + h, x:x + y + h]
+            break
 
-    cropped = cv2.resize(cropped, (IMAGE_RESOLUTION, IMAGE_RESOLUTION))
-
-    return cropped
-
-
-# def adaptive_equalization(img: np.ndarray) -> np.ndarray:
-#     # adaptive
-#     img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-#     clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8, 8))
-#     # equ = clahe.apply(img)
-#     #
-#     # equ = cv2.convertScaleAbs(img, alpha=1, beta=0)
-#     equ = img
-#     # non adaptive
-#     # equ = cv2.equalizeHist(img)
-#
-#     return equ
+    return cv2.resize(cropped, (IMAGE_RESOLUTION, IMAGE_RESOLUTION))
 
 
 if __name__ == "__main__":
-    pass
 
     image = cv2.imread('test1.jpg')
     image = resize(image, 1000)
 
-    # external_crop = cut_by_external_contour(image)
-    bw_img = to_binary(to_gray(image, [0, 0, 1]))
+    # bw_img = cut_by_external_contour(image)
+    bw_img = gray_to_binary(rgb_to_gray(image, [0, 0, 1]))
     cv2.imshow('IN BW', bw_img)
+
     internal_crop = cut_by_internal_contour(bw_img)
+    internal_crop = img_as_ubyte(internal_crop)
     board_squares = cut_board_on_cells(internal_crop)
 
-    for j in range(15):
-        for i in range(15):
-            cv2.imshow('Cell', board_squares[j][i])
-            cv2.waitKey()
-            cv2.destroyAllWindows()
+    # for j in range(15):
+    #     for i in range(15):
+    #         cv2.imshow('Cell', board_squares[j][i])
+    #         cv2.waitKey()
+    #         cv2.destroyAllWindows()
 
     # # тест распознавания изображений:
     # clf_path = Path.cwd().parent / CLASSIFIER_DUMP_PATH
@@ -353,14 +337,14 @@ if __name__ == "__main__":
     #     print(row)
     # # print(probability)
 
-    # for j in range(15):
-    #     for i in range(15):
-    #         cv2.imshow("Thresh",
-    #                    resize(colored_to_cropped_threshold(board_squares[j][i]),
-    #                           height=150))
-    #         cv2.imshow("Cell", resize(board_squares[j][i], 150))
-    #         cv2.waitKey()
-    #         cv2.destroyAllWindows()
+    for j in range(15):
+        for i in range(15):
+            cv2.imshow("Thresh",
+                       resize(crop_letters(board_squares[j][i]),
+                              height=150))
+            cv2.imshow("Cell", resize(board_squares[j][i], 150))
+            cv2.waitKey()
+            cv2.destroyAllWindows()
 
     # cv2.imshow("Cell",
     #            resize(colored_to_cropped_threshold(board_squares[0][12]),

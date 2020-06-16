@@ -27,7 +27,7 @@ SCALER_DUMP_PATH = Path('ML') / Path('scaler.joblib')
 # t-sne psnr ecv deno
 
 
-def to_gray(rgb: np.ndarray, coefficients: [float], force_copy=False) -> np.ndarray:
+def rgb_to_gray(rgb: np.ndarray, coefficients: [float], force_copy=False) -> np.ndarray:
     """
     Т.к фишки на нашей доске синего цвета, результат будет лучше, если мы будем использовать
     не стандартные коэффициенты для перевода в оттенки серого, а те, которые будут подавлять
@@ -37,7 +37,6 @@ def to_gray(rgb: np.ndarray, coefficients: [float], force_copy=False) -> np.ndar
     использовать порогование.
 
     :param rgb: изображение в RGB формате. ИЗОБРАЖЕНИЕ НЕ ДОЛЖНО БЫТЬ ШУМНЫМ!
-    # todo: добавить проверку на шум / денойз
     :param coefficients: коэффициенты для в перевода в оттенки серого
     :param force_copy:
     :return: изображение в оттенках серого
@@ -57,7 +56,7 @@ def to_gray(rgb: np.ndarray, coefficients: [float], force_copy=False) -> np.ndar
     return rgb @ coeffs
 
 
-def to_binary(image_gray: np.ndarray) -> np.ndarray:
+def gray_to_binary(image_gray: np.ndarray) -> np.ndarray:
     """
     Переводит изображение из оттенокв серого в черно-белое.
     :param image_gray: изображение в оттенках серого
