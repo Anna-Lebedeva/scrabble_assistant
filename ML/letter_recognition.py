@@ -2,8 +2,9 @@ from pathlib import Path
 
 import numpy as np
 from joblib import load
-from skimage.color import rgb2gray
-from skimage.restoration import denoise_nl_means
+from skimage import img_as_float
+
+from preprocessing.model_preprocessing import IMG_RESOLUTION
 
 
 # Автор: Матвей
@@ -22,17 +23,16 @@ def classify_images(board: [np.ndarray],
     И второй массив таких же размеров, содержащий вероятности.
     """
 
-    images = np.array(board).reshape((225, 28, 28, 3))
+    images = np.array(board).reshape((225, IMG_RESOLUTION, IMG_RESOLUTION))
     # Разворачиваем массив 15x15x28x28x3 в 225x28x28x3
 
-    flat_array = np.zeros(shape=(225, 784))
+    flat_array = np.zeros(shape=(225, IMG_RESOLUTION * IMG_RESOLUTION))
 
     for i in range(len(images)):
-        flat_array[i] = denoise_nl_means(rgb2gray(images[i]), patch_size=2).ravel()
+        flat_array[i] = img_as_float(images[i]).ravel()
         # Переводим RGB в оттенки серого (из массива х3 получаем число).
         # Переводим в интенсивность белого в диапазон от 0 до 1.
-        # Разворачиваем массив 28x28 в 784.
-        # Округляем до 2-х знаков после запятой.
+        # Разворачиваем массив в IMG_RESOLUTION * IMG_RESOLUTION
 
     clf = load(Path.cwd().parent / classifier_path)  # Загружаем обученный классикатор
 
@@ -42,8 +42,8 @@ def classify_images(board: [np.ndarray],
 
         # Для шкалированных данных
         std_predictions = clf.predict(std_images)
-        std_predictions_log_probability = clf.predict_log_proba(std_images)
-        std_predictions_probability = clf.predict_proba(std_images)
+        # std_predictions_log_probability = clf.predict_log_proba(std_images)
+        # std_predictions_probability = clf.predict_proba(std_images)
 
     # Для не шкалированных данных
     predictions = clf.predict(flat_array)

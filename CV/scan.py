@@ -1,16 +1,20 @@
+from pathlib import Path
+
 import cv2
 import numpy as np
 from imutils import grab_contours
 from imutils import resize
+from skimage import img_as_ubyte
 
-from CV.transform import four_point_transform
 from CV.exceptions import CutException
-
-from preprocessing.model_preprocessing import to_binary, to_gray
+from CV.transform import four_point_transform
+from ML.letter_recognition import classify_images, nums_to_letters
+from preprocessing.model_preprocessing import CLASSIFIER_DUMP_PATH, \
+    SCALER_DUMP_PATH, rgb_to_gray, gray_to_binary
 
 # Размер изображений для тренировки и предсказаний нейросетки
 # Импортируется в train и load_data, чтобы изменять значение в одном месте
-IMG_RES = 28
+IMG_RESOLUTION = 64
 
 
 # Авторы: Миша, Матвей
@@ -113,7 +117,7 @@ def cut_by_internal_contour(img: np.ndarray,
         (h, w) = img.shape[:2]  # получение размеров игровой доски
         # обрезка
         cropped = img[round(top * w / 100):round(h * (1 - bot / 100)),
-                      round(left * h / 100):round(w * (1 - right / 100))]
+                  round(left * h / 100):round(w * (1 - right / 100))]
 
         (h, w) = cropped.shape[:2]  # получение размеров игрового поля
 
@@ -174,107 +178,33 @@ def cut_board_on_cells(img: np.ndarray) -> [np.ndarray]:
         squares.append([])
         for m in range(1, 16):
             cropped = img[y[n - 1]:y[n], x[m - 1]:x[m]]
-            cropped = cv2.resize(cropped, (IMG_RES, IMG_RES))
+            cropped = cv2.resize(cropped, (IMG_RESOLUTION, IMG_RESOLUTION))
             squares[n - 1].append(cropped)
 
     return np.array(squares)
 
 
-# todo: сделать вывод дмухмерного массива предсказаний
-#  после достижения необходимой точности предсказаний
-# taken from repo:
-# https://github.com/rohanthomas/Tensorflow-image-recognition,
-# embedded by Mikhail
-# def make_prediction(square: list) -> [np.ndarray]:
-#     """
-#     :param square: Массив изображений ячеек, размерность массива 15х15
-#     :return: Массив предсказаний изображений
-#     (пока выводит одно предсказание для отладки)
-#     """
-#
-#     # # Отключение назойливых предупреждений
-#     tf.get_logger().setLevel('ERROR')
-#     os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
-#
-#     # Пути до файлов модели
-#     path_to_classifier = "../ML/int_to_word_out.pickle"
-#     path_to_model_json = "../ML/model_face.json"
-#     path_to_weights = "../ML/model_face.h5"
-#
-#     # Импорт json для замены чисел на буквы
-#     with open(file="jsons/folders_mapping.json", mode='r',
-#               encoding='utf-8') as file:
-#         folder_values = json.load(file)
-#
-#     # Загрузка классификатора
-#     classifier_f = open(path_to_classifier, "rb")
-#     int_to_word_out = pickle.load(classifier_f)
-#     classifier_f.close()
-#
-#     # Загрузка json и создание модели
-#     json_file = open(path_to_model_json, 'r')
-#     loaded_model_json = json_file.read()
-#     json_file.close()
-#     loaded_model = model_from_json(loaded_model_json)
-#
-#     # Загрузка весов в модель
-#     loaded_model.load_weights(path_to_weights)
-#
-#     # Создание массива предсказаний
-#     predictions = []
-#     for j in range(15):
-#         predictions.append([])
-#
-#         for k in range(15):
-#             img = square[j][k]
-#
-#             img = colored_to_cropped_threshold(img)
-#
-#             img = cv2.resize(img, (IMAGE_RESOLUTION, IMAGE_RESOLUTION))
-#             img = np.reshape(img, (IMAGE_RESOLUTION, IMAGE_RESOLUTION, 1))
-#             img = np.array([img])
-#             img = img.astype('float32')
-#             img = img / 255.0
-#
-#             prediction_arr = loaded_model.predict(img)
-#             prediction = int_to_word_out[np.argmax(prediction_arr)]
-#             predictions[j].append(prediction)
-#
-#             # Замена числа на букву
-#             prediction_letter = folder_values["{}".format(prediction)]
-#
-#             # Вероятность
-#             print("(", np.max(prediction_arr), ")", sep="", end=" ")
-#             # Предсказание. Если вероятность меньше порога - это пустая клетка
-#             if np.max(prediction_arr) > 0.999:
-#                 print(prediction, prediction_letter)
-#             else:
-#                 print("Empty... Или может быть", prediction_letter)
-#
-#             # Изображение для проверки (временно)
-#             cv2.imshow("{} {}".format(j, k), board_squares[j][k])
-#             cv2.imshow("Threshold", resize(image, height=200))
-#             cv2.waitKey()
-#             cv2.destroyAllWindows()
-#
-#
-#     return predictions
-
-
 # author - Sergei, Mikhail
-def colored_to_cropped_threshold(img: np.ndarray) -> np.ndarray:
+def crop_letter(img_bin: np.ndarray) -> np.ndarray:
     """
-    Делает изображение чёрно-белым по порогу и отрезает лишнее
-    :param img: Изображение на вход
+    Вырезает из клетки букву
+    :param img_bin: Пороговое изображение на вход
     :return: Пороговое обрезанное изображение
     """
 
-    gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-    _, thresh = cv2.threshold(gray, 150, 255, cv2.THRESH_BINARY)
+    # gray = to_gray(img, [0, 1, 1])
+    # blur = cv2.GaussianBlur(gray, (7, 7), 0)
+    # blur = cv2.blur(gray, (3, 3))
+    # edges = cv2.Canny(gray, 150, 255)
+    # _, thresh = cv2.threshold(gray, 150, 255, cv2.THRESH_BINARY)
+    # thresh = to_binary(to_gray(img, [0, 0, 1]))
+    # thresh = cv2.adaptiveThreshold(gray, 255, cv2.ADAPTIVE_THRESH_MEAN_C,
+    #                                cv2.THRESH_BINARY, blockSize=31, C=5)
+    img_bin = cv2.erode(img_bin, np.ones((3, 3), np.uint8), iterations=1)
 
     # Поиск контуров
-    cropped = thresh.copy()
-    contours, _ = cv2.findContours(cropped, cv2.RETR_EXTERNAL,
+    cropped = img_bin.copy()
+    contours, hierarchy = cv2.findContours(cropped, cv2.RETR_EXTERNAL,
                                            cv2.CHAIN_APPROX_NONE)
 
     # Перебор контуров. Если периметр достаточно большой,
@@ -287,20 +217,23 @@ def colored_to_cropped_threshold(img: np.ndarray) -> np.ndarray:
             cropped = cropped[0:y + h, x:x + y + h]
             break
 
-    cropped = cv2.resize(cropped, (IMG_RES, IMG_RES))
-
-    return cropped
+    return cv2.resize(cropped, (IMG_RESOLUTION, IMG_RESOLUTION))
 
 
 if __name__ == "__main__":
-    pass
 
-    image = cv2.imread('../!raw_images_to_cut/1/IMG_20200615_183955_6.jpg')
-    # image = resize(image, 1000)
+    image = cv2.imread('test9.jpg')
+    image = resize(image, 1000)
 
-    external_crop = cut_by_external_contour(image)
-    internal_crop = cut_by_internal_contour(external_crop)
-    board_squares = cut_board_on_cells(internal_crop)
+    # img_external_crop = cut_by_external_contour(image)
+    img_internal_crop = cut_by_internal_contour(image)
+    # img_internal_crop = img_as_ubyte(img_internal_crop)  # Перевод в формат 0-255
+
+    img_bw = gray_to_binary(rgb_to_gray(img_internal_crop, [0, 0, 1]))
+    img_bw = img_as_ubyte(img_bw)
+    #cv2.imshow('IN BW', img_bw)
+
+    board_squares = cut_board_on_cells(img_bw)
 
     # for j in range(15):
     #     for i in range(15):
@@ -309,19 +242,19 @@ if __name__ == "__main__":
     #         cv2.destroyAllWindows()
 
     # # тест распознавания изображений:
-    # clf_path = Path.cwd().parent / CLASSIFIER_DUMP_PATH
-    # sc_path = Path.cwd().parent / SCALER_DUMP_PATH
+    clf_path = Path.cwd().parent / CLASSIFIER_DUMP_PATH
+    sc_path = Path.cwd().parent / SCALER_DUMP_PATH
     #
-    # predicted_letters = classify_images(board_squares, clf_path, sc_path)
-    # pred_board = nums_to_letters(predicted_letters)
-    # for row in pred_board:
-    #     print(row)
+    predicted_letters = classify_images(board_squares, clf_path)  #, sc_path)
+    pred_board = nums_to_letters(predicted_letters)
+    for row in pred_board:
+        print(row)
     # # print(probability)
 
     # for j in range(15):
     #     for i in range(15):
     #         cv2.imshow("Thresh",
-    #                    resize(colored_to_cropped_threshold(board_squares[j][i]),
+    #                    resize(crop_letter(board_squares[j][i]),
     #                           height=150))
     #         cv2.imshow("Cell", resize(board_squares[j][i], 150))
     #         cv2.waitKey()
@@ -333,7 +266,7 @@ if __name__ == "__main__":
 
     # print(make_prediction(board_squares))
 
-    cv2.imshow("External cropped board", resize(external_crop, 800))
+    # cv2.imshow("External cropped board", resize(img_external_crop, 800))
     # cv2.imshow("Internal cropped board", resize(internal_crop, 800))
     # cv2.imshow("Cell", board_squares[0][0])
     # cv2.imshow("Grid", resize(draw_the_grid(internal_crop), 1500))
