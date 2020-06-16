@@ -1,5 +1,3 @@
-from pathlib import Path
-
 import cv2
 import numpy as np
 from imutils import grab_contours
@@ -21,7 +19,7 @@ from preprocessing.model_preprocessing import CLASSIFIER_DUMP_PATH, \
 
 # Размер изображений для тренировки и предсказаний нейросетки
 # Импортируется в train и load_data, чтобы изменять значение в одном месте
-IMAGE_RESOLUTION = 28
+IMG_RES = 28
 
 
 # Авторы: Миша, Матвей
@@ -39,8 +37,8 @@ def get_coordinates(img: np.ndarray) -> ([int], [int], int, int):
          4.96 / 15 * w, 5.96 / 15 * w, 6.98 / 15 * w, 7.98 / 15 * w, 9 / 15 * w,
          10 / 15 * w, 11.01 / 15 * w, 12.01 / 15 * w, 13.03 / 15 * w,
          14.04 / 15 * w, 14.99 / 15 * w]
-    x = [round(x[i]) for i in range(16)]
-    y = [round(h / 15 * i) for i in range(16)]
+    x = [round(x[m]) for m in range(16)]
+    y = [round(h / 15 * n) for n in range(16)]
 
     return x, y, h, w
 
@@ -124,7 +122,7 @@ def cut_by_internal_contour(img: np.ndarray,
         (h, w) = img.shape[:2]  # получение размеров игровой доски
         # обрезка
         cropped = img[round(top * w / 100):round(h * (1 - bot / 100)),
-                  round(left * h / 100):round(w * (1 - right / 100))]
+                      round(left * h / 100):round(w * (1 - right / 100))]
 
         (h, w) = cropped.shape[:2]  # получение размеров игрового поля
 
@@ -155,14 +153,14 @@ def draw_the_grid(img: np.ndarray) -> np.ndarray:
     x, y, h, w = get_coordinates(img)
 
     # Вертикальные линии
-    for i in x:
-        start_point = (i, 0)
-        end_point = (i, h)
+    for n in x:
+        start_point = (n, 0)
+        end_point = (n, h)
         cv2.line(img, start_point, end_point, color=(0, 255, 0), thickness=2)
     # Горизонтальные линии
-    for j in y:
-        start_point = (0, j)
-        end_point = (w, j)
+    for n in y:
+        start_point = (0, n)
+        end_point = (w, n)
         cv2.line(img, start_point, end_point, color=(0, 255, 0), thickness=2)
 
     return img
@@ -181,12 +179,12 @@ def cut_board_on_cells(img: np.ndarray) -> [np.ndarray]:
 
     # Заполнение массива
     squares = []
-    for j in range(1, 16):
+    for n in range(1, 16):
         squares.append([])
-        for i in range(1, 16):
-            cropped = img[y[j - 1]:y[j], x[i - 1]:x[i]]
-            cropped = cv2.resize(cropped, (IMAGE_RESOLUTION, IMAGE_RESOLUTION))
-            squares[j - 1].append(cropped)
+        for m in range(1, 16):
+            cropped = img[y[n - 1]:y[n], x[m - 1]:x[m]]
+            cropped = cv2.resize(cropped, (IMG_RES, IMG_RES))
+            squares[n - 1].append(cropped)
 
     return np.array(squares)
 
@@ -310,8 +308,8 @@ def crop_letters(img_bin: np.ndarray) -> np.ndarray:
 
 if __name__ == "__main__":
 
-    image = cv2.imread('test1.jpg')
-    image = resize(image, 1000)
+    image = cv2.imread('../!raw_images_to_cut/1/IMG_20200615_183955_6.jpg')
+    # image = resize(image, 1000)
 
     # bw_img = cut_by_external_contour(image)
     bw_img = gray_to_binary(rgb_to_gray(image, [0, 0, 1]))
@@ -352,7 +350,7 @@ if __name__ == "__main__":
 
     # print(make_prediction(board_squares))
 
-    # cv2.imshow("External cropped board", resize(external_crop, 800))
+    cv2.imshow("External cropped board", resize(external_crop, 800))
     # cv2.imshow("Internal cropped board", resize(internal_crop, 800))
     # cv2.imshow("Cell", board_squares[0][0])
     # cv2.imshow("Grid", resize(draw_the_grid(internal_crop), 1500))
