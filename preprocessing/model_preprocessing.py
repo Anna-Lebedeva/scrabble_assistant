@@ -13,7 +13,7 @@ from skimage import img_as_float
 from skimage.exposure import adjust_sigmoid
 from skimage.filters import threshold_isodata
 from skimage.io import imread
-from skimage.restoration import denoise_nl_means
+from skimage.restoration import denoise_nl_means, denoise_tv_bregman
 from skimage.util import dtype
 from sklearn.linear_model import LogisticRegression
 from sklearn.preprocessing import StandardScaler
@@ -61,10 +61,12 @@ def gray_to_binary(image_gray: np.ndarray) -> np.ndarray:
     :param image_gray: изображение в оттенках серого
     :return: изображение в ЧБ формате
     """
-    img_adj = adjust_sigmoid(image_gray)  # Регулируем контраст (сигмовидная коррекция)
+    img_denoised = denoise_tv_bregman(image_gray, weight=33)  # денойз
+    img_adj = adjust_sigmoid(img_denoised)  # Регулируем контраст (сигмовидная коррекция)
 
     # Находим порог для изображения и возвращаем изображение в ЧБ
     return np.array((img_adj > threshold_isodata(img_adj)), dtype=image_gray.dtype)
+    # return img_adj
 
 
 if __name__ == "__main__":
@@ -73,13 +75,13 @@ if __name__ == "__main__":
 
     index = 0
 
-    for folder in range(1, 40):
+    for folder in range(1, 34):
         path_gen = Path(Path.cwd().parent / DATASET_PATH / str(folder)).glob(
             '*.jpg')  # Создаем генератор путей картинок
         paths = [path for path in path_gen if path.is_file()]  # Записываем пути картинок
         for i in range(len(paths)):
             letters_data.loc[index] = \
-                *np.around(img_as_float(imread(paths[i]))).ravel(), folder
+                *denoise_nl_means(imread(paths[i])).ravel(), folder
             # Переводим в оттенки серого, убираем шумы
             # Картинка представляется 28*28 признаками (пикселями,
             # в каждом из которых берем интенсивность белого)

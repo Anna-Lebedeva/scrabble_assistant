@@ -19,7 +19,7 @@ from preprocessing.model_preprocessing import CLASSIFIER_DUMP_PATH, \
 
 # Размер изображений для тренировки и предсказаний нейросетки
 # Импортируется в train и load_data, чтобы изменять значение в одном месте
-IMG_RESOLUTION = 28
+IMG_RESOLUTION = 64
 
 
 # Авторы: Миша, Матвей
@@ -273,7 +273,7 @@ def cut_board_on_cells(img: np.ndarray) -> [np.ndarray]:
 # author - Sergei, Mikhail
 def crop_letter(img_bin: np.ndarray) -> np.ndarray:
     """
-    Делает изображение чёрно-белым по порогу и отрезает лишнее
+    Вырезает из клетки букву
     :param img_bin: Пороговое изображение на вход
     :return: Пороговое обрезанное изображение
     """
@@ -308,7 +308,7 @@ def crop_letter(img_bin: np.ndarray) -> np.ndarray:
 
 if __name__ == "__main__":
 
-    image = cv2.imread('test1.jpg')
+    image = cv2.imread('test9.jpg')
     image = resize(image, 1000)
 
     # img_external_crop = cut_by_external_contour(image)
