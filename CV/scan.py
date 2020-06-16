@@ -19,7 +19,7 @@ from preprocessing.model_preprocessing import CLASSIFIER_DUMP_PATH, \
 
 # Размер изображений для тренировки и предсказаний нейросетки
 # Импортируется в train и load_data, чтобы изменять значение в одном месте
-IMG_RES = 28
+IMG_RESOLUTION = 28
 
 
 # Авторы: Миша, Матвей
@@ -122,7 +122,7 @@ def cut_by_internal_contour(img: np.ndarray,
         (h, w) = img.shape[:2]  # получение размеров игровой доски
         # обрезка
         cropped = img[round(top * w / 100):round(h * (1 - bot / 100)),
-                      round(left * h / 100):round(w * (1 - right / 100))]
+                  round(left * h / 100):round(w * (1 - right / 100))]
 
         (h, w) = cropped.shape[:2]  # получение размеров игрового поля
 
@@ -183,7 +183,7 @@ def cut_board_on_cells(img: np.ndarray) -> [np.ndarray]:
         squares.append([])
         for m in range(1, 16):
             cropped = img[y[n - 1]:y[n], x[m - 1]:x[m]]
-            cropped = cv2.resize(cropped, (IMG_RES, IMG_RES))
+            cropped = cv2.resize(cropped, (IMG_RESOLUTION, IMG_RESOLUTION))
             squares[n - 1].append(cropped)
 
     return np.array(squares)
@@ -271,18 +271,18 @@ def cut_board_on_cells(img: np.ndarray) -> [np.ndarray]:
 
 
 # author - Sergei, Mikhail
-def crop_letters(img_bin: np.ndarray) -> np.ndarray:
+def crop_letter(img_bin: np.ndarray) -> np.ndarray:
     """
     Делает изображение чёрно-белым по порогу и отрезает лишнее
     :param img_bin: Пороговое изображение на вход
     :return: Пороговое обрезанное изображение
     """
 
-    #gray = to_gray(img, [0, 1, 1])
+    # gray = to_gray(img, [0, 1, 1])
     # blur = cv2.GaussianBlur(gray, (7, 7), 0)
     # blur = cv2.blur(gray, (3, 3))
     # edges = cv2.Canny(gray, 150, 255)
-    #_, thresh = cv2.threshold(gray, 150, 255, cv2.THRESH_BINARY)
+    # _, thresh = cv2.threshold(gray, 150, 255, cv2.THRESH_BINARY)
     # thresh = to_binary(to_gray(img, [0, 0, 1]))
     # thresh = cv2.adaptiveThreshold(gray, 255, cv2.ADAPTIVE_THRESH_MEAN_C,
     #                                cv2.THRESH_BINARY, blockSize=31, C=5)
@@ -303,21 +303,23 @@ def crop_letters(img_bin: np.ndarray) -> np.ndarray:
             cropped = cropped[0:y + h, x:x + y + h]
             break
 
-    return cv2.resize(cropped, (IMAGE_RESOLUTION, IMAGE_RESOLUTION))
+    return cv2.resize(cropped, (IMG_RESOLUTION, IMG_RESOLUTION))
 
 
 if __name__ == "__main__":
 
-    image = cv2.imread('../!raw_images_to_cut/1/IMG_20200615_183955_6.jpg')
-    # image = resize(image, 1000)
+    image = cv2.imread('test1.jpg')
+    image = resize(image, 1000)
 
-    # bw_img = cut_by_external_contour(image)
-    bw_img = gray_to_binary(rgb_to_gray(image, [0, 0, 1]))
-    cv2.imshow('IN BW', bw_img)
+    # img_external_crop = cut_by_external_contour(image)
+    img_internal_crop = cut_by_internal_contour(image)
+    # img_internal_crop = img_as_ubyte(img_internal_crop)  # Перевод в формат 0-255
 
-    internal_crop = cut_by_internal_contour(bw_img)
-    internal_crop = img_as_ubyte(internal_crop)
-    board_squares = cut_board_on_cells(internal_crop)
+    img_bw = gray_to_binary(rgb_to_gray(img_internal_crop, [0, 0, 1]))
+    img_bw = img_as_ubyte(img_bw)
+    cv2.imshow('IN BW', img_bw)
+
+    board_squares = cut_board_on_cells(img_bw)
 
     # for j in range(15):
     #     for i in range(15):
@@ -338,7 +340,7 @@ if __name__ == "__main__":
     for j in range(15):
         for i in range(15):
             cv2.imshow("Thresh",
-                       resize(crop_letters(board_squares[j][i]),
+                       resize(crop_letter(board_squares[j][i]),
                               height=150))
             cv2.imshow("Cell", resize(board_squares[j][i], 150))
             cv2.waitKey()
@@ -350,7 +352,7 @@ if __name__ == "__main__":
 
     # print(make_prediction(board_squares))
 
-    cv2.imshow("External cropped board", resize(external_crop, 800))
+    # cv2.imshow("External cropped board", resize(img_external_crop, 800))
     # cv2.imshow("Internal cropped board", resize(internal_crop, 800))
     # cv2.imshow("Cell", board_squares[0][0])
     # cv2.imshow("Grid", resize(draw_the_grid(internal_crop), 1500))

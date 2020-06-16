@@ -10,7 +10,6 @@ import numpy as np
 import pandas as pd
 from joblib import dump
 from skimage import img_as_float
-from skimage.color import rgb2gray
 from skimage.exposure import adjust_sigmoid
 from skimage.filters import threshold_isodata
 from skimage.io import imread
