@@ -6,18 +6,11 @@ from imutils import grab_contours
 from imutils import resize
 from skimage import img_as_ubyte
 
-from CV.transform import four_point_transform
 from CV.exceptions import CutException
-
+from CV.transform import four_point_transform
 from ML.letter_recognition import classify_images, nums_to_letters
 from preprocessing.model_preprocessing import CLASSIFIER_DUMP_PATH, \
     SCALER_DUMP_PATH, rgb_to_gray, gray_to_binary
-
-# from keras.models import model_from_json
-# import pickle
-# import tensorflow as tf
-# import os
-# import json
 
 # Размер изображений для тренировки и предсказаний нейросетки
 # Импортируется в train и load_data, чтобы изменять значение в одном месте
@@ -189,87 +182,6 @@ def cut_board_on_cells(img: np.ndarray) -> [np.ndarray]:
             squares[n - 1].append(cropped)
 
     return np.array(squares)
-
-
-# todo: сделать вывод дмухмерного массива предсказаний
-#  после достижения необходимой точности предсказаний
-# taken from repo:
-# https://github.com/rohanthomas/Tensorflow-image-recognition,
-# embedded by Mikhail
-# def make_prediction(square: list) -> [np.ndarray]:
-#     """
-#     :param square: Массив изображений ячеек, размерность массива 15х15
-#     :return: Массив предсказаний изображений
-#     (пока выводит одно предсказание для отладки)
-#     """
-#
-#     # # Отключение назойливых предупреждений
-#     tf.get_logger().setLevel('ERROR')
-#     os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
-#
-#     # Пути до файлов модели
-#     path_to_classifier = "../ML/int_to_word_out.pickle"
-#     path_to_model_json = "../ML/model_face.json"
-#     path_to_weights = "../ML/model_face.h5"
-#
-#     # Импорт json для замены чисел на буквы
-#     with open(file="jsons/folders_mapping.json", mode='r',
-#               encoding='utf-8') as file:
-#         folder_values = json.load(file)
-#
-#     # Загрузка классификатора
-#     classifier_f = open(path_to_classifier, "rb")
-#     int_to_word_out = pickle.load(classifier_f)
-#     classifier_f.close()
-#
-#     # Загрузка json и создание модели
-#     json_file = open(path_to_model_json, 'r')
-#     loaded_model_json = json_file.read()
-#     json_file.close()
-#     loaded_model = model_from_json(loaded_model_json)
-#
-#     # Загрузка весов в модель
-#     loaded_model.load_weights(path_to_weights)
-#
-#     # Создание массива предсказаний
-#     predictions = []
-#     for j in range(15):
-#         predictions.append([])
-#
-#         for k in range(15):
-#             img = square[j][k]
-#
-#             img = colored_to_cropped_threshold(img)
-#
-#             img = cv2.resize(img, (IMAGE_RESOLUTION, IMAGE_RESOLUTION))
-#             img = np.reshape(img, (IMAGE_RESOLUTION, IMAGE_RESOLUTION, 1))
-#             img = np.array([img])
-#             img = img.astype('float32')
-#             img = img / 255.0
-#
-#             prediction_arr = loaded_model.predict(img)
-#             prediction = int_to_word_out[np.argmax(prediction_arr)]
-#             predictions[j].append(prediction)
-#
-#             # Замена числа на букву
-#             prediction_letter = folder_values["{}".format(prediction)]
-#
-#             # Вероятность
-#             print("(", np.max(prediction_arr), ")", sep="", end=" ")
-#             # Предсказание. Если вероятность меньше порога - это пустая клетка
-#             if np.max(prediction_arr) > 0.999:
-#                 print(prediction, prediction_letter)
-#             else:
-#                 print("Empty... Или может быть", prediction_letter)
-#
-#             # Изображение для проверки (временно)
-#             cv2.imshow("{} {}".format(j, k), board_squares[j][k])
-#             cv2.imshow("Threshold", resize(image, height=200))
-#             cv2.waitKey()
-#             cv2.destroyAllWindows()
-#
-#
-#     return predictions
 
 
 # author - Sergei, Mikhail
