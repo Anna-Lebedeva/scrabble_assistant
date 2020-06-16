@@ -111,3 +111,32 @@ def make_sub_dictionaries():
                         letter + '-containing-sub-dict.txt'))),
             X=words_contains_letter.word, fmt='%s', encoding='utf-8')
         # Записываем подсловарь
+
+
+# author - Pavel
+def prepare_frequency_dictionaries(path: str):
+    """
+    Разбивка словаря по размеру
+    :param path: путь до основного словаря
+    """
+
+    sizes = [5000, 7500, 10000, 12500, 15000]
+
+    files = []
+    for i in range(len(sizes)):
+        f = open('resources/dictionaries/' +
+                 'nouns_' + str(sizes[i]) + '.txt', 'w', encoding='UTF-8')
+        files.append(f)
+
+    with open(path, 'r', encoding='UTF-8') as dictionary:
+        iteration = 0
+        for line in dictionary:
+            subs = line.split(' ')
+
+            for i in range(len(files)):
+                if iteration < sizes[i]:
+                    files[i].write(subs[2] + '\n')
+            iteration += 1
+
+    for file in files:
+        file.close()

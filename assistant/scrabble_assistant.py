@@ -19,7 +19,7 @@ BOARD_BONUSES_FILE_PATH = Path('resources') / Path('jsons') / \
 
 # путь к основному словарю
 DICTIONARY_FILE_PATH = Path('resources') / Path('dictionaries') / \
-                       Path('dictionary08.txt')
+                       Path('nouns_5000.txt')
 
 # словарь с ценностью букв
 LETTERS_VALUES = read_json_to_dict(LETTERS_VALUES_FILE_PATH)
