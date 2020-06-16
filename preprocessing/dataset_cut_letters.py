@@ -4,18 +4,19 @@ from pathlib import Path
 from shutil import rmtree
 
 import numpy as np
+from skimage import img_as_ubyte
 
 from skimage.io import imread, imsave
 
-from CV.scan import IMG_RES
+from CV.scan import IMG_RES, crop_letter
 from CV.scan import cut_board_on_cells
 from CV.scan import cut_by_external_contour
 from CV.scan import cut_by_internal_contour
 from CV.scan import CutException
-from preprocessing.model_preprocessing import to_gray, to_binary
+from preprocessing.model_preprocessing import rgb_to_gray, gray_to_binary
 
-IMAGES_TO_CUT_PATH = Path('ML') / Path('!raw_images_to_cut')
-DATASET_PATH = Path('ML') / Path('dataset')
+IMAGES_TO_CUT_PATH = Path('ML/!raw_images_to_cut')
+DATASET_PATH = Path('ML/dataset')
 
 # authors - Misha, Matvey
 if __name__ == "__main__":
@@ -64,9 +65,14 @@ if __name__ == "__main__":
 
             # Обработка и запись клеток
             for c in crd_ctg:
-                cell = flat_board[int(c[0])]
-                # cell = to_binary(to_gray(cell, [1, 0, 0]))  # фильтр для BGR
-                imsave(str(Path.cwd().parent / DATASET_PATH / Path(c[1]) / Path(filename)), cell)
+                img_cell = flat_board[int(c[0])]
+                img_cell = rgb_to_gray(img_cell, [1, 0, 0])
+                img_cell = gray_to_binary(img_cell)
+                # img_cell = img_as_ubyte(img_cell)  # перевод в формат 0-255
+                # img_letter = crop_letter(img_cell)  # не работает как надо
+
+                imsave(str(Path.cwd().parent / DATASET_PATH / Path(c[1]) / Path(filename)),
+                       img_cell)
         except (CutException, UserWarning):
             bad_images.append(filename)
         # Вывод процента выполнения
@@ -77,8 +83,8 @@ if __name__ == "__main__":
         print('Не удалось обрезать:')
         [print(b, sep=', ') for b in bad_images]
         print('Удалить?(y/n)', end=' ')
-        yes = input()
-        if yes == 'y':
+        answer = input()
+        if answer == 'y':
             for b in bad_images:
                 Path(Path.cwd().parent / IMAGES_TO_CUT_PATH / b).unlink()
             print('Удаление завершено')
