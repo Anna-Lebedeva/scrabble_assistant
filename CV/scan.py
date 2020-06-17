@@ -196,25 +196,30 @@ def crop_letter(img_bin: np.ndarray) -> np.ndarray:
     # blur = cv2.GaussianBlur(gray, (7, 7), 0)
     # blur = cv2.blur(gray, (3, 3))
     # edges = cv2.Canny(gray, 150, 255)
-    # _, thresh = cv2.threshold(gray, 150, 255, cv2.THRESH_BINARY)
+    # _, thresh = cv2.threshold(gray, 150, 255, cv2.THRESH_BINARY)8
     # thresh = to_binary(to_gray(img, [0, 0, 1]))
     # thresh = cv2.adaptiveThreshold(gray, 255, cv2.ADAPTIVE_THRESH_MEAN_C,
     #                                cv2.THRESH_BINARY, blockSize=31, C=5)
-    img_bin = cv2.erode(img_bin, np.ones((3, 3), np.uint8), iterations=1)
+    # img_bin = cv2.erode(img_bin, np.ones((3, 3), np.uint8), iterations=1)
 
     # Поиск контуров
     cropped = img_bin.copy()
-    contours, hierarchy = cv2.findContours(cropped, cv2.RETR_EXTERNAL,
-                                           cv2.CHAIN_APPROX_NONE)
+    cropped = img_as_ubyte(cropped)
+    # cropped = cv2.fastNlMeansDenoising(cropped)
+    contours, _ = cv2.findContours(cropped, cv2.RETR_EXTERNAL,
+                                   cv2.CHAIN_APPROX_NONE)
 
     # Перебор контуров. Если периметр достаточно большой,
     # решаем, что это буква и обрезаем картинку по
     # её левому нижнему углу
     for idx, contour in enumerate(contours):
-        perimeter = cv2.arcLength(contour, True)
         (x, y, w, h) = cv2.boundingRect(contour)
-        if perimeter > 215:
-            cropped = cropped[0:y + h, x:x + y + h]
+        perimeter = cv2.arcLength(contour, True)
+        square = w * h
+        # cv2.rectangle(cropped, (x, y), (x + w, y + h), (255, 0, 0), 1)
+        # print(idx, square)
+        if square > 450:
+            cropped = cropped[0:y + h + 7, x:x + y + h + 7]
             break
 
     return cv2.resize(cropped, (IMG_SIZE, IMG_SIZE))
@@ -222,49 +227,30 @@ def crop_letter(img_bin: np.ndarray) -> np.ndarray:
 
 if __name__ == "__main__":
 
-    image = cv2.imread('test6.jpg')
-    image = resize(image, 1000)
-
+    image = cv2.imread('../!raw_images_to_cut/1/IMG_20200615_184009_0.jpg')
+    # IMG_20200615_184211_17
     img_external_crop = cut_by_external_contour(image)
     img_internal_crop = cut_by_internal_contour(img_external_crop)
-    # img_internal_crop = img_as_ubyte(img_internal_crop)  # Перевод в формат 0-255
+    img_internal_crop = img_as_ubyte(img_internal_crop)  # Перевод в формат 0-255
 
     img_bw = gray_to_binary(rgb_to_gray(img_internal_crop, [0, 0, 1]))
-    #img_bw = img_as_bool(img_bw)
-    cv2.imshow('IN BW', resize(img_bw, 500))
 
     board_squares = cut_board_on_cells(img_bw)
 
-    # for j in range(15):
-    #     for i in range(15):
-    #         cv2.imshow('Cell', board_squares[j][i])
-    #         cv2.waitKey()
-    #         cv2.destroyAllWindows()
+    for j in range(15):
+        for i in range(15):
+            cv2.imshow('Cell', resize(crop_letter(board_squares[j][i]), 120))
+            cv2.waitKey()
+            cv2.destroyAllWindows()
 
     # # тест распознавания изображений:
-    clf_path = Path.cwd().parent / CLASSIFIER_DUMP_PATH
-    sc_path = Path.cwd().parent / SCALER_DUMP_PATH
-    #
-    predicted_letters = classify_images(board_squares, clf_path)  # , sc_path)
-    pred_board = nums_to_letters(predicted_letters)
-    for row in pred_board:
-        print(row)
-    # # print(probability)
-
-    # for j in range(15):
-    #     for i in range(15):
-    #         cv2.imshow("Thresh",
-    #                    resize(crop_letter(board_squares[j][i]),
-    #                           height=150))
-    #         cv2.imshow("Cell", resize(board_squares[j][i], 150))
-    #         cv2.waitKey()
-    #         cv2.destroyAllWindows()
-
-    # cv2.imshow("Cell",
-    #            resize(colored_to_cropped_threshold(board_squares[0][12]),
-    #                   height=150))
-
-    # print(make_prediction(board_squares))
+    # clf_path = Path.cwd().parent / CLASSIFIER_DUMP_PATH
+    # sc_path = Path.cwd().parent / SCALER_DUMP_PATH
+    # predicted_letters = classify_images(board_squares, clf_path)  # , sc_path)
+    # pred_board = nums_to_letters(predicted_letters)
+    # for row in pred_board:
+    #     print(row)
+    # print(probability)
 
     # cv2.imshow("External cropped board", resize(img_external_crop, 800))
     # cv2.imshow("Internal cropped board", resize(internal_crop, 800))

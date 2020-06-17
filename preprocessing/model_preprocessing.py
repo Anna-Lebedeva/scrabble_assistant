@@ -13,7 +13,7 @@ from skimage import img_as_float, img_as_bool, img_as_float32
 from skimage.exposure import adjust_sigmoid
 from skimage.filters import threshold_isodata
 from skimage.io import imread
-from skimage.restoration import denoise_tv_bregman
+from skimage.restoration import denoise_tv_bregman, denoise_nl_means
 from skimage.util import dtype
 from sklearn.linear_model import LogisticRegression
 from sklearn.preprocessing import StandardScaler
@@ -62,6 +62,7 @@ def gray_to_binary(image_gray: np.ndarray) -> np.ndarray:
     :return: изображение в ЧБ формате
     """
     img_denoised = denoise_tv_bregman(image_gray, weight=33)  # денойз
+    # img_denoised = denoise_nl_means(image_gray)  # денойз
     img_adj = adjust_sigmoid(img_denoised)  # Регулируем контраст (сигмовидная коррекция)
 
     # Находим порог для изображения и возвращаем изображение в ЧБ
