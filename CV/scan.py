@@ -227,8 +227,7 @@ def crop_letter(img_bin: np.ndarray) -> np.ndarray:
 
 if __name__ == "__main__":
 
-    image = cv2.imread('../!raw_images_to_cut/1/IMG_20200615_184009_0.jpg')
-    # IMG_20200615_184211_17
+    image = cv2.imread('test1.jpg')
     img_external_crop = cut_by_external_contour(image)
     img_internal_crop = cut_by_internal_contour(img_external_crop)
     img_internal_crop = img_as_ubyte(img_internal_crop)  # Перевод в формат 0-255
@@ -237,19 +236,23 @@ if __name__ == "__main__":
 
     board_squares = cut_board_on_cells(img_bw)
 
-    for j in range(15):
-        for i in range(15):
-            cv2.imshow('Cell', resize(crop_letter(board_squares[j][i]), 120))
-            cv2.waitKey()
-            cv2.destroyAllWindows()
+    for i in range(len(board_squares)):
+        for j in range(len(board_squares[0])):
+            board_squares[i][j] = crop_letter(board_squares[i][j])
+
+    # for j in range(15):
+    #     for i in range(15):
+    #         cv2.imshow('Cell', resize(crop_letter(board_squares[j][i]), 120))
+    #         cv2.waitKey()
+    #         cv2.destroyAllWindows()
 
     # # тест распознавания изображений:
-    # clf_path = Path.cwd().parent / CLASSIFIER_DUMP_PATH
-    # sc_path = Path.cwd().parent / SCALER_DUMP_PATH
-    # predicted_letters = classify_images(board_squares, clf_path)  # , sc_path)
-    # pred_board = nums_to_letters(predicted_letters)
-    # for row in pred_board:
-    #     print(row)
+    clf_path = Path.cwd().parent / CLASSIFIER_DUMP_PATH
+    sc_path = Path.cwd().parent / SCALER_DUMP_PATH
+    predicted_letters = classify_images(board_squares, clf_path)  # , sc_path)
+    pred_board = nums_to_letters(predicted_letters)
+    for row in pred_board:
+        print(row)
     # print(probability)
 
     # cv2.imshow("External cropped board", resize(img_external_crop, 800))

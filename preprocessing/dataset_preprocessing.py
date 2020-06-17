@@ -69,10 +69,10 @@ if __name__ == "__main__":
                 img_cell = rgb_to_gray(img_cell, [1, 0, 0])
                 img_cell = gray_to_binary(img_cell)
                 img_cell = img_as_ubyte(img_cell)  # перевод в формат uint8
-                # img_letter = crop_letter(img_cell)  # не работает как надо
+                img_letter = crop_letter(img_cell)  # не работает как надо
 
                 imsave(str(Path.cwd().parent / DATASET_PATH / Path(c[1]) / Path(filename)),
-                       img_cell)
+                       img_letter)
         except (CutException, RuntimeWarning, UserWarning):
             bad_images.append(filename)
         # Вывод процента выполнения

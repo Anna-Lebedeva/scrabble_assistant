@@ -19,7 +19,7 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.preprocessing import StandardScaler
 from sklearn.svm import SVC
 
-IMG_RESOLUTION = 32
+IMG_RESOLUTION = 64
 
 DATASET_PATH = Path('ML') / Path('dataset')
 CLASSIFIER_DUMP_PATH = Path('ML') / Path('classifier.joblib')
@@ -70,7 +70,6 @@ def gray_to_binary(image_gray: np.ndarray) -> np.ndarray:
     # return img_adj
 
 
-# fixme: работает медлено. Переписать на numpy
 if __name__ == "__main__":
     letters = np.array([])
     flat_images = []
@@ -82,7 +81,6 @@ if __name__ == "__main__":
         for i in range(len(paths)):
             flat_images.append(img_as_float32(imread(paths[i])).ravel())
             letters = np.append(letters, folder)
-            # Переводим в оттенки серого, убираем шумы
             # Картинка представляется IMG_RESOLUTION * IMG_RESOLUTION признаками (пикселями,
             # в каждом из которых берем интенсивность белого)
 
