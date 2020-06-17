@@ -8,7 +8,7 @@ from skimage import img_as_ubyte, img_as_bool
 
 from skimage.io import imread, imsave
 
-from CV.scan import IMG_RESOLUTION, crop_letter
+from CV.scan import IMG_SIZE, crop_letter
 from CV.scan import cut_board_on_cells
 from CV.scan import cut_by_external_contour
 from CV.scan import cut_by_internal_contour
@@ -60,8 +60,8 @@ if __name__ == "__main__":
             board_squares = cut_board_on_cells(internal_crop)
             # Решейп из двухмерного в одномерный массив изображений
             flat_board = board_squares.reshape(
-                (board_squares.shape[0] * board_squares.shape[1], IMG_RESOLUTION,
-                 IMG_RESOLUTION, 3))  # если нет фильтра то добавляется форма 3
+                (board_squares.shape[0] * board_squares.shape[1], IMG_SIZE,
+                 IMG_SIZE, 3))  # если нет фильтра то добавляется форма 3
 
             # Обработка и запись клеток
             for c in crd_ctg:
