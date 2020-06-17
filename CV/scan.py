@@ -14,7 +14,7 @@ from preprocessing.model_preprocessing import CLASSIFIER_DUMP_PATH, \
 
 # Размер изображений для тренировки и предсказаний нейросетки
 # Импортируется в train и load_data, чтобы изменять значение в одном месте
-IMG_RES = 64
+IMG_SIZE = 64
 
 
 # Авторы: Миша, Матвей
@@ -178,7 +178,7 @@ def cut_board_on_cells(img: np.ndarray) -> [np.ndarray]:
         squares.append([])
         for m in range(1, 16):
             cropped = img[y[n - 1]:y[n], x[m - 1]:x[m]]
-            cropped = cv2.resize(cropped, (IMG_RES, IMG_RES))
+            cropped = cv2.resize(cropped, (IMG_SIZE, IMG_SIZE))
             squares[n - 1].append(cropped)
 
     return np.array(squares)
@@ -217,7 +217,7 @@ def crop_letter(img_bin: np.ndarray) -> np.ndarray:
             cropped = cropped[0:y + h, x:x + y + h]
             break
 
-    return cv2.resize(cropped, (IMG_RES, IMG_RES))
+    return cv2.resize(cropped, (IMG_SIZE, IMG_SIZE))
 
 
 if __name__ == "__main__":
