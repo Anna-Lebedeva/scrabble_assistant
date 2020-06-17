@@ -9,7 +9,7 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 from joblib import dump
-from skimage import img_as_float
+from skimage import img_as_float, img_as_bool, img_as_float32
 from skimage.exposure import adjust_sigmoid
 from skimage.filters import threshold_isodata
 from skimage.io import imread
@@ -19,7 +19,7 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.preprocessing import StandardScaler
 from sklearn.svm import SVC
 
-IMG_RESOLUTION = 64
+IMG_RESOLUTION = 32
 
 DATASET_PATH = Path('ML') / Path('dataset')
 CLASSIFIER_DUMP_PATH = Path('ML') / Path('classifier.joblib')
@@ -47,7 +47,7 @@ def rgb_to_gray(rgb: np.ndarray, coefficients: [float], force_copy=False) -> np.
         raise ValueError("Ожидается форма массива == (..., 3)), "
                          f"получено {rgb.shape}")
 
-    rgb = dtype.img_as_float(rgb, force_copy=force_copy)
+    rgb = dtype.img_as_float32(rgb, force_copy=force_copy)
     if len(coefficients) != 3:
         raise ValueError(f"Ожидается 3 коэффициента, получено {len(coefficients)}")
     coeffs = np.array(coefficients, dtype=rgb.dtype)
@@ -69,30 +69,26 @@ def gray_to_binary(image_gray: np.ndarray) -> np.ndarray:
     # return img_adj
 
 
+# fixme: работает медлено. Переписать на numpy
 if __name__ == "__main__":
-    letters_data = pd.DataFrame(columns=range(IMG_RESOLUTION * IMG_RESOLUTION + 1))
-    letters_data = letters_data.rename(columns={4096: 'letter'})
-
-    index = 0
+    letters = np.array([])
+    flat_images = []
 
     for folder in range(1, 34):
         path_gen = Path(Path.cwd().parent / DATASET_PATH / str(folder)).glob(
             '*.jpg')  # Создаем генератор путей картинок
         paths = [path for path in path_gen if path.is_file()]  # Записываем пути картинок
         for i in range(len(paths)):
-            letters_data.loc[index] = *img_as_float(imread(paths[i])).ravel(), folder
+            flat_images.append(img_as_float32(imread(paths[i])).ravel())
+            letters = np.append(letters, folder)
             # Переводим в оттенки серого, убираем шумы
             # Картинка представляется IMG_RESOLUTION * IMG_RESOLUTION признаками (пикселями,
             # в каждом из которых берем интенсивность белого)
-            index += 1
-
-    letters_data.letter = letters_data.letter.map(int)  # Переводим номер буквы в int
-    letters_y = letters_data.pop('letter')  # Выделяем целевую переменную
 
     # scaler = StandardScaler()
     # std_letters_data = scaler.fit_transform(letters_data)
     # dump(scaler, Path.cwd().parent / SCALER_DUMP_PATH)
 
     svm_clf = SVC(kernel='poly', degree=2, C=1, cache_size=1000)
-    svm_clf.fit(letters_data, letters_y)
+    svm_clf.fit(flat_images, letters)
     dump(svm_clf, Path.cwd().parent / CLASSIFIER_DUMP_PATH)

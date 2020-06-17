@@ -2,7 +2,7 @@ from pathlib import Path
 
 import numpy as np
 from joblib import load
-from skimage import img_as_float
+from skimage import img_as_float, img_as_float32
 
 from preprocessing.model_preprocessing import IMG_RESOLUTION
 
@@ -29,7 +29,7 @@ def classify_images(board: [np.ndarray],
     flat_array = np.zeros(shape=(225, IMG_RESOLUTION * IMG_RESOLUTION))
 
     for i in range(len(images)):
-        flat_array[i] = img_as_float(images[i]).ravel()
+        flat_array[i] = img_as_float32(images[i]).ravel()
         # Переводим RGB в оттенки серого (из массива х3 получаем число).
         # Переводим в интенсивность белого в диапазон от 0 до 1.
         # Разворачиваем массив в IMG_RESOLUTION * IMG_RESOLUTION

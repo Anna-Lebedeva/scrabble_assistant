@@ -4,7 +4,7 @@ import cv2
 import numpy as np
 from imutils import grab_contours
 from imutils import resize
-from skimage import img_as_ubyte
+from skimage import img_as_ubyte, img_as_bool
 
 from CV.exceptions import CutException
 from CV.transform import four_point_transform
@@ -12,9 +12,8 @@ from ML.letter_recognition import classify_images, nums_to_letters
 from preprocessing.model_preprocessing import CLASSIFIER_DUMP_PATH, \
     SCALER_DUMP_PATH, rgb_to_gray, gray_to_binary
 
-# Размер изображений для тренировки и предсказаний нейросетки
-# Импортируется в train и load_data, чтобы изменять значение в одном месте
-IMG_RES = 64
+# Размер изображений для тренировки и предсказаний
+IMG_RESOLUTION = 32
 
 
 # Авторы: Миша, Матвей
@@ -178,7 +177,7 @@ def cut_board_on_cells(img: np.ndarray) -> [np.ndarray]:
         squares.append([])
         for m in range(1, 16):
             cropped = img[y[n - 1]:y[n], x[m - 1]:x[m]]
-            cropped = cv2.resize(cropped, (IMG_RES, IMG_RES))
+            cropped = cv2.resize(cropped, (IMG_RESOLUTION, IMG_RESOLUTION))
             squares[n - 1].append(cropped)
 
     return np.array(squares)
@@ -217,21 +216,21 @@ def crop_letter(img_bin: np.ndarray) -> np.ndarray:
             cropped = cropped[0:y + h, x:x + y + h]
             break
 
-    return cv2.resize(cropped, (IMG_RES, IMG_RES))
+    return cv2.resize(cropped, (IMG_RESOLUTION, IMG_RESOLUTION))
 
 
 if __name__ == "__main__":
 
-    image = cv2.imread('test9.jpg')
+    image = cv2.imread('test6.jpg')
     image = resize(image, 1000)
 
-    # img_external_crop = cut_by_external_contour(image)
-    img_internal_crop = cut_by_internal_contour(image)
+    img_external_crop = cut_by_external_contour(image)
+    img_internal_crop = cut_by_internal_contour(img_external_crop)
     # img_internal_crop = img_as_ubyte(img_internal_crop)  # Перевод в формат 0-255
 
     img_bw = gray_to_binary(rgb_to_gray(img_internal_crop, [0, 0, 1]))
-    img_bw = img_as_ubyte(img_bw)
-    #cv2.imshow('IN BW', img_bw)
+    #img_bw = img_as_bool(img_bw)
+    cv2.imshow('IN BW', resize(img_bw, 500))
 
     board_squares = cut_board_on_cells(img_bw)
 
@@ -245,7 +244,7 @@ if __name__ == "__main__":
     clf_path = Path.cwd().parent / CLASSIFIER_DUMP_PATH
     sc_path = Path.cwd().parent / SCALER_DUMP_PATH
     #
-    predicted_letters = classify_images(board_squares, clf_path)  #, sc_path)
+    predicted_letters = classify_images(board_squares, clf_path)  # , sc_path)
     pred_board = nums_to_letters(predicted_letters)
     for row in pred_board:
         print(row)
