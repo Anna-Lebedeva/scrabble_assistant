@@ -1,20 +1,16 @@
-from pathlib import Path
-
 import cv2
 import numpy as np
 from imutils import grab_contours
 from imutils import resize
-from skimage import img_as_ubyte, img_as_bool
-
+from skimage import img_as_ubyte, img_as_float32
 from CV.exceptions import CutException
 from CV.transform import four_point_transform
-from ML.letter_recognition import classify_images, nums_to_letters
 from preprocessing.model_preprocessing import CLASSIFIER_DUMP_PATH, \
     SCALER_DUMP_PATH, rgb_to_gray, gray_to_binary
 
 # Размер изображений для тренировки и предсказаний нейросетки
 # Импортируется в train и load_data, чтобы изменять значение в одном месте
-IMG_SIZE = 64
+IMG_SIZE = 80
 
 
 # Авторы: Миша, Матвей
@@ -217,21 +213,23 @@ def crop_letter(img_bin: np.ndarray) -> np.ndarray:
         perimeter = cv2.arcLength(contour, True)
         square = w * h
         # cv2.rectangle(cropped, (x, y), (x + w, y + h), (255, 0, 0), 1)
-        # print(idx, square)
         if square > 450:
             cropped = cropped[0:y + h + 7, x:x + y + h + 7]
             break
 
-    return cv2.resize(cropped, (IMG_SIZE, IMG_SIZE))
+    cropped = cv2.resize(cropped, (IMG_SIZE, IMG_SIZE))
+    cropped = img_as_float32(cropped)
+
+    return cropped
 
 
 if __name__ == "__main__":
 
     image = cv2.imread('../!raw_images_to_cut/1/IMG_20200615_184009_0.jpg')
+    # IMG_20200615_184009_0
     # IMG_20200615_184211_17
     img_external_crop = cut_by_external_contour(image)
     img_internal_crop = cut_by_internal_contour(img_external_crop)
-    img_internal_crop = img_as_ubyte(img_internal_crop)  # Перевод в формат 0-255
 
     img_bw = gray_to_binary(rgb_to_gray(img_internal_crop, [0, 0, 1]))
 
