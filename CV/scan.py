@@ -1,3 +1,5 @@
+from pathlib import Path
+
 import cv2
 import numpy as np
 from imutils import grab_contours
@@ -5,12 +7,13 @@ from imutils import resize
 from skimage import img_as_ubyte, img_as_float32
 from CV.exceptions import CutException
 from CV.transform import four_point_transform
+from ML.letter_recognition import classify_images, nums_to_letters
 from preprocessing.model_preprocessing import CLASSIFIER_DUMP_PATH, \
     SCALER_DUMP_PATH, rgb_to_gray, gray_to_binary
 
 # Размер изображений для тренировки и предсказаний нейросетки
 # Импортируется в train и load_data, чтобы изменять значение в одном месте
-IMG_SIZE = 80
+IMG_SIZE = 64
 
 
 # Авторы: Миша, Матвей
@@ -171,13 +174,13 @@ def cut_board_on_cells(img: np.ndarray) -> [np.ndarray]:
     # Заполнение массива
     squares = []
     for n in range(1, 16):
-        squares.append([])
+        squares.append([])  # todo: переписать на numpy
         for m in range(1, 16):
             cropped = img[y[n - 1]:y[n], x[m - 1]:x[m]]
             cropped = cv2.resize(cropped, (IMG_SIZE, IMG_SIZE))
             squares[n - 1].append(cropped)
 
-    return np.array(squares)
+    return np.array(squares, dtype='uint8')
 
 
 # author - Sergei, Mikhail
@@ -187,17 +190,6 @@ def crop_letter(img_bin: np.ndarray) -> np.ndarray:
     :param img_bin: Пороговое изображение на вход
     :return: Пороговое обрезанное изображение
     """
-
-    # gray = to_gray(img, [0, 1, 1])
-    # blur = cv2.GaussianBlur(gray, (7, 7), 0)
-    # blur = cv2.blur(gray, (3, 3))
-    # edges = cv2.Canny(gray, 150, 255)
-    # _, thresh = cv2.threshold(gray, 150, 255, cv2.THRESH_BINARY)8
-    # thresh = to_binary(to_gray(img, [0, 0, 1]))
-    # thresh = cv2.adaptiveThreshold(gray, 255, cv2.ADAPTIVE_THRESH_MEAN_C,
-    #                                cv2.THRESH_BINARY, blockSize=31, C=5)
-    # img_bin = cv2.erode(img_bin, np.ones((3, 3), np.uint8), iterations=1)
-
     # Поиск контуров
     cropped = img_bin.copy()
     cropped = img_as_ubyte(cropped)
@@ -214,28 +206,31 @@ def crop_letter(img_bin: np.ndarray) -> np.ndarray:
         square = w * h
         # cv2.rectangle(cropped, (x, y), (x + w, y + h), (255, 0, 0), 1)
         if square > 450:
-            cropped = cropped[0:y + h + 7, x:x + y + h + 7]
+            cropped = cropped[0:y + h, x:x + y + h]
             break
 
     cropped = cv2.resize(cropped, (IMG_SIZE, IMG_SIZE))
-    cropped = img_as_float32(cropped)
+    #cropped = img_as_float32(cropped)
 
     return cropped
 
 
 if __name__ == "__main__":
 
-    image = cv2.imread('test1.jpg')
+    image = img_as_ubyte(cv2.imread('test1.jpg'))
     img_external_crop = cut_by_external_contour(image)
     img_internal_crop = cut_by_internal_contour(img_external_crop)
 
     img_bw = gray_to_binary(rgb_to_gray(img_internal_crop, [0, 0, 1]))
-
+    cv2.imshow('Cell', resize(img_bw, 1000))
     board_squares = cut_board_on_cells(img_bw)
 
-    for i in range(len(board_squares)):
-        for j in range(len(board_squares[0])):
-            board_squares[i][j] = crop_letter(board_squares[i][j])
+    # for i in range(len(board_squares)):
+    #     for j in range(len(board_squares[0])):
+    #         board_squares[i][j] = crop_letter(board_squares[i][j])
+    #         cv2.imshow('letter', board_squares[i][j])
+    #         cv2.waitKey()
+    #         cv2.destroyAllWindows()
 
     # for j in range(15):
     #     for i in range(15):
