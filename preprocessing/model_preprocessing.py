@@ -63,6 +63,7 @@ def gray_to_binary(image_gray: np.ndarray) -> np.ndarray:
     """
     img_denoised = denoise_tv_bregman(image_gray, weight=33)  # денойз
     # img_denoised = denoise_nl_means(image_gray)  # денойз
+    # img_adj = img_denoised
     img_adj = adjust_sigmoid(img_denoised)  # Регулируем контраст (сигмовидная коррекция)
 
     # Находим порог для изображения и возвращаем изображение в ЧБ
