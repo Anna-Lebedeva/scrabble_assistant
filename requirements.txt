@@ -1,4 +1,5 @@
 pillow==7.1.2
+pathlib==1.0.1
 imutils==0.5.3
 pyqt5==5.14.2
 pandas~=1.0.3

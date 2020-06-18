@@ -158,7 +158,6 @@ class ScrabbleApplication(QWidget):
         btn.setText('Открыть')
         btn.setIcon(QIcon(self._upload_img_icon_path))
         btn.setIconSize(QSize(20, 20))
-
         btn.clicked.connect(self.image_uploaded)
         self._upload_img_button = btn
 
@@ -573,7 +572,6 @@ class ScrabbleApplication(QWidget):
         """
         Запуск алгоритма
         """
-
         # очистка подсказки, если запуск идет не в первый раз
         if self._got_hints:
             self.clear_hint()
