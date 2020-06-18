@@ -1,9 +1,12 @@
+from pathlib import Path
+
 import cv2
 import numpy as np
 from imutils import grab_contours, resize
 from skimage import img_as_ubyte, img_as_float32
 from CV.exceptions import CutException
 from CV.transform import four_point_transform
+from ML.letter_recognition import classify_images, nums_to_letters
 from preprocessing.model_preprocessing import CLASSIFIER_DUMP_PATH, \
     SCALER_DUMP_PATH, rgb_to_gray, gray_to_binary
 
@@ -170,13 +173,13 @@ def cut_board_on_cells(img: np.ndarray) -> [np.ndarray]:
     # Заполнение массива
     squares = []
     for n in range(1, 16):
-        squares.append([])
+        squares.append([])  # todo: переписать на numpy
         for m in range(1, 16):
             cropped = img[y[n - 1]:y[n], x[m - 1]:x[m]]
             cropped = cv2.resize(cropped, (IMG_SIZE, IMG_SIZE))
             squares[n - 1].append(cropped)
 
-    return np.array(squares)
+    return np.array(squares, dtype='uint8')
 
 
 # author - Sergei, Mikhail
@@ -186,20 +189,8 @@ def crop_letter(img_bin: np.ndarray) -> np.ndarray:
     :param img_bin: Пороговое изображение на вход
     :return: Пороговое обрезанное изображение
     """
-
-    # gray = to_gray(img, [0, 1, 1])
-    # blur = cv2.GaussianBlur(gray, (7, 7), 0)
-    # blur = cv2.blur(gray, (3, 3))
-    # edges = cv2.Canny(gray, 150, 255)
-    # _, thresh = cv2.threshold(gray, 150, 255, cv2.THRESH_BINARY)8
-    # thresh = to_binary(to_gray(img, [0, 0, 1]))
-    # thresh = cv2.adaptiveThreshold(gray, 255, cv2.ADAPTIVE_THRESH_MEAN_C,
-    #                                cv2.THRESH_BINARY, blockSize=31, C=5)
-    # img_bin = cv2.erode(img_bin, np.ones((3, 3), np.uint8), iterations=1)
-
     # Поиск контуров
     cropped = img_bin.copy()
-    cropped = gray_to_binary(rgb_to_gray(cropped, [0, 0, 1]))
     cropped = img_as_ubyte(cropped)
     # cropped = cv2.fastNlMeansDenoising(cropped)
     contours, _ = cv2.findContours(cropped, cv2.RETR_EXTERNAL,
@@ -212,10 +203,9 @@ def crop_letter(img_bin: np.ndarray) -> np.ndarray:
         (x, y, w, h) = cv2.boundingRect(contour)
         contour_perimeter = cv2.arcLength(contour, True)
         contour_square = w * h
+        # # Рисовалка контуров
         # cv2.rectangle(cropped, (x, y), (x + w, y + h), (255, 0, 0), 1)
-        print(idx, contour_square)
         min_letter_square = np.square(float(IMG_SIZE))/9.3
-        print(min_letter_square)
         if contour_square > min_letter_square:
             cropped = cropped[0:y + h, x:x + y + h]
             break
@@ -244,10 +234,13 @@ if __name__ == "__main__":
     #     except CutException:
     #         print(a)
 
-    image = cv2.imread('../!raw_images_to_cut/1/IMG_20200615_184009_4.jpg')
+    image = img_as_ubyte(cv2.imread('test1.jpg'))
     img_external_crop = cut_by_external_contour(image)
     img_internal_crop = cut_by_internal_contour(img_external_crop)
-    board_squares = cut_board_on_cells(img_internal_crop)
+
+    img_bw = gray_to_binary(rgb_to_gray(img_internal_crop, [0, 0, 1]))
+    cv2.imshow('Cell', resize(img_bw, 1000))
+    board_squares = cut_board_on_cells(img_bw)
 
     for j in range(15):
         for i in range(15):
@@ -256,12 +249,12 @@ if __name__ == "__main__":
             cv2.destroyAllWindows()
 
     # # тест распознавания изображений:
-    # clf_path = Path.cwd().parent / CLASSIFIER_DUMP_PATH
-    # sc_path = Path.cwd().parent / SCALER_DUMP_PATH
-    # predicted_letters = classify_images(board_squares, clf_path)  # , sc_path)
-    # pred_board = nums_to_letters(predicted_letters)
-    # for row in pred_board:
-    #     print(row)
+    clf_path = Path.cwd().parent / CLASSIFIER_DUMP_PATH
+    sc_path = Path.cwd().parent / SCALER_DUMP_PATH
+    predicted_letters = classify_images(board_squares, clf_path)  # , sc_path)
+    pred_board = nums_to_letters(predicted_letters)
+    for row in pred_board:
+        print(row)
     # print(probability)
 
     # cv2.imshow("External cropped board", resize(img_external_crop, 800))
