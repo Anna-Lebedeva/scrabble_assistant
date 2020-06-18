@@ -4,8 +4,7 @@ from matplotlib import pyplot as plt
 
 import cv2
 import numpy as np
-from imutils import grab_contours
-from imutils import resize
+from imutils import grab_contours, resize
 from skimage import img_as_ubyte, img_as_float32
 from skimage.io import imshow
 
@@ -17,7 +16,7 @@ from preprocessing.model_preprocessing import CLASSIFIER_DUMP_PATH, \
 
 # Размер изображений для тренировки и предсказаний нейросетки
 # Импортируется в train и load_data, чтобы изменять значение в одном месте
-IMG_SIZE = 64
+IMG_SIZE = 32
 
 
 # Авторы: Миша, Матвей
@@ -206,10 +205,12 @@ def crop_letter(img_bin: np.ndarray) -> np.ndarray:
     # её левому нижнему углу
     for idx, contour in enumerate(contours):
         (x, y, w, h) = cv2.boundingRect(contour)
-        perimeter = cv2.arcLength(contour, True)
-        square = w * h
+        contour_perimeter = cv2.arcLength(contour, True)
+        contour_square = w * h
+        # # Рисовалка контуров
         # cv2.rectangle(cropped, (x, y), (x + w, y + h), (255, 0, 0), 1)
-        if square > 450:
+        min_letter_square = np.square(IMG_SIZE)/9.3
+        if contour_square > min_letter_square:
             cropped = cropped[0:y + h, x:x + y + h]
             break
 
@@ -220,6 +221,22 @@ def crop_letter(img_bin: np.ndarray) -> np.ndarray:
 
 
 if __name__ == "__main__":
+    # import os
+    # for image in os.listdir('../!raw_images_to_cut/1/'):
+    #     a = image
+    #     try:
+    #         image = cv2.imread('../!raw_images_to_cut/1/' + image)
+    #         # IMG_20200615_184009_0
+    #         # IMG_20200615_184211_17
+    #         img_external_crop = cut_by_external_contour(image)
+    #         img_internal_crop = cut_by_internal_contour(img_external_crop)
+    #
+    #         img_bw = gray_to_binary(rgb_to_gray(img_internal_crop, [0, 0, 1]))
+    #         cv2.imshow(a, resize(img_bw, 1000))
+    #         cv2.waitKey()
+    #         cv2.destroyAllWindows()
+    #     except CutException:
+    #         print(a)
 
     image = img_as_ubyte(cv2.imread('test1.jpg'))
     img_external_crop = cut_by_external_contour(image)
