@@ -1,10 +1,14 @@
+import time
 from pathlib import Path
+from matplotlib import pyplot as plt
 
 import cv2
 import numpy as np
 from imutils import grab_contours
 from imutils import resize
 from skimage import img_as_ubyte, img_as_float32
+from skimage.io import imshow
+
 from CV.exceptions import CutException
 from CV.transform import four_point_transform
 from ML.letter_recognition import classify_images, nums_to_letters
@@ -210,7 +214,7 @@ def crop_letter(img_bin: np.ndarray) -> np.ndarray:
             break
 
     cropped = cv2.resize(cropped, (IMG_SIZE, IMG_SIZE))
-    #cropped = img_as_float32(cropped)
+    cropped = img_as_float32(cropped)
 
     return cropped
 
@@ -222,15 +226,25 @@ if __name__ == "__main__":
     img_internal_crop = cut_by_internal_contour(img_external_crop)
 
     img_bw = gray_to_binary(rgb_to_gray(img_internal_crop, [0, 0, 1]))
-    cv2.imshow('Cell', resize(img_bw, 1000))
-    board_squares = cut_board_on_cells(img_bw)
+    # cv2.imshow('Cell', resize(img_bw, 1000))
+    plt.imshow(img_bw)
+    plt.show()
+    board_squares = img_as_ubyte(cut_board_on_cells(img_bw))
+
+    for i in range(len(board_squares)):
+        for j in range(len(board_squares[0])):
+            #cv2.imshow('cell', board_squares[i][j])
+            board_squares[i][j] = crop_letter(board_squares[i][j]) # todo check types
+            cv2.imshow('cell', board_squares[i][j])
+
+            cv2.waitKey()
+            cv2.destroyAllWindows()
 
     # for i in range(len(board_squares)):
     #     for j in range(len(board_squares[0])):
     #         board_squares[i][j] = crop_letter(board_squares[i][j])
-    #         cv2.imshow('letter', board_squares[i][j])
-    #         cv2.waitKey()
-    #         cv2.destroyAllWindows()
+    #         plt.imshow(board_squares[i][j])
+    #         plt.show()
 
     # for j in range(15):
     #     for i in range(15):
@@ -238,7 +252,7 @@ if __name__ == "__main__":
     #         cv2.waitKey()
     #         cv2.destroyAllWindows()
 
-    # # тест распознавания изображений:
+    print('тест распознавания изображений:')
     clf_path = Path.cwd().parent / CLASSIFIER_DUMP_PATH
     sc_path = Path.cwd().parent / SCALER_DUMP_PATH
     predicted_letters = classify_images(board_squares, clf_path)  # , sc_path)

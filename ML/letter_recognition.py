@@ -2,9 +2,9 @@ from pathlib import Path
 
 import numpy as np
 from joblib import load
-from skimage import img_as_float, img_as_float32, img_as_ubyte
+from skimage import img_as_float, img_as_float32, img_as_ubyte, img_as_bool
 
-from preprocessing.model_preprocessing import IMG_RESOLUTION
+from preprocessing.model_preprocessing import IMG_SIZE
 
 
 # Автор: Матвей
@@ -23,31 +23,32 @@ def classify_images(board: [np.ndarray],
     И второй массив таких же размеров, содержащий вероятности.
     """
 
-    images = np.array(board).reshape((225, IMG_RESOLUTION, IMG_RESOLUTION))
-    # Разворачиваем массив 15x15x28x28x3 в 225x28x28x3
+    images = np.array(board).reshape((225, IMG_SIZE, IMG_SIZE))
+    # Разворачиваем массив 15x15xIMG_SIZExIMG_SIZEx3 в 225xIMG_SIZExIMG_SIZEx3
 
-    flat_array = np.zeros(shape=(225, IMG_RESOLUTION * IMG_RESOLUTION),
-                          dtype=np.uint8)
+    flat_images = np.zeros(shape=(225, IMG_SIZE * IMG_SIZE), dtype=np.uint8)
 
     for i in range(len(images)):
-        flat_array[i] = img_as_ubyte(images[i]).ravel()
+        flat_images[i] = img_as_ubyte(images[i]).ravel()
         # Переводим RGB в оттенки серого (из массива х3 получаем число).
         # Переводим в интенсивность белого в диапазон от 0 до 1.
         # Разворачиваем массив в IMG_RESOLUTION * IMG_RESOLUTION
+
+    # flat_images = img_as_ubyte(img_as_bool(flat_images))
 
     clf = load(Path.cwd().parent / classifier_path)  # Загружаем обученный классикатор
 
     if scaler_path:
         scaler = load(Path.cwd().parent / scaler_path)  # Загружаем обученный шкалировщик
-        std_images = scaler.transform(flat_array)  # Шкалируем выборку
+        std_images = scaler.transform(flat_images)  # Шкалируем выборку
 
         # Для шкалированных данных
-        std_predictions = clf.predict(std_images)
+        # std_predictions = clf.predict(std_images)
         # std_predictions_log_probability = clf.predict_log_proba(std_images)
         # std_predictions_probability = clf.predict_proba(std_images)
 
     # Для не шкалированных данных
-    predictions = clf.predict(flat_array)
+    predictions = clf.predict(flat_images)
     # predictions_log_probability = lr_clf.predict_log_proba(flat_array)
     # predictions_probability = lr_clf.predict_proba(flat_array)
 

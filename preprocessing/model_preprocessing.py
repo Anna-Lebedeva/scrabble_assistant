@@ -17,7 +17,7 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.preprocessing import StandardScaler
 from sklearn.svm import SVC
 
-IMG_RESOLUTION = 64
+IMG_SIZE = 64
 
 DATASET_PATH = Path('ML/dataset')
 CLASSIFIER_DUMP_PATH = Path('ML/classifier.joblib')
@@ -69,7 +69,7 @@ def gray_to_binary(image_gray: np.ndarray) -> np.ndarray:
 
 
 if __name__ == "__main__":
-    letters = np.array([], dtype=np.uint8)
+    letters = [] # np.array([], dtype=np.uint8)
     flat_images = []
 
     for folder in range(1, 34):
@@ -77,12 +77,16 @@ if __name__ == "__main__":
             '*.jpg')  # Создаем генератор путей картинок
         paths = [path for path in path_gen if path.is_file()]  # Записываем пути картинок
         for i in range(len(paths)):
-            flat_images.append(img_as_ubyte(imread(paths[i])).ravel())
-            letters = np.append(letters, folder)
+
+            flat_images.append(img_as_ubyte(img_as_bool(img_as_ubyte(imread(paths[i])).ravel())))
+
+            letters.append(folder)
+            #letters = np.append(letters, folder)
             # Картинка представляется IMG_SIZE * IMG_SIZE признаками (пикселями),
             # в каждом из которых берем интенсивность белого)
-    print(f'Модель будет учиться на  {len(paths)} картинках.')
+    print(f'Модель учится на {len(paths)} картинках 33 букв, размером {IMG_SIZE}x{IMG_SIZE}.')
 
+    # flat_images = img_as_ubyte(img_as_bool(flat_images))
     # scaler = StandardScaler()
     # std_letters_data = scaler.fit_transform(letters_data)
     # dump(scaler, Path.cwd().parent / SCALER_DUMP_PATH)

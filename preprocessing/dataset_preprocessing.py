@@ -69,8 +69,9 @@ if __name__ == "__main__":
                 img_cell = flat_board[int(c[0])]
                 img_cell = rgb_to_gray(img_cell, [1, 0, 0])
                 img_cell = gray_to_binary(img_cell)
+                img_cell = img_as_ubyte(img_cell)
                 # Округление можно добавить тут.
-                # img_letter = crop_letter(img_cell)  # не работает как надо?
+                img_cell = crop_letter(img_cell)  # не работает как надо?
 
                 imsave(str(Path.cwd().parent / DATASET_PATH / Path(c[1]) / Path(filename)),
                        img_cell)
@@ -85,9 +86,7 @@ if __name__ == "__main__":
         [print(b, sep=', ') for b in bad_images]
         print('Удалить?(y/n)', end=' ')
         answer = input()
-        if answer == 'y' or answer == 'т':
+        if answer == 'y':
             for b in bad_images:
                 Path(Path.cwd().parent / IMAGES_TO_CUT_PATH / b).unlink()
             print('Удаление завершено')
-        else:
-            exit()
