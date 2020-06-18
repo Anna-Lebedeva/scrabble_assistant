@@ -525,13 +525,12 @@ class ScrabbleApplication(QWidget):
         elif key == Qt.Key_Backspace:
             self._drop_button.animateClick()
 
-        # todo: убрать по готовности приложения
         # Перепривязка файла разметки
-        elif key == Qt.Key_Alt:
-            f = open(self._stylesheet_path, 'r')
-            self.styleData = f.read()
-            f.close()
-            self.setStyleSheet(self.styleData)
+        # elif key == Qt.Key_Alt:
+        #     f = open(self._stylesheet_path, 'r')
+        #     self.styleData = f.read()
+        #     f.close()
+        #     self.setStyleSheet(self.styleData)
 
         # если нажатая кнопка - один символ
         elif len(text) == 1:
