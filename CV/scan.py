@@ -205,7 +205,7 @@ def crop_letter(img_bin: np.ndarray) -> np.ndarray:
         contour_square = w * h
         # # Рисовалка контуров
         # cv2.rectangle(cropped, (x, y), (x + w, y + h), (255, 0, 0), 1)
-        min_letter_square = np.square(float(IMG_SIZE))/9.3
+        min_letter_square = np.square(IMG_SIZE)/9.3
         if contour_square > min_letter_square:
             cropped = cropped[0:y + h, x:x + y + h]
             break
