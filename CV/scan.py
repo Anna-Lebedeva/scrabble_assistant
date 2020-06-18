@@ -1,7 +1,6 @@
 import cv2
 import numpy as np
-from imutils import grab_contours
-from imutils import resize
+from imutils import grab_contours, resize
 from skimage import img_as_ubyte, img_as_float32
 from CV.exceptions import CutException
 from CV.transform import four_point_transform
@@ -10,7 +9,7 @@ from preprocessing.model_preprocessing import CLASSIFIER_DUMP_PATH, \
 
 # Размер изображений для тренировки и предсказаний нейросетки
 # Импортируется в train и load_data, чтобы изменять значение в одном месте
-IMG_SIZE = 80
+IMG_SIZE = 32
 
 
 # Авторы: Миша, Матвей
@@ -200,6 +199,7 @@ def crop_letter(img_bin: np.ndarray) -> np.ndarray:
 
     # Поиск контуров
     cropped = img_bin.copy()
+    cropped = gray_to_binary(rgb_to_gray(cropped, [0, 0, 1]))
     cropped = img_as_ubyte(cropped)
     # cropped = cv2.fastNlMeansDenoising(cropped)
     contours, _ = cv2.findContours(cropped, cv2.RETR_EXTERNAL,
@@ -210,30 +210,44 @@ def crop_letter(img_bin: np.ndarray) -> np.ndarray:
     # её левому нижнему углу
     for idx, contour in enumerate(contours):
         (x, y, w, h) = cv2.boundingRect(contour)
-        perimeter = cv2.arcLength(contour, True)
-        square = w * h
+        contour_perimeter = cv2.arcLength(contour, True)
+        contour_square = w * h
         # cv2.rectangle(cropped, (x, y), (x + w, y + h), (255, 0, 0), 1)
-        if square > 450:
-            cropped = cropped[0:y + h + 7, x:x + y + h + 7]
+        print(idx, contour_square)
+        min_letter_square = np.square(float(IMG_SIZE))/9.3
+        print(min_letter_square)
+        if contour_square > min_letter_square:
+            cropped = cropped[0:y + h, x:x + y + h]
             break
 
     cropped = cv2.resize(cropped, (IMG_SIZE, IMG_SIZE))
-    cropped = img_as_float32(cropped)
+    # cropped = img_as_float32(cropped)
 
     return cropped
 
 
 if __name__ == "__main__":
+    # import os
+    # for image in os.listdir('../!raw_images_to_cut/1/'):
+    #     a = image
+    #     try:
+    #         image = cv2.imread('../!raw_images_to_cut/1/' + image)
+    #         # IMG_20200615_184009_0
+    #         # IMG_20200615_184211_17
+    #         img_external_crop = cut_by_external_contour(image)
+    #         img_internal_crop = cut_by_internal_contour(img_external_crop)
+    #
+    #         img_bw = gray_to_binary(rgb_to_gray(img_internal_crop, [0, 0, 1]))
+    #         cv2.imshow(a, resize(img_bw, 1000))
+    #         cv2.waitKey()
+    #         cv2.destroyAllWindows()
+    #     except CutException:
+    #         print(a)
 
-    image = cv2.imread('../!raw_images_to_cut/1/IMG_20200615_184009_0.jpg')
-    # IMG_20200615_184009_0
-    # IMG_20200615_184211_17
+    image = cv2.imread('../!raw_images_to_cut/1/IMG_20200615_184009_4.jpg')
     img_external_crop = cut_by_external_contour(image)
     img_internal_crop = cut_by_internal_contour(img_external_crop)
-
-    img_bw = gray_to_binary(rgb_to_gray(img_internal_crop, [0, 0, 1]))
-
-    board_squares = cut_board_on_cells(img_bw)
+    board_squares = cut_board_on_cells(img_internal_crop)
 
     for j in range(15):
         for i in range(15):
