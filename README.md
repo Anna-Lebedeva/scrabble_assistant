@@ -1,6 +1,7 @@
 # Scrabble assistant (Помощник для Scrabble)
 Распознавание доски и получение подсказок по фотографии в настольной игре Scrabble (Эрудит)
 
+# АКТУАЛИЗИРОВАТЬ
 ## Необходимые пакеты:
 - [Python 3.7.7](https://www.python.org/)
 - [TensorFlow 2.2.0](https://www.tensorflow.org/)
