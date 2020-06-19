@@ -14,19 +14,19 @@ from preprocessing.model_preprocessing import rgb_to_gray, gray_to_binary
 
 IMAGES_TO_CUT_PATH = Path('!raw_images_to_cut')
 DATASET_PATH = Path('ML/dataset')
-EMPTY_CELLS_INCLUDED = False  # True, если нужны пустые клетки в датасете
+IS_EMPTY_CELLS_INCLUDED = False  # True, если нужны пустые клетки в датасете
 
 # authors - Misha, Matvey
 if __name__ == "__main__":
 
     # Массив одномерных координат клеток с буквами и пустых
     coordinates = np.arange(33)
-    if EMPTY_CELLS_INCLUDED:
+    if IS_EMPTY_CELLS_INCLUDED:
         coordinates = np.append(coordinates, (50, 52, 48, 76, 105, 112))
     coordinates = np.reshape(coordinates, (len(coordinates), 1))
     # Массив категорий для классификации
     categories = np.arange(1, 34)
-    if EMPTY_CELLS_INCLUDED:
+    if IS_EMPTY_CELLS_INCLUDED:
         categories = np.append(categories, ('Empty', 'Green', 'Blue',
                                             'Yellow', 'Red', 'White'))
     # Объединение их в массив, состоящий из [координата, категория]
