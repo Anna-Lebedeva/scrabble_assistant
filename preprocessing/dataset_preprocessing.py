@@ -75,15 +75,18 @@ if __name__ == "__main__":
                 # Округление можно добавить тут.
                 img_cell = crop_letter(img_cell)  # не работает как надо?
 
-                imsave(str(Path.cwd().parent / DATASET_PATH / Path(c[1]) / Path(filename)),
-                       img_cell)
+                imsave(str(Path.cwd().parent / DATASET_PATH
+                           / Path(c[1]) / Path(filename)), img_cell)
+
         except (CutException, RuntimeWarning, UserWarning):
             bad_images.append(filename)
         # Вывод процента выполнения
         print(filename, '|', str(round(k / len(paths) * 100, 1)) + "%")
+
     # Вывод результатов операции
-    print('Готово!')
-    if len(bad_images) > 0:
+    if len(bad_images) == 0:
+        print('Готово!')
+    else:
         print('Не удалось обрезать:')
         [print(b, sep=', ') for b in bad_images]
         print('Удалить?(y/n)', end=' ')
