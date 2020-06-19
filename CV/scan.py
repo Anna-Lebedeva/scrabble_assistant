@@ -220,8 +220,8 @@ def crop_letter(img_bin: np.ndarray) -> np.ndarray:
 
 
 if __name__ == "__main__":
-    #image = img_as_ubyte(cv2.imread('test1.jpg'))
-    image = img_as_ubyte(cv2.imread('../resources/app_images/test.jpg'))
+    image = img_as_ubyte(cv2.imread('test5.jpg'))
+    #image = img_as_ubyte(cv2.imread('../resources/app_images/test.jpg'))
     img_external_crop = cut_by_external_contour(image)
     img_internal_crop = cut_by_internal_contour(img_external_crop)
 
