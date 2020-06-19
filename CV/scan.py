@@ -220,8 +220,8 @@ def crop_letter(img_bin: np.ndarray) -> np.ndarray:
 
 
 if __name__ == "__main__":
-    image = img_as_ubyte(cv2.imread('test5.jpg'))
-    #image = img_as_ubyte(cv2.imread('../resources/app_images/test.jpg'))
+    image = img_as_ubyte(cv2.imread('test3.jpg'))
+    # image = img_as_ubyte(cv2.imread('../resources/app_images/test.jpg'))
     img_external_crop = cut_by_external_contour(image)
     img_internal_crop = cut_by_internal_contour(img_external_crop)
 
@@ -233,8 +233,8 @@ if __name__ == "__main__":
 
     for i in range(len(board_squares)):
         for j in range(len(board_squares[0])):
-            board_squares[i][j] = crop_letter(board_squares[i][j])  # todo check types
-
+            board_squares[i][j] = crop_letter(
+                board_squares[i][j])  # todo check types
 
     print('тест распознавания изображений:')
     clf_path = Path.cwd().parent / CLASSIFIER_DUMP_PATH
@@ -247,6 +247,3 @@ if __name__ == "__main__":
     pred_board = nums_to_letters(predicted_letters, pred_probas)
     for row in pred_board:
         print(row)
-
-    cv2.waitKey()
-    cv2.destroyAllWindows()
