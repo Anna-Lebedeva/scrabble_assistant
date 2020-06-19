@@ -5,6 +5,9 @@ import numpy as np
 
 
 # author - Matvey
+from skimage import img_as_ubyte
+
+
 def read_json_to_dict(json_path: Path) -> dict:
     """
     Считывает json-файл в dict
@@ -32,7 +35,7 @@ def read_json_to_list(json_path: Path) -> [[str]]:
 
 # author - Pavel
 def read_image(path: str) -> np.ndarray:
-    return cv2.imread(path)
+    return img_as_ubyte(cv2.imread(path))
 
 
 # author - Pavel
