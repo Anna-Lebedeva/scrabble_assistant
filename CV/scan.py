@@ -16,7 +16,7 @@ from preprocessing.model_preprocessing import CLASSIFIER_DUMP_PATH, \
 
 # Размер изображений для тренировки и предсказаний нейросетки
 # Импортируется в train и load_data, чтобы изменять значение в одном месте
-IMG_SIZE = 32
+IMG_SIZE = 64
 
 
 # Авторы: Миша, Матвей
@@ -209,79 +209,44 @@ def crop_letter(img_bin: np.ndarray) -> np.ndarray:
         contour_square = w * h
         # # Рисовалка контуров
         # cv2.rectangle(cropped, (x, y), (x + w, y + h), (255, 0, 0), 1)
-        min_letter_square = np.square(IMG_SIZE)/9.3
+        min_letter_square = np.square(IMG_SIZE) / 9.3
         if contour_square > min_letter_square:
             cropped = cropped[0:y + h, x:x + y + h]
             break
 
     cropped = cv2.resize(cropped, (IMG_SIZE, IMG_SIZE))
-    cropped = img_as_float32(cropped)
 
     return cropped
 
 
 if __name__ == "__main__":
-    # import os
-    # for image in os.listdir('../!raw_images_to_cut/1/'):
-    #     a = image
-    #     try:
-    #         image = cv2.imread('../!raw_images_to_cut/1/' + image)
-    #         # IMG_20200615_184009_0
-    #         # IMG_20200615_184211_17
-    #         img_external_crop = cut_by_external_contour(image)
-    #         img_internal_crop = cut_by_internal_contour(img_external_crop)
-    #
-    #         img_bw = gray_to_binary(rgb_to_gray(img_internal_crop, [0, 0, 1]))
-    #         cv2.imshow(a, resize(img_bw, 1000))
-    #         cv2.waitKey()
-    #         cv2.destroyAllWindows()
-    #     except CutException:
-    #         print(a)
-
-    image = img_as_ubyte(cv2.imread('test1.jpg'))
+    #image = img_as_ubyte(cv2.imread('test1.jpg'))
+    image = img_as_ubyte(cv2.imread('../resources/app_images/test.jpg'))
     img_external_crop = cut_by_external_contour(image)
     img_internal_crop = cut_by_internal_contour(img_external_crop)
 
     img_bw = gray_to_binary(rgb_to_gray(img_internal_crop, [0, 0, 1]))
-    # cv2.imshow('Cell', resize(img_bw, 1000))
-    plt.imshow(img_bw)
-    plt.show()
+
+    # plt.imshow(img_bw)
+    # plt.show()
     board_squares = img_as_ubyte(cut_board_on_cells(img_bw))
 
     for i in range(len(board_squares)):
         for j in range(len(board_squares[0])):
-            #cv2.imshow('cell', board_squares[i][j])
-            board_squares[i][j] = crop_letter(board_squares[i][j]) # todo check types
-            cv2.imshow('cell', board_squares[i][j])
+            board_squares[i][j] = crop_letter(board_squares[i][j])  # todo check types
 
-            cv2.waitKey()
-            cv2.destroyAllWindows()
-
-    # for i in range(len(board_squares)):
-    #     for j in range(len(board_squares[0])):
-    #         board_squares[i][j] = crop_letter(board_squares[i][j])
-    #         plt.imshow(board_squares[i][j])
-    #         plt.show()
-
-    # for j in range(15):
-    #     for i in range(15):
-    #         cv2.imshow('Cell', resize(crop_letter(board_squares[j][i]), 120))
-    #         cv2.waitKey()
-    #         cv2.destroyAllWindows()
 
     print('тест распознавания изображений:')
     clf_path = Path.cwd().parent / CLASSIFIER_DUMP_PATH
     sc_path = Path.cwd().parent / SCALER_DUMP_PATH
-    predicted_letters = classify_images(board_squares, clf_path)  # , sc_path)
-    pred_board = nums_to_letters(predicted_letters)
+    predicted_letters, pred_probas = classify_images(board_squares,
+                                                     clf_path,
+                                                     scaler_path=None,
+                                                     probability=True)
+
+    pred_board = nums_to_letters(predicted_letters, pred_probas)
     for row in pred_board:
         print(row)
-    # print(probability)
-
-    # cv2.imshow("External cropped board", resize(img_external_crop, 800))
-    # cv2.imshow("Internal cropped board", resize(internal_crop, 800))
-    # cv2.imshow("Cell", board_squares[0][0])
-    # cv2.imshow("Grid", resize(draw_the_grid(internal_crop), 1500))
 
     cv2.waitKey()
     cv2.destroyAllWindows()

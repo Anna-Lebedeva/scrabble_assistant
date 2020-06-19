@@ -2,7 +2,7 @@ from pathlib import Path
 
 import numpy as np
 from joblib import load
-from skimage import img_as_float, img_as_float32, img_as_ubyte, img_as_bool
+from skimage import img_as_ubyte, img_as_bool
 
 from preprocessing.model_preprocessing import IMG_SIZE
 
@@ -13,7 +13,8 @@ from preprocessing.model_preprocessing import IMG_SIZE
 
 def classify_images(board: [np.ndarray],
                     classifier_path: Path,
-                    scaler_path: Path = None) -> ([[int]], [[int]]):
+                    scaler_path: Path = None,
+                    probability: bool = None) -> ([[int]], [[float]]):
     """Приводит картинку к серому. Где каждый пиксель представлен интенсивностью белого.
     Загружает дамп обученной модели. И выдает предсказания для каждой клетки.
     :param board: Массив 15х15х3, где каждый пиксель представлен интенсивностями rgb.
@@ -21,6 +22,7 @@ def classify_images(board: [np.ndarray],
     :param scaler_path: путь к дампу со шкалировщиком.
     :return: Двумерный массив размера переданного на вход, с предсказанными клетками.
     И второй массив таких же размеров, содержащий вероятности.
+    :param probability: нужно ли возвращать вероятность.
     """
 
     images = np.array(board).reshape((225, IMG_SIZE, IMG_SIZE))
@@ -34,7 +36,7 @@ def classify_images(board: [np.ndarray],
         # Переводим в интенсивность белого в диапазон от 0 до 1.
         # Разворачиваем массив в IMG_RESOLUTION * IMG_RESOLUTION
 
-    # flat_images = img_as_ubyte(img_as_bool(flat_images))
+    flat_images = img_as_ubyte(img_as_bool(flat_images))
 
     clf = load(Path.cwd().parent / classifier_path)  # Загружаем обученный классикатор
 
@@ -47,8 +49,21 @@ def classify_images(board: [np.ndarray],
         # std_predictions_log_probability = clf.predict_log_proba(std_images)
         # std_predictions_probability = clf.predict_proba(std_images)
 
-    # Для не шкалированных данных
     predictions = clf.predict(flat_images)
+    #predictions = list(predictions)
+
+    if probability:
+        answer_proba = []
+        predictions_proba = clf.predict_proba(flat_images)
+        for i in predictions_proba:
+            answer_proba.append(i.max())
+
+        predictions = np.array(predictions, dtype=np.uint8).reshape(15, 15)
+        for i in range(len(predictions)):
+            predictions[i] = list(predictions[i])
+        return list(np.array(predictions, dtype=np.uint8).reshape(15, 15)), \
+               list(np.array(answer_proba).reshape(15, 15))
+    # Для не шкалированных данных
     # predictions_log_probability = lr_clf.predict_log_proba(flat_array)
     # predictions_probability = lr_clf.predict_proba(flat_array)
 
@@ -56,7 +71,7 @@ def classify_images(board: [np.ndarray],
     # list(std_predictions_probability.reshape(15, 15))
 
 
-def nums_to_letters(predictions: [np.ndarray]) -> [[str]]:
+def nums_to_letters(predictions: [[int]], predict_probas: [float] = None) -> [[str]]:
     pred_letters = []
     mapping = {1: "а", 2: "б", 3: "в", 4: "г", 5: "д", 6: "е",
                7: "ж", 8: "з", 9: "и", 10: "й", 11: "к",
@@ -67,11 +82,14 @@ def nums_to_letters(predictions: [np.ndarray]) -> [[str]]:
                31: "ю", 32: "я", 33: "*", 34: "T", 35: "t",
                36: "", 37: "D", 38: "s", 39: "d"}
 
-    # fixme временно. нужно переписать
+    # fixme временно. переписать
     for y in range(len(predictions)):
         row = []
         for x in range(len(predictions)):
-            row.append(mapping[predictions[y][x]])
+            if predict_probas[y][x] < 0.5:
+                row.append(' ')
+            else:
+                row.append(mapping[predictions[y][x]])
         pred_letters.append(row)
 
     return pred_letters
