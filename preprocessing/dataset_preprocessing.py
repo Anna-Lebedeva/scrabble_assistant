@@ -12,7 +12,7 @@ from CV.scan import IMG_SIZE, crop_letter, cut_board_on_cells, \
     cut_by_external_contour, cut_by_internal_contour, CutException
 from preprocessing.model_preprocessing import rgb_to_gray, gray_to_binary
 
-IMAGES_TO_CUT_PATH = Path('!raw_images_to_cut')
+IMAGES_TO_CUT_PATH = Path('ML/images_to_cut')
 DATASET_PATH = Path('ML/dataset')
 IS_EMPTY_CELLS_INCLUDED = False  # True, если нужны пустые клетки в датасете
 

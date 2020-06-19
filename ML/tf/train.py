@@ -5,7 +5,6 @@ from keras.layers import Flatten
 from keras import callbacks
 from keras.layers import Conv2D
 from keras.layers.convolutional import MaxPooling2D
-from keras.metrics import AUC
 from keras.utils import np_utils
 from keras import backend as K
 from ML.tf import load_data
@@ -13,14 +12,17 @@ from keras.models import Sequential
 from keras.layers import Dense
 from CV.scan import IMG_SIZE
 
+# Скрытие предупреждений
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 K.set_image_data_format('channels_last')
 
-path_to_classifier = "int_to_word_out.pickle"
-path_to_model_json = "model_face.json"
-path_to_model_weights = "model_face.h5"
+CLASSIFIER_PATH = "int_to_word_out.pickle"
+MODEL_JSON_PATH = "model_face.json"
+MODEL_WEIGHTS_PATH = "model_face.h5"
+EPOCHS = 20  # Кол-во эпох
+BATCH_SIZE = 32  # Кол-во элементов в выборке до изменения значений весов
 
-# Задание seed для повторяемости результатов
+# Задание seed для повторяемости результатов при одинаковых начальных условиях
 seed = 7
 np.random.seed(seed)
 
@@ -34,34 +36,42 @@ y_train = np_utils.to_categorical(y_train)
 num_classes = y_train.shape[1]
 
 # Создание модели
+# model = Sequential()
+# model.add(Conv2D(32, (3, 3), padding='same',
+#                  input_shape=(IMG_SIZE, IMG_SIZE, 1), activation='relu'))
+# model.add(Conv2D(32, (3, 3), padding='same', activation='relu'))
+# model.add(MaxPooling2D(pool_size=(2, 2)))
+# model.add(Dropout(0.25))
+# model.add(Conv2D(64, (3, 3), padding='same', activation='relu'))
+# model.add(Conv2D(64, (3, 3), padding='same', activation='relu'))
+# model.add(MaxPooling2D(pool_size=(2, 2), strides=(2, 2)))
+# model.add(Dropout(0.25))
+# model.add(Flatten())
+# model.add(Dense(512, activation="relu"))
+# model.add(Dropout(0.5))
+# model.add(Dense(num_classes, activation="softmax"))
+# model.compile(loss='categorical_crossentropy', optimizer='adadelta',
+#               metrics=['accuracy'])
+
 model = Sequential()
-model.add(Conv2D(32, (3, 3), padding='same',
+model.add(Conv2D(filters=32, kernel_size=(3, 3), padding='valid',
                  input_shape=(IMG_SIZE, IMG_SIZE, 1), activation='relu'))
-model.add(Conv2D(32, (3, 3), padding='same', activation='relu'))
+model.add(Conv2D(filters=64, kernel_size=(3, 3), activation='relu'))
 model.add(MaxPooling2D(pool_size=(2, 2)))
 model.add(Dropout(0.25))
-model.add(Conv2D(64, (3, 3), padding='same', activation='relu'))
-model.add(Conv2D(64, (3, 3), padding='same', activation='relu'))
-model.add(MaxPooling2D(pool_size=(2, 2), strides=(2, 2)))
-model.add(Dropout(0.25))
 model.add(Flatten())
-model.add(Dense(512, activation="relu"))
+model.add(Dense(512, activation='relu'))
 model.add(Dropout(0.5))
-model.add(Dense(num_classes, activation="softmax"))
+model.add(Dense(num_classes, activation='softmax'))
 model.compile(loss='categorical_crossentropy', optimizer='adadelta',
               metrics=['accuracy'])
 
-# model.add(Dense(input_shape=(IMAGE_RESOLUTION, IMAGE_RESOLUTION, 1), units=32, activation='relu'))
+# model.add(Dense(input_shape=(IMG_SIZE, IMG_SIZE, 1), units=32, activation='relu'))
 # model.add(Flatten())
 # model.add(Dense(num_classes, activation='softmax'))
 # model.compile(optimizer='sgd',
 #               loss='categorical_crossentropy',
 #               metrics=['accuracy'])
-
-
-# Параметры обучения
-epochs = 50
-batch_size = 32  # Кол-во элементов в выборке до изменения значений весов
 
 print(model.summary())
 
@@ -71,10 +81,10 @@ callbacks = [
                                 factor=0.5, min_lr=0.00001)]
 
 # Обучение сети
-model.fit(X_train, y_train, epochs=epochs, batch_size=batch_size,
+model.fit(X_train, y_train, epochs=EPOCHS, batch_size=BATCH_SIZE,
           callbacks=callbacks,
           # часть выборки, которая используется в качестве проверочной
-          validation_split=0.1)
+          validation_split=0.07)
 
 # Оценка качества обучения сети на тестовых данных
 scores = model.evaluate(X_train, y_train, verbose=0)
@@ -83,7 +93,7 @@ print("Accuracy: %.2f%%" % (scores[1] * 100))
 # Генерация описания модели в формате json
 model_json = model.to_json()
 # Запись архитектуры сети в файл
-with open(path_to_model_json, "w") as json_file:
+with open(MODEL_JSON_PATH, "w") as json_file:
     json_file.write(model_json)
 # Запись данных о весах в файл
-model.save_weights(path_to_model_weights)
+model.save_weights(MODEL_WEIGHTS_PATH)

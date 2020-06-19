@@ -15,7 +15,7 @@ from preprocessing.model_preprocessing import rgb_to_gray, gray_to_binary
 
 # Размер изображений для тренировки и предсказаний нейросетки
 # Импортируется в train и load_data, чтобы изменять значение в одном месте
-IMG_SIZE = 64
+IMG_SIZE = 32
 
 
 # Авторы: Миша, Матвей
@@ -210,7 +210,17 @@ def crop_letter(img_bin: np.ndarray) -> np.ndarray:
         # cv2.rectangle(cropped, (x, y), (x + w, y + h), (255, 0, 0), 1)
         min_letter_square = np.square(IMG_SIZE) / 9.3
         if contour_square > min_letter_square:
-            cropped = cropped[0:y + h, x:x + y + h]
+            hei = int(cropped.shape[1])
+            wid = int(cropped.shape[0])
+            if hei == wid:
+                cropped = cropped[0:y + h, x:x + y + h]
+            else:
+                cropped = cropped[0:y + h, x:x + y + h]
+            print(hei, wid)
+            cv2.imshow('1', resize(cropped, 150))
+            cv2.imshow('2', resize(cv2.resize(cropped, (IMG_SIZE, IMG_SIZE)), 150))
+            cv2.waitKey()
+            cv2.destroyAllWindows()
             break
 
     cropped = cv2.resize(cropped, (IMG_SIZE, IMG_SIZE))
@@ -218,12 +228,8 @@ def crop_letter(img_bin: np.ndarray) -> np.ndarray:
     return cropped
 
 
-# todo: сделать вывод дмухмерного массива предсказаний
-#  после достижения необходимой точности предсказаний
-# taken from repo:
-# https://github.com/rohanthomas/Tensorflow-image-recognition,
-# embedded by Mikhail
-def make_prediction(square: list) -> [np.ndarray]:
+# author - Mikhail
+def get_prediction(square: list) -> [np.ndarray]:
     """
     :param square: Массив изображений ячеек, размерность массива 15х15
     :return: Массив предсказаний изображений
@@ -235,39 +241,35 @@ def make_prediction(square: list) -> [np.ndarray]:
     os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 
     # Пути до файлов модели
-    path_to_classifier = "../ML/tf/int_to_word_out.pickle"
-    path_to_model_json = "../ML/tf/model_face.json"
-    path_to_weights = "../ML/tf/model_face.h5"
+    CLASSIFIER_PATH = f"../ML/tf/int_to_word_out.pickle"
+    MODEL_JSON_PATH = f"../ML/tf/model_face.json"
+    MODEL_WEIGHTS_PATH = f"../ML/tf/model_face.h5"
 
     # Импорт json для замены чисел на буквы
-    with open(file="jsons/folders_mapping.json", mode='r',
+    with open(file="../resources/jsons/folders_mapping.json", mode='r',
               encoding='utf-8') as file:
         folder_values = json.load(file)
 
     # Загрузка классификатора
-    classifier_f = open(path_to_classifier, "rb")
+    classifier_f = open(CLASSIFIER_PATH, "rb")
     int_to_word_out = pickle.load(classifier_f)
     classifier_f.close()
 
     # Загрузка json и создание модели
-    json_file = open(path_to_model_json, 'r')
+    json_file = open(MODEL_JSON_PATH, 'r')
     loaded_model_json = json_file.read()
     json_file.close()
     loaded_model = model_from_json(loaded_model_json)
 
     # Загрузка весов в модель
-    loaded_model.load_weights(path_to_weights)
+    loaded_model.load_weights(MODEL_WEIGHTS_PATH)
 
     # Создание массива предсказаний
     predictions = []
-    for j in range(15):
+    for r in range(15):
         predictions.append([])
-
-        for k in range(15):
-            img = square[j][k]
-
-            img = crop_letter(img)
-
+        for c in range(15):
+            img = square[r][c]
             img = cv2.resize(img, (IMG_SIZE, IMG_SIZE))
             img = np.reshape(img, (IMG_SIZE, IMG_SIZE, 1))
             img = np.array([img])
@@ -276,31 +278,22 @@ def make_prediction(square: list) -> [np.ndarray]:
 
             prediction_arr = loaded_model.predict(img)
             prediction = int_to_word_out[np.argmax(prediction_arr)]
-            predictions[j].append(prediction)
+            predictions[r].append(prediction)
 
             # Замена числа на букву
             prediction_letter = folder_values["{}".format(prediction)]
 
-            # Вероятность
-            print("(", np.max(prediction_arr), ")", sep="", end=" ")
-            # Предсказание. Если вероятность меньше порога - это пустая клетка
             if np.max(prediction_arr) > 0.999:
-                print(prediction, prediction_letter)
+                predictions[r][c] = prediction_letter
             else:
-                print("Empty... Или может быть", prediction_letter)
-
-            # Изображение для проверки (временно)
-            cv2.imshow("{} {}".format(j, k), board_squares[j][k])
-            cv2.imshow("Threshold", resize(image, height=200))
-            cv2.waitKey()
-            cv2.destroyAllWindows()
+                predictions[r][c] = ' '
 
     return predictions
 
 
 if __name__ == "__main__":
     image = img_as_ubyte(
-        cv2.imread('../!raw_images_to_cut/IMG_20200615_184009_4.jpg'))
+        cv2.imread('../ML/images_to_cut/IMG_20200619_091851_3.jpg'))
     # image = img_as_ubyte(cv2.imread('../resources/app_images/test.jpg'))
     img_external_crop = cut_by_external_contour(image)
     img_internal_crop = cut_by_internal_contour(img_external_crop)
@@ -311,7 +304,15 @@ if __name__ == "__main__":
     # plt.show()
     board_squares = img_as_ubyte(cut_board_on_cells(img_bw))
 
+    # обрезка букв в клетках
     for i in range(len(board_squares)):
         for j in range(len(board_squares[0])):
             board_squares[i][j] = crop_letter(
                 board_squares[i][j])  # todo check types
+
+    # # предсказания
+    # for row in get_prediction(board_squares):
+    #     print(row)
+    # cv2.imshow('', resize(img_internal_crop, 700))
+    # cv2.waitKey()
+    # cv2.destroyAllWindows()

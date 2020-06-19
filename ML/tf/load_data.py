@@ -2,13 +2,12 @@ import pickle
 
 import cv2
 import imageio
-from scipy import misc
 import numpy as np
 import os
 from CV.scan import IMG_SIZE
 
 path_to_classifier = "int_to_word_out.pickle"
-path_to_dataset = "../dataset_image/"
+path_to_dataset = "../dataset/"
 
 label = os.listdir(path_to_dataset)
 dataset = []
