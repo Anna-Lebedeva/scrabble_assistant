@@ -1,14 +1,18 @@
 import sys
 # import time
 from collections import Counter
+from pathlib import Path
 
 from PyQt5.QtCore import QSize, Qt
 from PyQt5.QtGui import QIcon, QPixmap, QKeyEvent, QFontDatabase
 from PyQt5.QtWidgets import QApplication, QWidget, QPushButton, QLabel, \
     QDesktopWidget, QFileDialog
+from skimage import img_as_ubyte
 
 from CV.exceptions import CutException
-from CV.scan import cut_by_external_contour, cut_by_internal_contour
+from CV.scan import cut_by_external_contour, cut_by_internal_contour, \
+    cut_board_on_cells, crop_letter
+from ML.letter_recognition import classify_images, nums_to_letters
 from assistant.hint import get_board_with_hints, get_hint_value_coord
 from assistant.read_files import read_image, write_image
 from assistant.scrabble_assistant import LETTERS_AMOUNT
@@ -17,6 +21,10 @@ from assistant.scrabble_assistant import get_used_letters, get_n_hints, \
 
 
 # author - Pavel
+from preprocessing.model_preprocessing import CLASSIFIER_DUMP_PATH, \
+    SCALER_DUMP_PATH, gray_to_binary, rgb_to_gray
+
+
 class ScrabbleApplication(QWidget):
     """
     Application of scrabble-assistant
@@ -290,6 +298,20 @@ class ScrabbleApplication(QWidget):
             ['', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
             ['', '', 'ш', '', '', '', 'у', '', '', '', 'м', '', '', '', ''],
         ]
+        # todo: встроить распознавание
+        # img_bw = gray_to_binary(rgb_to_gray(img, [0, 0, 1]))
+        # board_squares = img_as_ubyte(cut_board_on_cells(img_bw))
+        # for i in range(len(board_squares)):
+        #     for j in range(len(board_squares[0])):
+        #         board_squares[i][j] = crop_letter(
+        #             board_squares[i][j])
+        # clf_path = Path.cwd().parent / CLASSIFIER_DUMP_PATH
+        # sc_path = Path.cwd().parent / SCALER_DUMP_PATH
+        # predicted_letters, pred_probas = classify_images(board_squares,
+        #                                                  clf_path,
+        #                                                  scaler_path=None,
+        #                                                  probability=True)
+        # board = nums_to_letters(predicted_letters, pred_probas)
 
         # удаляем помехи из таблицы
         # если букву не окружают другие буквы хотя бы с одной стороны
