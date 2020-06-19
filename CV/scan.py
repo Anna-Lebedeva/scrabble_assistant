@@ -1,18 +1,17 @@
-import time
-from pathlib import Path
-from matplotlib import pyplot as plt
+import json
+import os
+import pickle
 
 import cv2
 import numpy as np
+import tensorflow as tf
 from imutils import grab_contours, resize
-from skimage import img_as_ubyte, img_as_float32
-from skimage.io import imshow
+from keras.models import model_from_json
+from skimage import img_as_ubyte
 
 from CV.exceptions import CutException
 from CV.transform import four_point_transform
-from ML.letter_recognition import classify_images, nums_to_letters
-from preprocessing.model_preprocessing import CLASSIFIER_DUMP_PATH, \
-    SCALER_DUMP_PATH, rgb_to_gray, gray_to_binary
+from preprocessing.model_preprocessing import rgb_to_gray, gray_to_binary
 
 # Размер изображений для тренировки и предсказаний нейросетки
 # Импортируется в train и load_data, чтобы изменять значение в одном месте
@@ -219,9 +218,90 @@ def crop_letter(img_bin: np.ndarray) -> np.ndarray:
     return cropped
 
 
+# todo: сделать вывод дмухмерного массива предсказаний
+#  после достижения необходимой точности предсказаний
+# taken from repo:
+# https://github.com/rohanthomas/Tensorflow-image-recognition,
+# embedded by Mikhail
+def make_prediction(square: list) -> [np.ndarray]:
+    """
+    :param square: Массив изображений ячеек, размерность массива 15х15
+    :return: Массив предсказаний изображений
+    (пока выводит одно предсказание для отладки)
+    """
+
+    # # Отключение назойливых предупреждений
+    tf.get_logger().setLevel('ERROR')
+    os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
+
+    # Пути до файлов модели
+    path_to_classifier = "../ML/tf/int_to_word_out.pickle"
+    path_to_model_json = "../ML/tf/model_face.json"
+    path_to_weights = "../ML/tf/model_face.h5"
+
+    # Импорт json для замены чисел на буквы
+    with open(file="jsons/folders_mapping.json", mode='r',
+              encoding='utf-8') as file:
+        folder_values = json.load(file)
+
+    # Загрузка классификатора
+    classifier_f = open(path_to_classifier, "rb")
+    int_to_word_out = pickle.load(classifier_f)
+    classifier_f.close()
+
+    # Загрузка json и создание модели
+    json_file = open(path_to_model_json, 'r')
+    loaded_model_json = json_file.read()
+    json_file.close()
+    loaded_model = model_from_json(loaded_model_json)
+
+    # Загрузка весов в модель
+    loaded_model.load_weights(path_to_weights)
+
+    # Создание массива предсказаний
+    predictions = []
+    for j in range(15):
+        predictions.append([])
+
+        for k in range(15):
+            img = square[j][k]
+
+            img = crop_letter(img)
+
+            img = cv2.resize(img, (IMG_SIZE, IMG_SIZE))
+            img = np.reshape(img, (IMG_SIZE, IMG_SIZE, 1))
+            img = np.array([img])
+            img = img.astype('float32')
+            img = img / 255.0
+
+            prediction_arr = loaded_model.predict(img)
+            prediction = int_to_word_out[np.argmax(prediction_arr)]
+            predictions[j].append(prediction)
+
+            # Замена числа на букву
+            prediction_letter = folder_values["{}".format(prediction)]
+
+            # Вероятность
+            print("(", np.max(prediction_arr), ")", sep="", end=" ")
+            # Предсказание. Если вероятность меньше порога - это пустая клетка
+            if np.max(prediction_arr) > 0.999:
+                print(prediction, prediction_letter)
+            else:
+                print("Empty... Или может быть", prediction_letter)
+
+            # Изображение для проверки (временно)
+            cv2.imshow("{} {}".format(j, k), board_squares[j][k])
+            cv2.imshow("Threshold", resize(image, height=200))
+            cv2.waitKey()
+            cv2.destroyAllWindows()
+
+    return predictions
+
+
 if __name__ == "__main__":
-    image = img_as_ubyte(cv2.imread('test2.jpg'))
-    #image = img_as_ubyte(cv2.imread('../resources/app_images/test.jpg'))
+    image = img_as_ubyte(
+        cv2.imread('../!raw_images_to_cut/IMG_20200615_184009_4.jpg'))
+    # image = img_as_ubyte(cv2.imread('../resources/app_images/test.jpg'))
     img_external_crop = cut_by_external_contour(image)
     img_internal_crop = cut_by_internal_contour(img_external_crop)
 
@@ -235,15 +315,3 @@ if __name__ == "__main__":
         for j in range(len(board_squares[0])):
             board_squares[i][j] = crop_letter(
                 board_squares[i][j])  # todo check types
-
-    print('тест распознавания изображений:')
-    clf_path = Path.cwd().parent / CLASSIFIER_DUMP_PATH
-    sc_path = Path.cwd().parent / SCALER_DUMP_PATH
-    predicted_letters, pred_probas = classify_images(board_squares,
-                                                     clf_path,
-                                                     scaler_path=None,
-                                                     probability=True)
-
-    pred_board = nums_to_letters(predicted_letters, pred_probas)
-    for row in pred_board:
-        print(row)
