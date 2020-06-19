@@ -8,39 +8,41 @@ from skimage import img_as_ubyte, img_as_bool
 
 from skimage.io import imread, imsave
 
-from CV.scan import IMG_SIZE, crop_letter
-from CV.scan import cut_board_on_cells
-from CV.scan import cut_by_external_contour
-from CV.scan import cut_by_internal_contour
-from CV.scan import CutException
+from CV.scan import IMG_SIZE, crop_letter, cut_board_on_cells, \
+    cut_by_external_contour, cut_by_internal_contour, CutException
 from preprocessing.model_preprocessing import rgb_to_gray, gray_to_binary
 
-IMAGES_TO_CUT_PATH = Path('ML/raw_images_to_cut')
+IMAGES_TO_CUT_PATH = Path('!raw_images_to_cut')
 DATASET_PATH = Path('ML/dataset')
+IS_EMPTY_CELLS_INCLUDED = False  # True, если нужны пустые клетки в датасете
 
 # authors - Misha, Matvey
 if __name__ == "__main__":
 
     # Массив одномерных координат клеток с буквами и пустых
     coordinates = np.arange(33)
-    coordinates = np.append(coordinates, (50, 52, 48, 76, 105, 112))
+    if IS_EMPTY_CELLS_INCLUDED:
+        coordinates = np.append(coordinates, (50, 52, 48, 76, 105, 112))
     coordinates = np.reshape(coordinates, (len(coordinates), 1))
     # Массив категорий для классификации
     categories = np.arange(1, 34)
-    categories = np.append(categories,
-                           ('Empty', 'Green', 'Blue', 'Yellow', 'Red', 'White'))
+    if IS_EMPTY_CELLS_INCLUDED:
+        categories = np.append(categories, ('Empty', 'Green', 'Blue',
+                                            'Yellow', 'Red', 'White'))
     # Объединение их в массив, состоящий из [координата, категория]
     crd_ctg = []
     for i in range(len(categories)):
-        crd_ctg = np.append(crd_ctg, (coordinates[i][0], categories[i]))
+        crd_ctg = np.append(crd_ctg, (str(coordinates[i][0]),
+                                      str(categories[i])))
     crd_ctg = np.reshape(crd_ctg, (len(coordinates), 2))
 
     # (Пере-)создание папок-категорий будущего датасета
     for folder in (Path.cwd().parent / DATASET_PATH).glob('*'):
         rmtree(Path.cwd().parent / DATASET_PATH / Path(folder), True)
-    time.sleep(3)
+    time.sleep(3)  # Вынужденно встроенная задержка перед созданием новых папок
     for category in categories:
-        (Path.cwd().parent / DATASET_PATH / Path(category)).mkdir(mode=0o777)
+        (Path.cwd().parent / DATASET_PATH / Path(str(category)))\
+            .mkdir(mode=0o777)
 
     # Создаем генератор путей исходных изображений
     path_gen = (Path.cwd().parent / IMAGES_TO_CUT_PATH).glob('*.jpg')
