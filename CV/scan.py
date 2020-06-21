@@ -249,7 +249,7 @@ def crop_letter(img_bin: np.ndarray) -> np.ndarray:
                                    cv2.CHAIN_APPROX_NONE)
 
     # Перебор контуров. Если периметр достаточно большой,
-    # считаем, что это буква и обрезаем картинку по
+    # решаем, что это буква и обрезаем картинку по
     # её левому нижнему углу
     for idx, contour in enumerate(contours):
         (x, y, w, h) = cv2.boundingRect(contour)
@@ -259,7 +259,10 @@ def crop_letter(img_bin: np.ndarray) -> np.ndarray:
         # cv2.rectangle(cropped, (x, y), (x + w, y + h), (255, 0, 0), 1)
         min_letter_square = np.square(IMG_SIZE) / 9.3
         if contour_square > min_letter_square:
-            cropped = cropped[0:y + h, x:x + y + h]
+            desired_cropped = cropped[0:y + h, x:x + y + h]
+            h_desired = int(desired_cropped.shape[1])
+            w_desired = int(desired_cropped.shape[0])
+            cropped = cropped[0 + abs(h_desired-w_desired):y + h, x:x + y + h]
             break
 
     return cv2.resize(cropped, (IMG_SIZE, IMG_SIZE))
