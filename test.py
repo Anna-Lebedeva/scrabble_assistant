@@ -1,7 +1,7 @@
 import time
 from collections import Counter
 from assistant import scrabble_assistant as sa
-from preprocessing.dictionary_preprocessing import\
+from preprocessing.dictionary import\
     prepare_frequency_dictionaries
 
 if __name__ == '__main__':

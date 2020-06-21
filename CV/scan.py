@@ -1,21 +1,19 @@
-import time
 from pathlib import Path
-from matplotlib import pyplot as plt
 
 import cv2
 import numpy as np
 from imutils import grab_contours, resize
-from skimage import img_as_ubyte, img_as_float32
-from skimage.io import imshow
+from skimage import img_as_ubyte
+from skimage.exposure import adjust_sigmoid
+from skimage.filters import threshold_isodata
+
+from skimage.restoration import denoise_tv_bregman
 
 from CV.exceptions import CutException
 from CV.transform import four_point_transform
-from ML.letter_recognition import classify_images, nums_to_letters
-from preprocessing.model_preprocessing import CLASSIFIER_DUMP_PATH, \
-    SCALER_DUMP_PATH, rgb_to_gray, gray_to_binary
 
-# Размер изображений для тренировки и предсказаний нейросетки
-# Импортируется в train и load_data, чтобы изменять значение в одном месте
+
+# Размер изображений для тренировки и предсказаний модели
 IMG_SIZE = 64
 
 
@@ -40,7 +38,7 @@ def get_coordinates(img: np.ndarray) -> ([int], [int], int, int):
     return x, y, h, w
 
 
-# authors - Pavel, Mikhail and Sergei
+# authors - Pavel, Mikhail, Sergei, Matvey
 def cut_by_external_contour(img: np.ndarray) -> np.ndarray:
     """
     Обрезает внешний контур объекта на изображении
@@ -97,6 +95,10 @@ def cut_by_external_contour(img: np.ndarray) -> np.ndarray:
 
     except AttributeError:
         raise CutException
+    except cv2.error:
+        raise CutException('Ошибка обрезки внутреннего контура: '
+                           'Ожидается форма массива == (..., 3)), '
+                           f'получено {img.shape}')
 
     return cropped
 
@@ -186,6 +188,52 @@ def cut_board_on_cells(img: np.ndarray) -> [np.ndarray]:
     return np.array(squares, dtype='uint8')
 
 
+# Автор: Матвей
+def rgb_to_gray(rgb: np.ndarray, coefficients: [float], force_copy=False) -> np.ndarray:
+    """
+    Т.к фишки на нашей доске синего цвета, результат будет лучше, если мы будем использовать
+    не стандартные коэффициенты для перевода в оттенки серого, а те, которые будут подавлять
+    синие оттенки.
+
+    Это создаст более сильный контраст буквы. И мы сможем эффективнее
+    использовать порогование.
+
+    :param rgb: изображение в RGB формате.
+    :param coefficients: коэффициенты для в перевода в оттенки серого
+    :param force_copy:
+    :return: изображение в оттенках серого
+    """
+
+    # Проверяем форму массива
+    rgb = np.asanyarray(rgb)
+    if rgb.shape[-1] != 3:
+        raise ValueError('Ожидается форма массива == (..., 3)), '
+                         f'получено {rgb.shape}')
+
+    rgb = img_as_ubyte(rgb, force_copy=force_copy)
+    if len(coefficients) != 3:
+        raise ValueError(f"Ожидается 3 коэффициента, получено {len(coefficients)}")
+    coeffs = np.array(coefficients, dtype=rgb.dtype)
+
+    return rgb @ coeffs
+
+
+# Авторы: Матвей, Михаил
+def gray_to_binary(image_gray: np.ndarray) -> np.ndarray:
+    """
+    Переводит изображение из оттенокв серого в черно-белое.
+    :param image_gray: изображение в оттенках серого
+    :return: изображение в ЧБ формате
+    """
+    img_denoised = denoise_tv_bregman(image_gray, weight=33)  # денойз
+    # img_denoised = denoise_nl_means(image_gray)  # денойз
+    img_adj = adjust_sigmoid(img_denoised, cutoff=0.4)
+    # Регулируем контраст (сигмовидная коррекция)
+
+    # Находим порог для изображения и возвращаем изображение в ЧБ
+    return img_as_ubyte(img_adj > threshold_isodata(img_adj))
+
+
 # author - Sergei, Mikhail
 def crop_letter(img_bin: np.ndarray) -> np.ndarray:
     """
@@ -201,7 +249,7 @@ def crop_letter(img_bin: np.ndarray) -> np.ndarray:
                                    cv2.CHAIN_APPROX_NONE)
 
     # Перебор контуров. Если периметр достаточно большой,
-    # решаем, что это буква и обрезаем картинку по
+    # считаем, что это буква и обрезаем картинку по
     # её левому нижнему углу
     for idx, contour in enumerate(contours):
         (x, y, w, h) = cv2.boundingRect(contour)
@@ -214,27 +262,26 @@ def crop_letter(img_bin: np.ndarray) -> np.ndarray:
             cropped = cropped[0:y + h, x:x + y + h]
             break
 
-    cropped = cv2.resize(cropped, (IMG_SIZE, IMG_SIZE))
-
-    return cropped
+    return cv2.resize(cropped, (IMG_SIZE, IMG_SIZE))
 
 
 if __name__ == "__main__":
-    image = img_as_ubyte(cv2.imread('test2.jpg'))
-    #image = img_as_ubyte(cv2.imread('../resources/app_images/test.jpg'))
+    '''image = img_as_ubyte(imread('test2.jpg'))
+    # image = img_as_ubyte(cv2.imread('../resources/app_images/test.jpg'))
     img_external_crop = cut_by_external_contour(image)
     img_internal_crop = cut_by_internal_contour(img_external_crop)
 
-    img_bw = gray_to_binary(rgb_to_gray(img_internal_crop, [0, 0, 1]))
+    # img_internal_crop = img_as_ubyte(imread('test2.jpg'))
 
+    img_bw = gray_to_binary(rgb_to_gray(img_internal_crop, [1, 0, 0]))
     # plt.imshow(img_bw)
     # plt.show()
+
     board_squares = img_as_ubyte(cut_board_on_cells(img_bw))
 
     for i in range(len(board_squares)):
         for j in range(len(board_squares[0])):
-            board_squares[i][j] = crop_letter(
-                board_squares[i][j])  # todo check types
+            board_squares[i][j] = crop_letter(board_squares[i][j])  # todo check types
 
     print('тест распознавания изображений:')
     clf_path = Path.cwd().parent / CLASSIFIER_DUMP_PATH
@@ -247,3 +294,4 @@ if __name__ == "__main__":
     pred_board = nums_to_letters(predicted_letters, pred_probas)
     for row in pred_board:
         print(row)
+'''

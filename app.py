@@ -1,30 +1,25 @@
 import sys
-# import time
 from collections import Counter
-from pathlib import Path
 
 from PyQt5.QtCore import QSize, Qt
 from PyQt5.QtGui import QIcon, QPixmap, QKeyEvent, QFontDatabase
 from PyQt5.QtWidgets import QApplication, QWidget, QPushButton, QLabel, \
     QDesktopWidget, QFileDialog
 from skimage import img_as_ubyte
+from skimage.io import imread, imsave
 
 from CV.exceptions import CutException
-from CV.scan import cut_by_external_contour, cut_by_internal_contour, \
-    cut_board_on_cells, crop_letter
-from ML.letter_recognition import classify_images, nums_to_letters
+from CV.scan import cut_by_external_contour, cut_by_internal_contour
+from ML.exceptions import ClfNotFoundException, ScNotFoundException
+from ML.letter_recognition import image_to_board
 from assistant.hint import get_board_with_hints, get_hint_value_coord
-from assistant.read_files import read_image, write_image
 from assistant.scrabble_assistant import LETTERS_AMOUNT
 from assistant.scrabble_assistant import get_used_letters, get_n_hints, \
     is_board_letters_amount_right, delete_alone_letters
+from preprocessing.model import CLASSIFIER_DUMP_PATH, SCALER_DUMP_PATH
 
 
 # author - Pavel
-from preprocessing.model_preprocessing import CLASSIFIER_DUMP_PATH, \
-    SCALER_DUMP_PATH, gray_to_binary, rgb_to_gray
-
-
 class ScrabbleApplication(QWidget):
     """
     Application of scrabble-assistant
@@ -90,14 +85,15 @@ class ScrabbleApplication(QWidget):
     _msg_image_uploaded = 'Выберите фишки'
     _msg_got_hint = 'Подсказки отображены на доске'
     _msg_no_hints = 'Ни одной подсказки не найдено'
-    _msg_too_many_letters_error = 'Кол-во некоторых букв на доске ' \
-                                  'превышает допустимое игрой значение'
+    _msg_too_many_letters_error = 'Кол-во букв на доске превышает допустимое'
     _msg_max_chips_error = 'Вы набрали максимум фишек'
     _msg_max_chip_error = 'В игре больше нет фишек с буквой '
     _msg_max_chip_aster_error = 'В игре больше нет фишек со звёздочкой'
     _msg_no_chips_error = 'Вы не выбрали ни одной фишки'
     _msg_no_img_error = 'Вы не загрузили изображение'
     _msg_scan_error = 'Доска не распознана, попробуйте ещё раз'
+    _msg_clf_dump_error = f'Не найден дамп классификаторв в {CLASSIFIER_DUMP_PATH}'
+    _msg_sc_dump_error = f'Не найден дамп шкалировщика в {SCALER_DUMP_PATH}'
 
     _img_label = None  # label для изображения доски
     _board_img = None  # обрезанное изображение доски
@@ -137,7 +133,7 @@ class ScrabbleApplication(QWidget):
                          self._width, self._height)
         self.setMaximumSize(self._width, self._height)
         self.setMinimumSize(self._width, self._height)
-        self.setWindowTitle('Scrabble')
+        self.setWindowTitle('Scrabble assistant')
         self.setWindowIcon(QIcon(self._app_icon_path))
         self.show()
 
@@ -256,11 +252,12 @@ class ScrabbleApplication(QWidget):
         if not img_path:
             return
 
-        # обработка изображения
-        try:
-            img = read_image(img_path)  # считывание
-            img = cut_by_external_contour(img)  # обрезка по внешнему контуру
-            img = cut_by_internal_contour(img)  # обрезка по внутреннему контуру
+        try:  # обработка изображения
+            img = img_as_ubyte(imread(img_path))  # считывание
+            img = img_as_ubyte(cut_by_external_contour(img))  # обрезка по внешнему контуру
+            img_squared = img_as_ubyte(cut_by_internal_contour(img))
+            # обрезка по внутреннему контуру
+
         except (CutException, AttributeError):
             self._img_label.setPixmap(QPixmap())  # убираем изображение доски
             self.clear_hint()
@@ -271,56 +268,44 @@ class ScrabbleApplication(QWidget):
             self._start_button.setDisabled(True)
             return
 
-        # распознавание доски с помощью натренированной модели
-        # board = []  # распознанная доска в виде двумерного символьного массива
-        # try:
-        #     pass
-        #     # todo: здесь будет распознавание
-        # # todo: подумать над исключениями
-        # except (Exception):
-        #     self._msg_label.setText(self._msg_scan_error)
-        #     return
+        try:
+            board = image_to_board(img_squared, CLASSIFIER_DUMP_PATH)
 
-        board = [
-            ['', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
-            ['', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
-            ['', '', '', '', '', '', '', 'м', '', 'т', '', '', '', '', ''],
-            ['', '', '', '', '', '', '', 'е', '', 'о', '', '', '', '', ''],
-            ['', '', '', 'п', 'о', 'с', 'е', 'л', 'о', 'к', '', '', '', '', ''],
-            ['', '', '', 'а', '', 'а', '', '', '', '', '', 'р', '', '', ''],
-            ['', '', '', 'п', '', 'д', 'о', 'м', '', 'я', '', 'е', '', '', ''],
-            ['', '', '', 'а', '', '', '', 'а', 'з', 'б', 'у', 'к', 'а', '', ''],
-            ['', '', '', '', '', 'с', 'о', 'м', '', 'л', '', 'а', '', '', ''],
-            ['', '', '', 'я', 'м', 'а', '', 'а', '', 'о', '', '', '', '', ''],
-            ['', '', '', '', '', 'л', '', '', '', 'к', 'и', 'т', '', '', ''],
-            ['', '', '', '', 'с', 'о', 'л', 'ь', '', 'о', '', '', '', '', ''],
-            ['', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
-            ['', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
-            ['', '', 'ш', '', '', '', 'у', '', '', '', 'м', '', '', '', ''],
-        ]
-        # todo: встроить распознавание
-        # img_bw = gray_to_binary(rgb_to_gray(img, [0, 0, 1]))
-        # board_squares = img_as_ubyte(cut_board_on_cells(img_bw))
-        # for i in range(len(board_squares)):
-        #     for j in range(len(board_squares[0])):
-        #         board_squares[i][j] = crop_letter(
-        #             board_squares[i][j])
-        # clf_path = Path.cwd().parent / CLASSIFIER_DUMP_PATH
-        # sc_path = Path.cwd().parent / SCALER_DUMP_PATH
-        # predicted_letters, pred_probas = classify_images(board_squares,
-        #                                                  clf_path,
-        #                                                  scaler_path=None,
-        #                                                  probability=True)
-        # board = nums_to_letters(predicted_letters, pred_probas)
+        except ClfNotFoundException:
+            self._msg_label.setText(self._msg_clf_dump_error)
+            return
+        except ScNotFoundException:
+            self._msg_label.setText(self._msg_sc_dump_error)
+            return
+        except (Exception):  # todo: подумать над исключениями
+            self._msg_label.setText(self._msg_scan_error)
+            return
+
+        # board = [
+        #     ['', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
+        #     ['', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
+        #     ['', '', '', '', '', '', '', 'м', '', 'т', '', '', '', '', ''],
+        #     ['', '', '', '', '', '', '', 'е', '', 'о', '', '', '', '', ''],
+        #     ['', '', '', 'п', 'о', 'с', 'е', 'л', 'о', 'к', '', '', '', '', ''],
+        #     ['', '', '', 'а', '', 'а', '', '', '', '', '', 'р', '', '', ''],
+        #     ['', '', '', 'п', '', 'д', 'о', 'м', '', 'я', '', 'е', '', '', ''],
+        #     ['', '', '', 'а', '', '', '', 'а', 'з', 'б', 'у', 'к', 'а', '', ''],
+        #     ['', '', '', '', '', 'с', 'о', 'м', '', 'л', '', 'а', '', '', ''],
+        #     ['', '', '', 'я', 'м', 'а', '', 'а', '', 'о', '', '', '', '', ''],
+        #     ['', '', '', '', '', 'л', '', '', '', 'к', 'и', 'т', '', '', ''],
+        #     ['', '', '', '', 'с', 'о', 'л', 'ь', '', 'о', '', '', '', '', ''],
+        #     ['', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
+        #     ['', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
+        #     ['', '', 'ш', '', '', '', 'у', '', '', '', 'м', '', '', '', ''],
+        # ]
 
         # удаляем помехи из таблицы
-        # если букву не окружают другие буквы хотя бы с одной стороны
-        # удаляем ее
+        # если букву не окружают другие буквы хотя бы с одной стороны - удаляем ее
         board = delete_alone_letters(board)
         self._board = board
 
         # записываем изображение
-        write_image(img, 'resources/app_images/user_image.jpg')
+        imsave('resources/app_images/user_image.jpg', img_squared)
 
         # считываем изображение
         img = QPixmap('resources/app_images/user_image.jpg')
