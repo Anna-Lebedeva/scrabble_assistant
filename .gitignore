@@ -13,3 +13,4 @@ __pycache__
 /CV/*.jpg
 /*.jpg
 /resources/app_images/user_image.jpg
+/ML/*.ipynb
