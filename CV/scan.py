@@ -15,6 +15,7 @@ from CV.transform import four_point_transform
 # Размер изображений для тренировки и предсказаний модели
 IMG_SIZE = 64
 
+
 # Авторы: Миша, Матвей
 def get_coordinates(img: np.ndarray) -> ([int], [int], int, int):
     """Считает координаты для разрезов, по Х, У и высоту, ширину
