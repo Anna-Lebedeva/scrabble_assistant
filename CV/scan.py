@@ -34,7 +34,7 @@ def get_coordinates(img: np.ndarray) -> ([int], [int], int, int):
     return x, y, h, w
 
 
-# Авторы: Павел, Михаил, Сергей, Матвей
+# Авторы: Pavel, Михаил, Сергей, Матвей
 def cut_by_external_contour(img: np.ndarray) -> np.ndarray:
     """
     Обрезает внешний контур объекта на изображении
@@ -99,7 +99,7 @@ def cut_by_external_contour(img: np.ndarray) -> np.ndarray:
     return cropped
 
 
-# Авторы: Михаил, Павел
+# Автор: Михаил
 def cut_by_internal_contour(img: np.ndarray,
                             left=4.0, top=3.8,
                             right=1.1, bot=1.2) -> np.ndarray:

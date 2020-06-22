@@ -11,7 +11,6 @@
 - [Pillow 7.1.2](https://python-pillow.org/)
 - [Imutils 0.5.3](https://github.com/jrosebr1/imutils)
 - [PyQt5 5.14.2](https://pypi.org/project/PyQt5/)
-- [Pandas 1.0.4](https://pandas.pydata.org/)
 - **...**
 
 Актуальный список в requirements.txt. Установить одной командой:

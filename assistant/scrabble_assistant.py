@@ -316,7 +316,7 @@ def get_hint_for_empty_board(board: [[str]],
     return best_hint, best_hint_value
 
 
-# authors - Matvey and Pavel
+# authors - Матвей and Pavel
 def get_empty_board(y: int, x: int) -> [[str]]:
     """
     Генерирует пустую матрицу в y строк и x столбцов
@@ -480,7 +480,7 @@ def get_used_letters(board: [[str]]) -> Counter:
     return letters_counter
 
 
-# authors - Matvey and Pavel
+# authors - Матвей and Pavel
 def transpose_board(board: [[str]]) -> [[str]]:
     """
     Транспонирует двумерный массив
@@ -613,7 +613,7 @@ def is_board_letters_amount_right(board: [[str]]) -> bool:
     return True
 
 
-# author - Matvey
+# author - Матвей
 def is_word_compilable(word: str, letters: Counter) -> bool:
     """
     Проверяет возможность составить слово из переданных букв.
