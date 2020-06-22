@@ -14,20 +14,20 @@ from ML.exceptions import ClfNotFoundException, ScNotFoundException
 from ML.letter_recognition import image_to_board
 from assistant.hint import get_board_with_hints, get_hint_value_coord
 from assistant.scrabble_assistant import LETTERS_AMOUNT
-from assistant.scrabble_assistant import get_used_letters, get_n_hints, \
-    is_board_letters_amount_right
+from assistant.scrabble_assistant import get_used_letters, get_n_hints
+# from assistant.scrabble_assistant import is_board_letters_amount_right
 from assistant.postprocessing import full_postprocessing
 from preprocessing.model import CLASSIFIER_DUMP_PATH, SCALER_DUMP_PATH
 
 
-# Авторы: Павел, Михаил
+# authors - Pavel, Михаил
 class ScrabbleApplication(QWidget):
     """
     Application of scrabble-assistant
     Using PyQT5 version 5.14.2
     """
 
-    _hints_amount = 5  # сколько подсказок выдавать
+    _hints_amount = 3  # сколько подсказок выдавать
 
     # доска в виде двумерного символьного массива
     _board = None
@@ -109,7 +109,6 @@ class ScrabbleApplication(QWidget):
         f = open(self._stylesheet_path, 'r')
         self.styleData = f.read()
         f.close()
-        # fixme: что-то с аргументами
         self.init_buttons()
         self.init_labels()
         self.init_ui()
@@ -301,28 +300,9 @@ class ScrabbleApplication(QWidget):
         except ScNotFoundException:
             self._msg_label.setText(self._msg_sc_dump_error)
             return
-        except (Exception):  # todo: подумать над исключениями
-            self._msg_label.setText(self._msg_scan_error)
-            return
-
-        # тестовая доска
-        # board = [
-        #     ['', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
-        #     ['', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
-        #     ['', '', '', '', '', '', '', 'м', '', 'т', '', '', '', '', ''],
-        #     ['', '', '', '', '', '', '', 'е', '', 'о', '', '', '', '', ''],
-        #     ['', '', '', 'п', 'о', 'с', 'е', 'л', 'о', 'к', '', '', '', '', ''],
-        #     ['', '', '', 'а', '', 'а', '', '', '', '', '', 'р', '', '', ''],
-        #     ['', '', '', 'п', '', 'д', 'о', 'м', '', 'я', '', 'е', '', '', ''],
-        #     ['', '', '', 'а', '', '', '', 'а', 'з', 'б', 'у', 'к', 'а', '', ''],
-        #     ['', '', '', '', '', 'с', 'о', 'м', '', 'л', '', 'а', '', '', ''],
-        #     ['', '', '', 'я', 'м', 'а', '', 'а', '', 'о', '', '', '', '', ''],
-        #     ['', '', '', '', '', 'л', '', '', '', 'к', 'и', 'т', '', '', ''],
-        #     ['', '', '', '', 'с', 'о', 'л', 'ь', '', 'о', '', '', '', '', ''],
-        #     ['', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
-        #     ['', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
-        #     ['', '', 'ш', '', '', '', 'у', '', '', '', 'м', '', '', '', ''],
-        # ]
+        # except (Exception):  # todo: подумать над исключениями
+        #     self._msg_label.setText(self._msg_scan_error)
+        #     return
 
         # постобработка доски
         board = full_postprocessing(board)
