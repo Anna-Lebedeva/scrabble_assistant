@@ -97,9 +97,6 @@ def nums_to_letters(predictions: [[int]], predict_probas: [float] = None) -> [[s
                 row.append(mapping[predictions[y][x]])
         pred_letters.append(row)
 
-    for row in pred_letters:
-        print(row)
-
     return pred_letters
 
 

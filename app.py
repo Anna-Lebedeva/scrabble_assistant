@@ -15,7 +15,8 @@ from ML.letter_recognition import image_to_board
 from assistant.hint import get_board_with_hints, get_hint_value_coord
 from assistant.scrabble_assistant import LETTERS_AMOUNT
 from assistant.scrabble_assistant import get_used_letters, get_n_hints, \
-    is_board_letters_amount_right, delete_alone_letters
+    is_board_letters_amount_right
+from assistant.postprocessing import full_postprocessing
 from preprocessing.model import CLASSIFIER_DUMP_PATH, SCALER_DUMP_PATH
 
 
@@ -308,6 +309,7 @@ class ScrabbleApplication(QWidget):
             self._msg_label.setText(self._msg_scan_error)
             return
 
+        # тестовая доска
         # board = [
         #     ['', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
         #     ['', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
@@ -326,16 +328,8 @@ class ScrabbleApplication(QWidget):
         #     ['', '', 'ш', '', '', '', 'у', '', '', '', 'м', '', '', '', ''],
         # ]
 
-        # удаление всех звездочек
-        for i in range(len(board)):
-            for j in range(len(board[i])):
-                if board[i][j] == '*':
-                    board[i][j] = ''
-
-        # удаляем помехи из таблицы
-        # если букву не окружают другие буквы хотя бы с одной стороны
-        # удаляем ее
-        board = delete_alone_letters(board)
+        # постобработка доски
+        board = full_postprocessing(board)
         self._board = board
 
         print('Постобработка: ')
