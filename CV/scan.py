@@ -12,10 +12,8 @@ from skimage.restoration import denoise_tv_bregman
 from CV.exceptions import CutException
 from CV.transform import four_point_transform
 
-
 # Размер изображений для тренировки и предсказаний модели
 IMG_SIZE = 64
-
 
 # Авторы: Миша, Матвей
 def get_coordinates(img: np.ndarray) -> ([int], [int], int, int):
