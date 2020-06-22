@@ -28,17 +28,21 @@ if __name__ == "__main__":
     for folder in range(1, 34):
         path_gen = Path(Path.cwd().parent / DATASET_PATH / str(folder)).glob(
             '*.jpg')  # Создаем генератор путей картинок
-        paths = [path for path in path_gen if path.is_file()]  # Записываем пути картинок
+        # Записываем пути картинок
+        paths = [path for path in path_gen if path.is_file()]
         for i in range(len(paths)):
             flat_images.append(
-                img_as_ubyte(img_as_bool(img_as_ubyte(imread(paths[i])).ravel())))
+                img_as_ubyte(img_as_bool(img_as_ubyte(
+                    imread(paths[i])).ravel())))
 
             letters.append(folder)
             # letters = np.append(letters, folder)
-            # Картинка представляется IMG_SIZE * IMG_SIZE признаками (пикселями),
+            # Картинка представляется
+            # IMG_SIZE * IMG_SIZE признаками (пикселями),
             # в каждом из которых берем интенсивность белого)
     print(
-        f'Модель учится на {len(paths)} картинках 33 букв, размером {IMG_SIZE}x{IMG_SIZE}.')
+        f'Модель учится на {len(paths)} изображениях с разрешением '
+        f'{IMG_SIZE}x{IMG_SIZE} в 33 категориях .')
 
     # flat_images = img_as_ubyte(img_as_bool(flat_images))
     # scaler = StandardScaler()

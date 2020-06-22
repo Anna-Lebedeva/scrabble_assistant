@@ -12,10 +12,8 @@ from skimage.restoration import denoise_tv_bregman
 from CV.exceptions import CutException
 from CV.transform import four_point_transform
 
-
 # Размер изображений для тренировки и предсказаний модели
 IMG_SIZE = 64
-
 
 # Авторы: Миша, Матвей
 def get_coordinates(img: np.ndarray) -> ([int], [int], int, int):
@@ -245,11 +243,10 @@ def crop_letter(img_bin: np.ndarray) -> np.ndarray:
     cropped = img_bin.copy()
     cropped = img_as_ubyte(cropped)
     # cropped = cv2.fastNlMeansDenoising(cropped)
-    contours, _ = cv2.findContours(cropped, cv2.RETR_EXTERNAL,
-                                   cv2.CHAIN_APPROX_NONE)
+    contours, _ = cv2.findContours(cropped, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
 
     # Перебор контуров. Если периметр достаточно большой,
-    # решаем, что это буква и обрезаем картинку по
+    # считаем, что это буква и обрезаем картинку по
     # её левому нижнему углу
     for idx, contour in enumerate(contours):
         (x, y, w, h) = cv2.boundingRect(contour)
@@ -266,35 +263,3 @@ def crop_letter(img_bin: np.ndarray) -> np.ndarray:
             break
 
     return cv2.resize(cropped, (IMG_SIZE, IMG_SIZE))
-
-
-if __name__ == "__main__":
-    '''image = img_as_ubyte(imread('test2.jpg'))
-    # image = img_as_ubyte(cv2.imread('../resources/app_images/test.jpg'))
-    img_external_crop = cut_by_external_contour(image)
-    img_internal_crop = cut_by_internal_contour(img_external_crop)
-
-    # img_internal_crop = img_as_ubyte(imread('test2.jpg'))
-
-    img_bw = gray_to_binary(rgb_to_gray(img_internal_crop, [1, 0, 0]))
-    # plt.imshow(img_bw)
-    # plt.show()
-
-    board_squares = img_as_ubyte(cut_board_on_cells(img_bw))
-
-    for i in range(len(board_squares)):
-        for j in range(len(board_squares[0])):
-            board_squares[i][j] = crop_letter(board_squares[i][j])  # todo check types
-
-    print('тест распознавания изображений:')
-    clf_path = Path.cwd().parent / CLASSIFIER_DUMP_PATH
-    sc_path = Path.cwd().parent / SCALER_DUMP_PATH
-    predicted_letters, pred_probas = classify_images(board_squares,
-                                                     clf_path,
-                                                     scaler_path=None,
-                                                     probability=True)
-
-    pred_board = nums_to_letters(predicted_letters, pred_probas)
-    for row in pred_board:
-        print(row)
-'''
