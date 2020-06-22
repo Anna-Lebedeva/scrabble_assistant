@@ -3,13 +3,10 @@ from pathlib import Path
 import numpy as np
 from joblib import load
 from matplotlib import pyplot as plt
-from skimage import img_as_ubyte, img_as_bool
-from skimage.io import imread
+from skimage import img_as_ubyte
 from ML.exceptions import ClfNotFoundException, ScNotFoundException
 
-from CV.scan import IMG_SIZE, rgb_to_gray, gray_to_binary, cut_board_on_cells, crop_letter, \
-    cut_by_external_contour, cut_by_internal_contour
-from preprocessing.model import CLASSIFIER_DUMP_PATH, SCALER_DUMP_PATH
+from CV.scan import IMG_SIZE, rgb_to_gray, gray_to_binary, cut_board_on_cells, crop_letter
 
 
 # fixme: ПРОВЕРОК НЕТ
@@ -100,6 +97,9 @@ def nums_to_letters(predictions: [[int]], predict_probas: [float] = None) -> [[s
                 row.append(mapping[predictions[y][x]])
         pred_letters.append(row)
 
+    for row in pred_letters:
+        print(row)
+
     return pred_letters
 
 
@@ -123,8 +123,8 @@ def image_to_board(img_squared: np.ndarray,
 
     img_gray = rgb_to_gray(img_squared, [1, 0, 0])
     img_bw = gray_to_binary(img_gray)
-    # plt.imshow(img_bw)
-    # plt.show()
+    plt.imshow(img_bw)
+    plt.show()
 
     board_squares = img_as_ubyte(cut_board_on_cells(img_bw))
 
@@ -138,15 +138,3 @@ def image_to_board(img_squared: np.ndarray,
                                                      probability=True)
 
     return nums_to_letters(predicted_letters, pred_probas)
-
-
-if __name__ == "__main__":
-    pass
-    img = imread(Path.cwd().parent / Path('IMG_20200619_082601_0.jpg'))#)  # считывание
-    img = cut_by_external_contour(img)  # обрезка по внешнему контуру
-    img = cut_by_internal_contour(img)  # обрезка по внутреннему контуру
-
-    rec_test = image_to_board(img_squared=img,
-                              clf_path=Path.cwd().parent / CLASSIFIER_DUMP_PATH)
-    for row in rec_test:
-        print(row)
