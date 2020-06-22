@@ -12,9 +12,10 @@ from skimage.io import imread, imsave
 
 from CV.exceptions import CutException
 from CV.scan import crop_letter, cut_board_on_cells, \
-    cut_by_external_contour, cut_by_internal_contour, rgb_to_gray, gray_to_binary
+    cut_by_external_contour, cut_by_internal_contour, \
+    rgb_to_gray, gray_to_binary
 
-IMAGES_TO_CUT_PATH = Path('ML/raw_images_to_cut')
+IMAGES_TO_CUT_PATH = Path('ML/images_to_cut')
 DATASET_PATH = Path('ML/dataset')
 IS_EMPTY_CELLS_INCLUDED = False  # True, если нужны пустые клетки в датасете
 
@@ -42,11 +43,14 @@ if __name__ == "__main__":
     crd_ctg = np.reshape(crd_ctg, (len(coordinates), 2))
 
     # (Пере-)создание папок-категорий будущего датасета
+    if not DATASET_PATH.exists():
+        Path.mkdir(Path.cwd().parent / DATASET_PATH)
     for folder in (Path.cwd().parent / DATASET_PATH).glob('*'):
         rmtree(Path.cwd().parent / DATASET_PATH / Path(folder), True)
     time.sleep(3)  # Задержка перед созданием новых папок
     for category in categories:
-        (Path.cwd().parent / DATASET_PATH / Path(str(category))).mkdir(mode=0o777)
+        (Path.cwd().parent / DATASET_PATH / Path(str(category))).\
+            mkdir(mode=0o777)
 
     # Создаем генератор путей исходных изображений
     path_gen = (Path.cwd().parent / IMAGES_TO_CUT_PATH).glob('*.jpg')
@@ -77,8 +81,8 @@ if __name__ == "__main__":
                 # Округление можно добавить тут.
                 img_cell = crop_letter(img_cell)  # не работает как надо?
 
-                imsave(str(Path.cwd().parent / DATASET_PATH / Path(c[1]) / Path(filename)),
-                       img_cell)
+                imsave(str(Path.cwd().parent / DATASET_PATH / Path(c[1]) /
+                           Path(filename)), img_cell)
         except (CutException, RuntimeWarning, UserWarning):
             bad_images.append(filename)
         # Вывод процента выполнения
@@ -87,7 +91,7 @@ if __name__ == "__main__":
     print('Готово!')
     if len(bad_images) > 0:
         print('Не удалось обрезать:')
-        [print(b, sep=', ') for b in bad_images]
+        [print(b, sep=', ', end='.\n') for b in bad_images]
         print('Удалить?(y/n)', end=' ')
         if input() == 'y':
             for b in bad_images:
