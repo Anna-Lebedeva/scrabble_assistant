@@ -20,7 +20,7 @@ DATASET_PATH = Path('ML/dataset')
 CLASSIFIER_DUMP_PATH = Path('ML/classifier.joblib')
 SCALER_DUMP_PATH = Path('ML/scaler.joblib')
 
-
+# Автор: Матвей
 if __name__ == "__main__":
     letters = []
     flat_images = []

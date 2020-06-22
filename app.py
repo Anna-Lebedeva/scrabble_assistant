@@ -3,7 +3,7 @@ from collections import Counter
 from win32api import GetSystemMetrics
 
 from PyQt5.QtCore import QSize, Qt
-from PyQt5.QtGui import QIcon, QPixmap, QKeyEvent, QFontDatabase
+from PyQt5.QtGui import QIcon, QPixmap, QKeyEvent
 from PyQt5.QtWidgets import QApplication, QWidget, QPushButton, QLabel, \
     QDesktopWidget, QFileDialog
 from skimage import img_as_ubyte
@@ -20,14 +20,14 @@ from assistant.scrabble_assistant import get_used_letters, get_n_hints, \
 from preprocessing.model import CLASSIFIER_DUMP_PATH, SCALER_DUMP_PATH
 
 
-# author - Pavel
+# Авторы: Павел, Михаил
 class ScrabbleApplication(QWidget):
     """
     Application of scrabble-assistant
     Using PyQT5 version 5.14.2
     """
 
-    _hints_amount = 5  # сколько подсказок выдавать
+    _hints_amount = 10  # сколько подсказок выдавать
 
     # доска в виде двумерного символьного массива
     _board = None
@@ -62,12 +62,9 @@ class ScrabbleApplication(QWidget):
     # путь к css
     _stylesheet_path = 'resources/stylesheet/app.css'
 
-    # путь к шрифту
-    _font = 'resources/fonts/Roboto-Regular.ttf'
-
     # пути к иконкам
     _app_icon_path = 'resources/app_images/icon.png'  # иконка приложения
-    _upload_img_icon_path = 'resources/app_images/button_icons/export.png'
+    _upload_img_icon_path = 'resources/app_images/button_icons/upload.png'
     _drop_img_icon_path = 'resources/app_images/button_icons/refresh.png'
     _start_icon_path = 'resources/app_images/button_icons/search.png'
 
@@ -116,7 +113,6 @@ class ScrabbleApplication(QWidget):
         self.styleData = f.read()
         f.close()
         # fixme: что-то с аргументами
-        QFontDatabase.addApplicationFont(self._font)
         self.init_buttons()
         self.init_labels()
         self.init_ui()
@@ -305,7 +301,8 @@ class ScrabbleApplication(QWidget):
         # ]
 
         # удаляем помехи из таблицы
-        # если букву не окружают другие буквы хотя бы с одной стороны - удаляем ее
+        # если букву не окружают другие буквы хотя бы
+        # с одной стороны - удаляем ее
         board = delete_alone_letters(board)
         self._board = board
 
@@ -334,7 +331,9 @@ class ScrabbleApplication(QWidget):
             self.clear_widgets()
         else:
             # если превышено кол-во хоть одной из букв
+            self._img_label.setPixmap(QPixmap())
             self._msg_label.setText(self._msg_too_many_letters_error)
+
 
     def clear_widgets(self):
         """

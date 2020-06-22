@@ -1,7 +1,8 @@
+/*Авторы: Михаил, Павел*/
 QWidget {
     color: #F0F0F0;
     background-color: #323232;
-    font: 18px "Ubuntu";
+    font: 18px "Roboto";
 }
 
 QLabel {
