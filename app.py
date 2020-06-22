@@ -2,7 +2,7 @@ import sys
 from collections import Counter
 
 from PyQt5.QtCore import QSize, Qt
-from PyQt5.QtGui import QIcon, QPixmap, QKeyEvent, QFontDatabase
+from PyQt5.QtGui import QIcon, QPixmap, QKeyEvent
 from PyQt5.QtWidgets import QApplication, QWidget, QPushButton, QLabel, \
     QDesktopWidget, QFileDialog
 from skimage import img_as_ubyte
@@ -14,28 +14,29 @@ from ML.exceptions import ClfNotFoundException, ScNotFoundException
 from ML.letter_recognition import image_to_board
 from assistant.hint import get_board_with_hints, get_hint_value_coord
 from assistant.scrabble_assistant import LETTERS_AMOUNT
-from assistant.scrabble_assistant import get_used_letters, get_n_hints, \
-    is_board_letters_amount_right, delete_alone_letters
+from assistant.scrabble_assistant import get_used_letters, get_n_hints
+# from assistant.scrabble_assistant import is_board_letters_amount_right
+from assistant.postprocessing import full_postprocessing
 from preprocessing.model import CLASSIFIER_DUMP_PATH, SCALER_DUMP_PATH
 
 
-# author - Pavel
+# authors - Pavel, Михаил
 class ScrabbleApplication(QWidget):
     """
     Application of scrabble-assistant
     Using PyQT5 version 5.14.2
     """
 
-    _hints_amount = 5  # сколько подсказок выдавать
+    _hints_amount = 3  # сколько подсказок выдавать
 
     # доска в виде двумерного символьного массива
     _board = None
 
-    # размеры окна и виджетов
-    _width = 450  # 450 px
-    _height = 805  # 805 px
-    _chip_size = _width // 9  # размер кнопки с буквой в px
-    _row_size = _chip_size * (_width // _chip_size)  # длина линии кнопок в px
+    _width = 0  # 450 px для 1920
+    _height = 0  # 805 px для 1080
+
+    _chip_size = 0  # размер кнопки с буквой в px
+    _row_size = 0  # длина линии кнопок в px
 
     # css цвета для вывода ценностей подсказок
     _colors = ['rgba(25, 114, 32, 160)',   # зелёный
@@ -57,12 +58,9 @@ class ScrabbleApplication(QWidget):
     # путь к css
     _stylesheet_path = 'resources/stylesheet/app.css'
 
-    # путь к шрифту
-    _font = 'resources/fonts/Roboto-Regular.ttf'
-
     # пути к иконкам
     _app_icon_path = 'resources/app_images/icon.png'  # иконка приложения
-    _upload_img_icon_path = 'resources/app_images/button_icons/export.png'
+    _upload_img_icon_path = 'resources/app_images/button_icons/upload.png'
     _drop_img_icon_path = 'resources/app_images/button_icons/refresh.png'
     _start_icon_path = 'resources/app_images/button_icons/search.png'
 
@@ -92,7 +90,8 @@ class ScrabbleApplication(QWidget):
     _msg_no_chips_error = 'Вы не выбрали ни одной фишки'
     _msg_no_img_error = 'Вы не загрузили изображение'
     _msg_scan_error = 'Доска не распознана, попробуйте ещё раз'
-    _msg_clf_dump_error = f'Не найден дамп классификаторв в {CLASSIFIER_DUMP_PATH}'
+    _msg_clf_dump_error = f'Не найден дамп классификатора' \
+                          f' в {CLASSIFIER_DUMP_PATH}'
     _msg_sc_dump_error = f'Не найден дамп шкалировщика в {SCALER_DUMP_PATH}'
 
     _img_label = None  # label для изображения доски
@@ -110,8 +109,6 @@ class ScrabbleApplication(QWidget):
         f = open(self._stylesheet_path, 'r')
         self.styleData = f.read()
         f.close()
-        # fixme: что-то с аргументами
-        QFontDatabase.addApplicationFont(self._font)
         self.init_buttons()
         self.init_labels()
         self.init_ui()
@@ -128,12 +125,27 @@ class ScrabbleApplication(QWidget):
         size = QDesktopWidget().screenGeometry(-1)
         width = size.width()
         height = size.height()
+
+        # если ширина экрана менее 1920, то уменьшаем окно
+        if width < 1920:
+            k = 0.8
+        else:
+            k = 1
+
+        # размеры окна
+        self._width = 450 * k  # 450 px для 1920
+        self._height = 805 * k  # 805 px для 1080
+        # размер кнопки с буквой в px
+        self._chip_size = self._width // 9
+        # длина линии кнопок в px
+        self._row_size = self._chip_size * (self._width // self._chip_size)
+
         self.setGeometry((width - self._width) // 2,
                          (height - self._height) // 2,
                          self._width, self._height)
         self.setMaximumSize(self._width, self._height)
         self.setMinimumSize(self._width, self._height)
-        self.setWindowTitle('Scrabble assistant')
+        self.setWindowTitle('Эрудит')
         self.setWindowIcon(QIcon(self._app_icon_path))
         self.show()
 
@@ -252,11 +264,13 @@ class ScrabbleApplication(QWidget):
         if not img_path:
             return
 
-        try:  # обработка изображения
+        # обработка изображения
+        try:
             img = img_as_ubyte(imread(img_path))  # считывание
-            img = img_as_ubyte(cut_by_external_contour(img))  # обрезка по внешнему контуру
-            img_squared = img_as_ubyte(cut_by_internal_contour(img))
+            # обрезка по внешнему контуру
+            img = img_as_ubyte(cut_by_external_contour(img))
             # обрезка по внутреннему контуру
+            img_squared = img_as_ubyte(cut_by_internal_contour(img))
 
         except (CutException, AttributeError):
             self._img_label.setPixmap(QPixmap())  # убираем изображение доски
@@ -270,39 +284,39 @@ class ScrabbleApplication(QWidget):
 
         try:
             board = image_to_board(img_squared, CLASSIFIER_DUMP_PATH)
-
+            print('Результат: ')
+            for row in board:
+                print('|', end='')
+                for i in range(len(row)):
+                    if row[i] == '':
+                        print(' ', end='|')
+                    else:
+                        print(row[i], end='|')
+                print()
+            print()
         except ClfNotFoundException:
             self._msg_label.setText(self._msg_clf_dump_error)
             return
         except ScNotFoundException:
             self._msg_label.setText(self._msg_sc_dump_error)
             return
-        except (Exception):  # todo: подумать над исключениями
-            self._msg_label.setText(self._msg_scan_error)
-            return
+        # except (Exception):  # todo: подумать над исключениями
+        #     self._msg_label.setText(self._msg_scan_error)
+        #     return
 
-        # board = [
-        #     ['', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
-        #     ['', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
-        #     ['', '', '', '', '', '', '', 'м', '', 'т', '', '', '', '', ''],
-        #     ['', '', '', '', '', '', '', 'е', '', 'о', '', '', '', '', ''],
-        #     ['', '', '', 'п', 'о', 'с', 'е', 'л', 'о', 'к', '', '', '', '', ''],
-        #     ['', '', '', 'а', '', 'а', '', '', '', '', '', 'р', '', '', ''],
-        #     ['', '', '', 'п', '', 'д', 'о', 'м', '', 'я', '', 'е', '', '', ''],
-        #     ['', '', '', 'а', '', '', '', 'а', 'з', 'б', 'у', 'к', 'а', '', ''],
-        #     ['', '', '', '', '', 'с', 'о', 'м', '', 'л', '', 'а', '', '', ''],
-        #     ['', '', '', 'я', 'м', 'а', '', 'а', '', 'о', '', '', '', '', ''],
-        #     ['', '', '', '', '', 'л', '', '', '', 'к', 'и', 'т', '', '', ''],
-        #     ['', '', '', '', 'с', 'о', 'л', 'ь', '', 'о', '', '', '', '', ''],
-        #     ['', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
-        #     ['', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
-        #     ['', '', 'ш', '', '', '', 'у', '', '', '', 'м', '', '', '', ''],
-        # ]
-
-        # удаляем помехи из таблицы
-        # если букву не окружают другие буквы хотя бы с одной стороны - удаляем ее
-        board = delete_alone_letters(board)
+        # постобработка доски
+        board = full_postprocessing(board)
         self._board = board
+
+        print('Постобработка: ')
+        for row in board:
+            print('|', end='')
+            for i in range(len(row)):
+                if row[i] == '':
+                    print(' ', end='|')
+                else:
+                    print(row[i], end='|')
+            print()
 
         # записываем изображение
         imsave('resources/app_images/user_image.jpg', img_squared)
@@ -317,19 +331,19 @@ class ScrabbleApplication(QWidget):
         self._img_label.setPixmap(self._board_img)
 
         # если кол-во всех букв на доске не больше допустимого
-        if is_board_letters_amount_right(self._board):
+        # if is_board_letters_amount_right(self._board):
 
-            # Разблокировка кнопок
-            self._start_button.setDisabled(False)
-            [self._letters_buttons[i].setDisabled(False) for i in range(33)]
-            self._drop_button.setDisabled(False)
+        # Разблокировка кнопок
+        self._start_button.setDisabled(False)
+        [self._letters_buttons[i].setDisabled(False) for i in range(33)]
+        self._drop_button.setDisabled(False)
 
-            self.init_dicts()  # инициализируем словари
-            self._msg_label.setText(self._msg_image_uploaded)
-            self.clear_widgets()
-        else:
-            # если превышено кол-во хоть одной из букв
-            self._msg_label.setText(self._msg_too_many_letters_error)
+        self.init_dicts()  # инициализируем словари
+        self._msg_label.setText(self._msg_image_uploaded)
+        self.clear_widgets()
+        # else:
+        #     # если превышено кол-во хоть одной из букв
+        #     self._msg_label.setText(self._msg_too_many_letters_error)
 
     def clear_widgets(self):
         """

@@ -13,15 +13,13 @@ from skimage.io import imread, imsave
 from CV.exceptions import CutException
 from CV.scan import crop_letter, cut_board_on_cells, \
     cut_by_external_contour, cut_by_internal_contour, \
-    rgb_to_gray, gray_to_binary
+    rgb_to_gray, gray_to_binary, IMG_SIZE
 
 IMAGES_TO_CUT_PATH = Path('ML/images_to_cut')
 DATASET_PATH = Path('ML/dataset')
 IS_EMPTY_CELLS_INCLUDED = False  # True, если нужны пустые клетки в датасете
 
-IMG_SIZE = 64
-
-# authors - Misha, Matvey
+# Авторы: Михаил, Матвей
 if __name__ == "__main__":
 
     # Массив одномерных координат клеток с буквами и пустых
@@ -43,13 +41,18 @@ if __name__ == "__main__":
     crd_ctg = np.reshape(crd_ctg, (len(coordinates), 2))
 
     # (Пере-)создание папок-категорий будущего датасета
-    if not DATASET_PATH.exists():
+    if not (Path.cwd().parent / DATASET_PATH).exists():
         Path.mkdir(Path.cwd().parent / DATASET_PATH)
+    else:
+        print("Внимание: существующий датасет будет удалён. "
+              "Введите 'y', чтобы продолжить:", end=' ')
+        if input() != 'y':
+            exit('Операция отменена')
     for folder in (Path.cwd().parent / DATASET_PATH).glob('*'):
         rmtree(Path.cwd().parent / DATASET_PATH / Path(folder), True)
     time.sleep(3)  # Задержка перед созданием новых папок
     for category in categories:
-        (Path.cwd().parent / DATASET_PATH / Path(str(category))).\
+        (Path.cwd().parent / DATASET_PATH / Path(str(category))). \
             mkdir(mode=0o777)
 
     # Создаем генератор путей исходных изображений
@@ -92,7 +95,7 @@ if __name__ == "__main__":
     if len(bad_images) > 0:
         print('Не удалось обрезать:')
         [print(b, sep=', ', end='.\n') for b in bad_images]
-        print('Удалить?(y/n)', end=' ')
+        print("Введите 'y', чтобы удалить:", end=' ')
         if input() == 'y':
             for b in bad_images:
                 Path(Path.cwd().parent / IMAGES_TO_CUT_PATH / b).unlink()
