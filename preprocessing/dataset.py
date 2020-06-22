@@ -1,3 +1,5 @@
+# Запускаем один раз, для нарезки датасета.
+
 import time
 import warnings
 from pathlib import Path

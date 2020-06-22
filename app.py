@@ -33,8 +33,12 @@ class ScrabbleApplication(QWidget):
     _board = None
 
     # размеры окна и виджетов (зависят от разрешения экрана)
-    _width = GetSystemMetrics(0)*15/64  # 450 px для 1920
-    _height = GetSystemMetrics(1)*161/216  # 805 px для 1080
+    if GetSystemMetrics(0) < 1920:
+        k = 0.8
+    else:
+        k = 1
+    _width = 450 * k  # 450 px для 1920
+    _height = 805 * k  # 805 px для 1080
     _chip_size = _width // 9  # размер кнопки с буквой в px
     _row_size = _chip_size * (_width // _chip_size)  # длина линии кнопок в px
 
@@ -59,13 +63,13 @@ class ScrabbleApplication(QWidget):
     _stylesheet_path = 'resources/stylesheet/app.css'
 
     # путь к шрифту
-    _font = 'resources/fonts/Ubuntu-R.ttf'
+    _font = 'resources/fonts/Roboto-Regular.ttf'
 
     # пути к иконкам
     _app_icon_path = 'resources/app_images/icon.png'  # иконка приложения
-    _upload_img_icon_path = 'resources/app_images/button_icons/icon_open.png'
-    _drop_img_icon_path = 'resources/app_images/button_icons/icon_drop.png'
-    _start_icon_path = 'resources/app_images/button_icons/icon_start.png'
+    _upload_img_icon_path = 'resources/app_images/button_icons/export.png'
+    _drop_img_icon_path = 'resources/app_images/button_icons/refresh.png'
+    _start_icon_path = 'resources/app_images/button_icons/search.png'
 
     # словари с буквами
     _used_letters = dict()  # словарь с кол-вом букв, которые уже есть на доске
@@ -134,7 +138,7 @@ class ScrabbleApplication(QWidget):
                          self._width, self._height)
         self.setMaximumSize(self._width, self._height)
         self.setMinimumSize(self._width, self._height)
-        self.setWindowTitle('Scrabble assistant')
+        self.setWindowTitle('Эрудит')
         self.setWindowIcon(QIcon(self._app_icon_path))
         self.show()
 
@@ -160,7 +164,7 @@ class ScrabbleApplication(QWidget):
 
         # кнопка загрузки изображения
         btn = QPushButton(self)
-        btn.setText('Открыть')
+        btn.setText(' Открыть')
         btn.setIcon(QIcon(self._upload_img_icon_path))
         btn.setIconSize(QSize(20, 20))
         btn.clicked.connect(self.image_uploaded)
@@ -171,7 +175,7 @@ class ScrabbleApplication(QWidget):
         start_btn.setDisabled(True)
         start_btn.setIcon(QIcon(self._start_icon_path))
         start_btn.setIconSize(QSize(20, 20))
-        start_btn.setText('Готово')
+        start_btn.setText(' Найти')
         start_btn.clicked.connect(self.start_btn_pressed)
         self._start_button = start_btn
 
