@@ -293,7 +293,6 @@ if __name__ == "__main__":
                                                      clf_path,
                                                      scaler_path=None,
                                                      probability=True)
-
     pred_board = nums_to_letters(predicted_letters, pred_probas)
     for row in pred_board:
         print(row)
