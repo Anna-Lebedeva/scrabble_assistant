@@ -283,7 +283,8 @@ class ScrabbleApplication(QWidget):
             return
 
         try:
-            board = image_to_board(img_squared, CLASSIFIER_DUMP_PATH, DIMRED_DUMP_PATH)
+            board = image_to_board(img_squared, CLASSIFIER_DUMP_PATH)
+
             print('Результат: ')
             for row in board:
                 print('|', end='')
