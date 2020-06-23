@@ -127,10 +127,7 @@ class ScrabbleApplication(QWidget):
         height = size.height()
 
         # если ширина экрана менее 1920, то уменьшаем окно
-        if width < 1920:
-            k = 0.8
-        else:
-            k = 1
+        k = 0.8 if width < 1920 else 1
 
         # размеры окна
         self._width = 450 * k  # 450 px для 1920

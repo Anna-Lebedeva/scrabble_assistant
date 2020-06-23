@@ -1,4 +1,4 @@
-from cv2 import cv2
+import cv2
 from imageio import imread
 from skimage import img_as_ubyte
 
