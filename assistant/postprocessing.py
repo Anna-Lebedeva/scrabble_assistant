@@ -6,7 +6,7 @@ def full_postprocessing(board: [[str]]) -> [[str]]:
     Полная постобработка
     """
 
-    board = delete_asterisks(board)
+    # board = delete_asterisks(board)
     board = delete_alone_letters(board)
 
     return board
@@ -18,7 +18,7 @@ def delete_alone_letters(board: [[str]]) -> [[str]]:
     Удаление доски от 'шумов' - символов, вокруг которых нет других букв
     Используется после распознавания доски с картинки
     :param board: доска в виде двумерного символьного массива
-    :return: та же доска без шумов
+    :return: обработанная копия доски
     """
 
     result_board = []  # копия доски
