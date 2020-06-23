@@ -121,13 +121,20 @@ def image_to_board(img_squared: np.ndarray,
     img_gray = rgb_to_gray(img_squared, [1, 0, 0])
     img_bw = gray_to_binary(img_gray)
     plt.imshow(img_bw)
-    plt.show()
 
+    # fig, ax1 = plt.subplots(nrows=15, ncols=15)
     board_squares = img_as_ubyte(cut_board_on_cells(img_bw))
+    # for i in range(len(board_squares)):
+    #     for j in range(len(board_squares[0])):
+    #         ax1[i, j].imshow(board_squares[i][j])
 
+    # fig, ax2 = plt.subplots(nrows=15, ncols=15)
     for i in range(len(board_squares)):
         for j in range(len(board_squares[0])):
             board_squares[i][j] = crop_letter(board_squares[i][j])
+            # ax2[i, j].imshow(board_squares[i][j])
+
+    plt.show()
 
     predicted_letters, pred_probas = classify_images(board_squares,
                                                      clf_path=clf_path,
