@@ -4,16 +4,15 @@ import numpy as np
 from joblib import load
 from matplotlib import pyplot as plt
 from skimage import img_as_ubyte
-from ML.exceptions import ClfNotFoundException, ScNotFoundException
+from ML.exceptions import ClfNotFoundException, ScNotFoundException, DimRedNotFoundException
 
 from CV.scan import IMG_SIZE, rgb_to_gray, gray_to_binary, cut_board_on_cells, crop_letter
 
 
-# fixme: ПРОВЕРОК НЕТ
-
 # Автор: Матвей
 def classify_images(board: [np.ndarray],
                     clf_path: Path,
+                    dimred_path: Path = None,
                     sc_path: Path = None,
                     probability: bool = False) -> ([[int]], [[float]]):
     """Приводит картинку к серому. Где каждый пиксель представлен интенсивностью белого.
@@ -21,6 +20,7 @@ def classify_images(board: [np.ndarray],
 
     :param board: Массив 15х15х3, где каждый пиксель представлен интенсивностями rgb.
     :param clf_path: путь к дампу с классификатором.
+    :param dimred_path: путь к дампу с декомпозером.
     :param sc_path: путь к дампу со шкалировщиком.
     :param probability: нужно ли возвращать вероятность.
 
@@ -45,19 +45,19 @@ def classify_images(board: [np.ndarray],
         raise ClfNotFoundException(f'Не найден дамп классификатора {clf_path}')
     clf = load(clf_path)  # Загружаем обученный классикатор
 
+    if dimred_path:
+        if not Path(dimred_path).exists():
+            raise DimRedNotFoundException(f'Не найден дамп декомпозера {dimred_path}')
+        dimred = load(dimred_path)
+        flat_images = dimred.transform(flat_images)  # Режем слабые признаки
+
     if sc_path:
         if not Path(sc_path).exists():
             raise ScNotFoundException(f'Не найден дамп шкалировщика {sc_path}')
         scaler = load(sc_path)  # Загружаем обученный шкалировщик
-        std_images = scaler.transform(flat_images)  # Шкалируем выборку
-
-        # Для шкалированных данных
-        std_predictions = clf.predict(std_images)
-        # std_predictions_probability = clf.predict_proba(std_images)
-        # return bla bla # fixme
+        flat_images = scaler.transform(flat_images)  # Шкалируем выборку
 
     predictions = clf.predict(flat_images)
-    # predictions = list(predictions)
 
     if probability:
         answer_proba = []
@@ -70,10 +70,8 @@ def classify_images(board: [np.ndarray],
             predictions[i] = list(predictions[i])
         return list(np.array(predictions, dtype=np.uint8).reshape(15, 15)), \
                list(np.array(answer_proba).reshape(15, 15))
-    # Для не шкалированных данных
 
-    return list(predictions.reshape(15, 15))  # , \
-    # list(std_predictions_probability.reshape(15, 15))
+    return list(predictions.reshape(15, 15))
 
 
 def nums_to_letters(predictions: [[int]], predict_probas: [float] = None) -> [[str]]:
@@ -102,6 +100,7 @@ def nums_to_letters(predictions: [[int]], predict_probas: [float] = None) -> [[s
 
 def image_to_board(img_squared: np.ndarray,
                    clf_path: Path,
+                   dimred_path : Path = None,
                    sc_path: Path = None) -> [[str]]:
     """
     Получает обрезанную фотографию доски, применяет к ней:
@@ -114,6 +113,7 @@ def image_to_board(img_squared: np.ndarray,
 
     :param img_squared: обрезанную фотографию доски
     :param clf_path: путь до дампа классификатора
+    :param dimred_path: путь до дампа декомпозера
     :param sc_path: путь до дампа шкалировщика
     :return: массив букв распознанной позиции с фотографии
     """
@@ -127,10 +127,11 @@ def image_to_board(img_squared: np.ndarray,
 
     for i in range(len(board_squares)):
         for j in range(len(board_squares[0])):
-            board_squares[i][j] = crop_letter(board_squares[i][j])  # todo check types
+            board_squares[i][j] = crop_letter(board_squares[i][j])
 
     predicted_letters, pred_probas = classify_images(board_squares,
                                                      clf_path=clf_path,
+                                                     dimred_path=dimred_path,
                                                      sc_path=sc_path,
                                                      probability=True)
 
