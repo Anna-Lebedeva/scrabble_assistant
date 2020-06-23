@@ -121,14 +121,14 @@ def cut_by_internal_contour(img: np.ndarray,
 
         (h, w) = cropped.shape[:2]  # получение размеров игрового поля
 
-        allowable_error = 0.03  # погрешность при проверке на квадратность
+        allowable_error = 0.05  # погрешность при проверке на квадратность
         # если cropped не квадрат (допускается погрешность)
 
         # границы отношения ширины к высоте в пределах заданной погрешности
         top_line = 1 * (1 + allowable_error)  # верхняя граница
         bot_line = 1 / (1 + allowable_error)  # нижняя граница
-        # if not (bot_line <= w / h <= top_line):
-        #     raise CutException('Not a square')
+        if not (bot_line <= w / h <= top_line):
+            raise CutException('Not a square')
 
     except AttributeError:
         raise
