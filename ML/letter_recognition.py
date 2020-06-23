@@ -89,7 +89,7 @@ def nums_to_letters(predictions: [[int]], predict_probas: [float] = None) -> [[s
     for y in range(len(predictions)):
         row = []
         for x in range(len(predictions)):
-            if predict_probas[y][x] < 0.5:
+            if predict_probas[y][x] < 0.7:
                 row.append('')
             else:
                 row.append(mapping[predictions[y][x]])

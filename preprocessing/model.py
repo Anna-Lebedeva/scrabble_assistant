@@ -9,6 +9,7 @@ from skimage.io import imread
 from sklearn.decomposition import PCA
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.linear_model import LogisticRegression
+from sklearn.neighbors import KNeighborsClassifier
 from sklearn.preprocessing import StandardScaler
 from sklearn.svm import SVC
 
@@ -78,6 +79,9 @@ def prepare_model(dataset_path: Path = DATASET_PATH,
     rf_clf = RandomForestClassifier(n_estimators=750, random_state=1, n_jobs=-1,
                                     verbose=True)
     rf_clf.fit(flat_images, letters)
+
+    # knn_clf = KNeighborsClassifier(n_neighbors=6, weights='distance', n_jobs=-1)
+    # knn_clf.fit(flat_images, letters)
 
     dump(rf_clf, Path.cwd().parent / clf_dump_path)
     print(f'Модель обучена. Дамп модели сохранен в {clf_dump_path}')
