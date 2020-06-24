@@ -83,6 +83,13 @@ def get_n_hints(board: [[str]], letters: Counter, n: int) -> ([[[str]]], [int]):
     :return: массив досок с n лучшими непересекающимися подсказками
     """
 
+    # для пустой доски
+    if is_board_empty(board):
+        result = get_hint_for_empty_board(board, letters)
+        result_hints = [result[0]]
+        result_values = [result[1]]
+        return result_hints, result_values
+
     x_hints, x_values = get_n_row_hints(board, letters, n)
     y_hints, y_values = get_n_row_hints(transpose_board(board), letters, n)
     for i in range(len(y_hints)):
