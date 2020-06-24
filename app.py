@@ -22,7 +22,7 @@ from preprocessing.model import CLASSIFIER_DUMP_PATH, DIMRED_DUMP_PATH, \
     SCALER_DUMP_PATH
 
 
-# authors - Pavel, Михаил
+# authors: Pavel, Mikhail
 class ScrabbleApplication(QWidget):
     """
     Application of scrabble-assistant
