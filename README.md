@@ -6,12 +6,13 @@
 - [OpenCV-python 4.2.0.34](https://pypi.org/project/opencv-python/)
 - [imageio 2.8.0](https://imageio.readthedocs.io/en/stable/installation.html)
 - [Pandas 1.0.3](https://github.com/pandas-dev/pandas/releases)
-- [Pillow 7.1.2](https://python-pillow.org/)
 - [Imutils 0.5.3](https://github.com/jrosebr1/imutils)
 - [PyQt5 5.14.2](https://pypi.org/project/PyQt5/)
+- [scikit-image 0.17.2](https://scikit-image.org/)
+- [scikit-learn 0.22.2.post1](https://scikit-learn.org/stable/index.html)
 - **...**
 
-Актуальный список в requirements.txt. Установить одной командой:
+Весь список в requirements.txt. Установить одной командой:
 ```commandline
 pip install -r requirements.txt
 ```
