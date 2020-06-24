@@ -10,7 +10,7 @@ QLabel {
 }
 
 QLabel#image {
-    font-size: 20px;
+    font-size: 16px;
 }
 
 QPushButton {
