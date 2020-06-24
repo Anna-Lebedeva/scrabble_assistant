@@ -271,7 +271,7 @@ class ScrabbleApplication(QWidget):
             # обрезка по внутреннему контуру
             img_squared = img_as_ubyte(cut_by_internal_contour(img))
 
-        except (CutException, AttributeError) as e:
+        except (CutException, AttributeError, ValueError):
             self._img_label.setPixmap(QPixmap())  # убираем изображение доски
             self.clear_hint()
             self._msg_label.setText(self._msg_scan_error)  # error msg
@@ -281,6 +281,7 @@ class ScrabbleApplication(QWidget):
             self._start_button.setDisabled(True)
             return
 
+        # распознавание символов на доске
         try:
             board = image_to_board(img_squared, CLASSIFIER_DUMP_PATH)
 

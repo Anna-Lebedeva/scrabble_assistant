@@ -69,7 +69,7 @@ def classify_images(board: [np.ndarray],
         for i in range(len(predictions)):
             predictions[i] = list(predictions[i])
         return list(np.array(predictions, dtype=np.uint8).reshape(15, 15)), \
-               list(np.array(answer_proba).reshape(15, 15))
+            list(np.array(answer_proba).reshape(15, 15))
 
     return list(predictions.reshape(15, 15))
 
@@ -90,7 +90,7 @@ def nums_to_letters(predictions: [[int]], predict_probas: [float] = None) -> [[s
     for y in range(len(predictions)):
         row = []
         for x in range(len(predictions)):
-            if predict_probas[y][x] < 0.7:
+            if predict_probas[y][x] < 0.5:
                 row.append('')
             else:
                 row.append(mapping[predictions[y][x]])
@@ -136,7 +136,7 @@ def image_to_board(img_squared: np.ndarray,
             board_squares[i][j] = crop_letter(board_squares[i][j])
             ax2[i, j].imshow(board_squares[i][j])
 
-    plt.show()
+    # plt.show()
 
     predicted_letters, pred_probas = classify_images(board_squares,
                                                      clf_path=clf_path,
