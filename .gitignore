@@ -12,4 +12,6 @@ __pycache__
 /ML/!unused/
 /CV/*.jpg
 /*.jpg
+/ML/*.joblib
+/ML/*.7z
 /resources/app_images/user_image.jpg

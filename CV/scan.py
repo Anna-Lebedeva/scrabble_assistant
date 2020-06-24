@@ -2,7 +2,7 @@ import cv2
 import numpy as np
 from imutils import grab_contours, resize
 from skimage import img_as_ubyte
-from skimage.exposure import adjust_sigmoid
+from skimage.exposure import adjust_sigmoid, rescale_intensity
 from skimage.filters import threshold_isodata
 from skimage.restoration import denoise_tv_bregman
 
@@ -197,7 +197,7 @@ def rgb_to_gray(rgb: np.ndarray, coefficients: [float],
     использовать порогование.
 
     :param rgb: изображение в RGB формате.
-    :param coefficients: коэффициенты для в перевода в оттенки серого
+    :param coefficients: RGB-коэффициенты для в перевода в оттенки серого
     :param force_copy:
     :return: изображение в оттенках серого
     """
@@ -224,11 +224,12 @@ def gray_to_binary(image_gray: np.ndarray) -> np.ndarray:
     :param image_gray: изображение в оттенках серого
     :return: изображение в ЧБ формате
     """
-    # Денойз
-    img_denoised = denoise_tv_bregman(image_gray, weight=33)
+
+    img_denoised = denoise_tv_bregman(image_gray, weight=33)  # Подавление шумов
     # img_denoised = denoise_nl_means(image_gray)
-    # Регулируем контраст (сигмовидная коррекция)
-    img_adj = adjust_sigmoid(img_denoised, cutoff=0.4)
+
+    img_resc = rescale_intensity(img_denoised, in_range=(0, 1), out_range=(0, 1))
+    img_adj = adjust_sigmoid(img_resc, cutoff=0.4)
 
     # Находим порог для изображения и возвращаем изображение в ЧБ
     return img_as_ubyte(img_adj > threshold_isodata(img_adj))

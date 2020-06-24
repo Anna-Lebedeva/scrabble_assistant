@@ -92,8 +92,7 @@ class ScrabbleApplication(QWidget):
     _msg_no_chips_error = 'Вы не выбрали ни одной фишки'
     _msg_no_img_error = 'Вы не загрузили изображение'
     _msg_scan_error = 'Доска не распознана, попробуйте другое фото'
-    _msg_clf_dump_error = f'Не найден дамп классификатора ' \
-                          f'в {CLASSIFIER_DUMP_PATH}'
+    _msg_clf_dump_error = f'Не найден дамп классификатора в {CLASSIFIER_DUMP_PATH}'
     _msg_dec_dump_error = f'Не найден дамп декомпозера в {DIMRED_DUMP_PATH}'
     _msg_sc_dump_error = f'Не найден дамп шкалировщика в {SCALER_DUMP_PATH}'
 
@@ -272,7 +271,7 @@ class ScrabbleApplication(QWidget):
             # обрезка по внутреннему контуру
             img_squared = img_as_ubyte(cut_by_internal_contour(img))
 
-        except (CutException, AttributeError):
+        except (CutException, AttributeError) as e:
             self._img_label.setPixmap(QPixmap())  # убираем изображение доски
             self.clear_hint()
             self._msg_label.setText(self._msg_scan_error)  # error msg
