@@ -272,7 +272,7 @@ class ScrabbleApplication(QWidget):
             # обрезка по внутреннему контуру
             img_squared = img_as_ubyte(cut_by_internal_contour(img))
 
-        except (CutException, AttributeError):
+        except (CutException, AttributeError, ValueError):
             self._img_label.setPixmap(QPixmap())  # убираем изображение доски
             self.clear_hint()
             self._msg_label.setText(self._msg_scan_error)  # error msg
