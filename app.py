@@ -92,8 +92,7 @@ class ScrabbleApplication(QWidget):
     _msg_no_chips_error = 'Вы не выбрали ни одной фишки'
     _msg_no_img_error = 'Вы не загрузили изображение'
     _msg_scan_error = 'Доска не распознана, попробуйте другое фото'
-    _msg_clf_dump_error = f'Не найден дамп классификатора ' \
-                          f'в {CLASSIFIER_DUMP_PATH}'
+    _msg_clf_dump_error = f'Не найден дамп классификатора в {CLASSIFIER_DUMP_PATH}'
     _msg_dec_dump_error = f'Не найден дамп декомпозера в {DIMRED_DUMP_PATH}'
     _msg_sc_dump_error = f'Не найден дамп шкалировщика в {SCALER_DUMP_PATH}'
 

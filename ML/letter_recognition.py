@@ -74,6 +74,7 @@ def classify_images(board: [np.ndarray],
     return list(predictions.reshape(15, 15))
 
 
+# Автор: Матвей
 def nums_to_letters(predictions: [[int]], predict_probas: [float] = None) -> [[str]]:
     pred_letters = []
     mapping = {1: "а", 2: "б", 3: "в", 4: "г", 5: "д", 6: "е",
@@ -98,6 +99,7 @@ def nums_to_letters(predictions: [[int]], predict_probas: [float] = None) -> [[s
     return pred_letters
 
 
+# Автор: Матвей
 def image_to_board(img_squared: np.ndarray,
                    clf_path: Path,
                    dimred_path: Path = None,
@@ -122,17 +124,17 @@ def image_to_board(img_squared: np.ndarray,
     img_bw = gray_to_binary(img_gray)
     plt.imshow(img_bw)
 
-    # fig, ax1 = plt.subplots(nrows=15, ncols=15)
+    fig, ax1 = plt.subplots(nrows=15, ncols=15)
     board_squares = img_as_ubyte(cut_board_on_cells(img_bw))
-    # for i in range(len(board_squares)):
-    #     for j in range(len(board_squares[0])):
-    #         ax1[i, j].imshow(board_squares[i][j])
+    for i in range(len(board_squares)):
+        for j in range(len(board_squares[0])):
+            ax1[i, j].imshow(board_squares[i][j])
 
-    # fig, ax2 = plt.subplots(nrows=15, ncols=15)
+    fig, ax2 = plt.subplots(nrows=15, ncols=15)
     for i in range(len(board_squares)):
         for j in range(len(board_squares[0])):
             board_squares[i][j] = crop_letter(board_squares[i][j])
-            # ax2[i, j].imshow(board_squares[i][j])
+            ax2[i, j].imshow(board_squares[i][j])
 
     # plt.show()
 
