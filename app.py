@@ -282,6 +282,7 @@ class ScrabbleApplication(QWidget):
             self._start_button.setDisabled(True)
             return
 
+        # распознавание символов на доске
         try:
             board = image_to_board(img_squared, CLASSIFIER_DUMP_PATH)
 
