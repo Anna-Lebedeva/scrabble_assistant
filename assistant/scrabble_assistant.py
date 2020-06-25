@@ -19,7 +19,7 @@ BOARD_BONUSES_FILE_PATH = Path('resources') / Path('jsons') / \
 
 # путь к основному словарю
 DICTIONARY_FILE_PATH = Path('resources') / Path('dictionaries') / \
-                       Path('nouns_5000.txt')
+                       Path('nouns_15000.txt')
 
 # словарь с ценностью букв
 LETTERS_VALUES = read_json_to_dict(LETTERS_VALUES_FILE_PATH)
@@ -29,7 +29,7 @@ LETTERS_AMOUNT = read_json_to_dict(LETTERS_AMOUNT_FILE_PATH)
 BOARD_BONUSES = read_json_to_list(BOARD_BONUSES_FILE_PATH)
 
 
-# author - Pavel
+# author: Pavel
 def hints_intersect(board: [[str]], hint1: [[str]], hint2: [[str]]) -> bool:
     """
     Проверка на пересечение двух подсказок
@@ -48,7 +48,7 @@ def hints_intersect(board: [[str]], hint1: [[str]], hint2: [[str]]) -> bool:
     return False
 
 
-# author - Pavel
+# author: Pavel
 def row_hints_intersect(word1: [str], xs1: int, ys1: int,
                         word2: [str], xs2: int, ys2: int) -> bool:
     """
@@ -72,7 +72,7 @@ def row_hints_intersect(word1: [str], xs1: int, ys1: int,
         return False
 
 
-# author - Pavel
+# author: Pavel
 def get_n_hints(board: [[str]], letters: Counter, n: int) -> ([[[str]]], [int]):
     """
     Поиск n лучших непересекающихся подсказок
@@ -82,6 +82,13 @@ def get_n_hints(board: [[str]], letters: Counter, n: int) -> ([[[str]]], [int]):
     :param n: кол-во необходимых подсказок
     :return: массив досок с n лучшими непересекающимися подсказками
     """
+
+    # для пустой доски
+    if is_board_empty(board):
+        result = get_hint_for_empty_board(board, letters)
+        result_hints = [result[0]]
+        result_values = [result[1]]
+        return result_hints, result_values
 
     x_hints, x_values = get_n_row_hints(board, letters, n)
     y_hints, y_values = get_n_row_hints(transpose_board(board), letters, n)
@@ -146,7 +153,7 @@ def get_n_hints(board: [[str]], letters: Counter, n: int) -> ([[[str]]], [int]):
     return result_hints, result_values
 
 
-# author - Pavel
+# author: Pavel
 def get_n_row_hints(board: [[str]], letters: Counter, n: int) -> \
         ([[[str]]], [int]):
     """
@@ -270,7 +277,7 @@ def get_n_row_hints(board: [[str]], letters: Counter, n: int) -> \
     return best_hints, best_hints_values
 
 
-# author - Pavel
+# author: Pavel
 def get_hint_for_empty_board(board: [[str]],
                              letters: Counter) -> ([[str]], int):
     """
@@ -316,7 +323,7 @@ def get_hint_for_empty_board(board: [[str]],
     return best_hint, best_hint_value
 
 
-# authors - Matvey and Pavel
+# authors: Матвей, Pavel
 def get_empty_board(y: int, x: int) -> [[str]]:
     """
     Генерирует пустую матрицу в y строк и x столбцов
@@ -329,7 +336,7 @@ def get_empty_board(y: int, x: int) -> [[str]]:
     return [[''] * y for _ in range(x)]
 
 
-# author - Pavel
+# author: Pavel
 def get_marked_rows(board: [[str]]) -> [[str]]:
     """
     Меняет доску, помечая заблокированные клетки знаком #
@@ -401,7 +408,7 @@ def get_marked_rows(board: [[str]]) -> [[str]]:
     return marked_board
 
 
-# author - Pavel
+# author: Pavel
 def get_word_positions_in_row(word: str, row: [str]) -> [int]:
     """
     Находит все возможные позиции слова в строке
@@ -456,7 +463,7 @@ def get_word_positions_in_row(word: str, row: [str]) -> [int]:
     return possible_indexes
 
 
-# author - Pavel
+# author: Pavel
 def get_used_letters(board: [[str]]) -> Counter:
     """
     Возвращает буквы, которые присутствуют на доске
@@ -480,7 +487,7 @@ def get_used_letters(board: [[str]]) -> Counter:
     return letters_counter
 
 
-# authors - Matvey and Pavel
+# authors: Matvey, Pavel
 def transpose_board(board: [[str]]) -> [[str]]:
     """
     Транспонирует двумерный массив
@@ -491,7 +498,7 @@ def transpose_board(board: [[str]]) -> [[str]]:
     return list(np.array(board).transpose())
 
 
-# author - Pavel
+# author: Pavel
 def evaluate_word(word: str, board: [[str]],
                   line_index: int, start_index: int) -> int:
     """
@@ -560,63 +567,7 @@ def evaluate_word(word: str, board: [[str]],
     return value
 
 
-# author - Pavel
-def delete_alone_letters(board: [[str]]) -> [[str]]:
-    """
-    Удаление доски от 'шумов' - символов, вокруг которых нет других букв
-    Используется после распознавания доски с картинки
-    :param board: доска в виде двумерного символьного массива
-    :return: та же доска без шумов
-    """
-
-    result_board = []  # копия доски
-    for row in board:
-        result_board.append(row.copy())
-
-    # проверка каждого символа в доске
-    for y in range(len(board)):
-        for x in range(len(board[y])):
-            # проверка на конец доски со всех 4 сторон
-            top_end = False
-            right_end = False
-            bot_end = False
-            left_end = False
-            if y == 0:
-                top_end = True
-            if y == len(board) - 1:
-                bot_end = True
-            if x == 0:
-                left_end = True
-            if x == len(board[y]) - 1:
-                right_end = True
-            # поиск соседних букв (сверху, справа, снизу, слева)
-            top_empty = True
-            right_empty = True
-            bot_empty = True
-            left_empty = True
-            # если доска не закончилась сверху
-            if not top_end:
-                # если в клетке сверху есть символ
-                if result_board[y - 1][x]:
-                    top_empty = False
-            if not right_end:
-                if result_board[y][x + 1]:
-                    right_empty = False
-            if not bot_end:
-                if result_board[y + 1][x]:
-                    bot_empty = False
-            if not left_end:
-                if result_board[y][x - 1]:
-                    left_empty = False
-
-            # если пусто по всем четырем направлениям - удаляем символ
-            if top_empty and right_empty and bot_empty and left_empty:
-                result_board[y][x] = ''
-
-    return result_board
-
-
-# author - Pavel
+# author: Pavel
 def is_board_empty(board: [[str]]) -> bool:
     """
     Проверяет, является ли доска пустой
@@ -633,7 +584,7 @@ def is_board_empty(board: [[str]]) -> bool:
     return True
 
 
-# author - Pavel
+# author: Pavel
 def is_board_correct(board: [[str]]) -> bool:
     """
     Проверяет доску на корректность символов внутри
@@ -652,7 +603,7 @@ def is_board_correct(board: [[str]]) -> bool:
     return True
 
 
-# author - Pavel
+# author: Pavel
 def is_board_letters_amount_right(board: [[str]]) -> bool:
     """
     Проверяет не превышает ли кол-во букв на доске их кол-во в наборе
@@ -669,7 +620,7 @@ def is_board_letters_amount_right(board: [[str]]) -> bool:
     return True
 
 
-# author - Matvey
+# author: Matvey
 def is_word_compilable(word: str, letters: Counter) -> bool:
     """
     Проверяет возможность составить слово из переданных букв.
@@ -686,7 +637,7 @@ def is_word_compilable(word: str, letters: Counter) -> bool:
     return True
 
 
-# author - Pavel
+# author: Pavel
 def is_symbol_russian_letter(symbol: str) -> bool:
     """
     Проверяет, является ли символ буквой

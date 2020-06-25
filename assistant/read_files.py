@@ -1,13 +1,8 @@
 from pathlib import Path
 import json
-import cv2
-import numpy as np
 
 
-# author - Matvey
-from skimage import img_as_ubyte
-
-
+# author: Matvey
 def read_json_to_dict(json_path: Path) -> dict:
     """
     Считывает json-файл в dict
@@ -20,7 +15,7 @@ def read_json_to_dict(json_path: Path) -> dict:
         return dict(json.load(file))
 
 
-# authors - Pavel, Matvey
+# authors: Matvey, Pavel
 def read_json_to_list(json_path: Path) -> [[str]]:
     """
     Считывает json-файл в list
@@ -31,13 +26,3 @@ def read_json_to_list(json_path: Path) -> [[str]]:
     with open(file=Path(Path.cwd() / json_path), mode='r',
               encoding='utf-8') as file:
         return list(json.load(file))
-
-
-# author - Pavel
-def read_image(path: str) -> np.ndarray:
-    return img_as_ubyte(cv2.imread(path))
-
-
-# author - Pavel
-def write_image(img: np.ndarray, path: str):
-    cv2.imwrite(path, img)

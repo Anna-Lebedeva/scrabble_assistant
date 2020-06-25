@@ -6,7 +6,12 @@ __pycache__
 /ML/dataset_image/
 /ML/color_dataset/
 /ML/dataset/
-/ML/raw_images_to_cut/
+/ML/images_to_cut/
+/ML/raw_images_to_cut!/
 /ML/!raw_images_to_cut/
+/ML/!unused/
 /CV/*.jpg
+/*.jpg
+/ML/*.joblib
+/ML/*.7z
 /resources/app_images/user_image.jpg

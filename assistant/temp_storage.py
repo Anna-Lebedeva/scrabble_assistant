@@ -3,7 +3,7 @@ from pathlib import Path
 from assistant.scrabble_assistant import LETTERS_VALUES
 
 
-# author - Matvey
+# author: Matvey
 # fixme: не работает для многих случаев
 def get_regex_patterns(sharped_row: [str]) -> ([re.Pattern], [[str]]):
     """
@@ -61,7 +61,7 @@ def get_regex_patterns(sharped_row: [str]) -> ([re.Pattern], [[str]]):
     return patterns, letters_in_patterns
 
 
-# author - Matvey
+# author: Matvey
 # todo: удалить или все же пригодится?
 def calculate_letters_value(word: str) -> int:
     """
@@ -73,7 +73,7 @@ def calculate_letters_value(word: str) -> int:
     return sum([LETTERS_VALUES[letter] for letter in word])
 
 
-# author - Matvey
+# author: Matvey
 # fixme: у нас изменились пути, переписать
 # todo: может вернуть не имя файла, а путь к нему?
 def get_smallest_sub_dict(letters_in_pattern: [str]) -> str:
@@ -104,7 +104,7 @@ def get_smallest_sub_dict(letters_in_pattern: [str]) -> str:
     return min_sub_dict_name
 
 
-# author - Matvey
+# author: Matvey
 # todo: если она точно работает, можно функцию убрать
 def is_word_fit_to_pattern(word: str, pattern: re.Pattern) -> bool:
     """
@@ -113,7 +113,6 @@ def is_word_fit_to_pattern(word: str, pattern: re.Pattern) -> bool:
     :param pattern: паттерн
     :return:
     """
-
 
     #  fixme: вернуть индексы
     return bool(pattern.search(word))
