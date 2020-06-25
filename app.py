@@ -96,8 +96,10 @@ class ScrabbleApplication(QWidget):
     _msg_scan_error = 'Доска не распознана, попробуйте другое фото'
     _msg_clf_dump_error = 'Не найден дамп классификатора ' + \
                           f'в {CLASSIFIER_DUMP_PATH}'
+    _msg_clf_error = 'Ошибка классификатора'
     _msg_dec_dump_error = f'Не найден дамп декомпозера в {DIMRED_DUMP_PATH}'
     _msg_sc_dump_error = f'Не найден дамп шкалировщика в {SCALER_DUMP_PATH}'
+    _msg_unknown_recognition_error = 'Неизвестная ошибка распознавания'
 
     _img_label = None  # label для изображения доски
     _board_img = None  # обрезанное изображение доски
@@ -318,12 +320,18 @@ class ScrabbleApplication(QWidget):
         except ScNotFoundException:
             self._msg_label.setText(self._msg_sc_dump_error)
             return
-        # except (Exception):  # todo: подумать над исключениями
-        #     self._msg_label.setText(self._msg_scan_error)
-        #     return
+
+        except ValueError:
+            self._msg_label.setText(self._msg_clf_error)
+            return
+
+        except TypeError:
+            self._msg_label.setText(self._msg_unknown_recognition_error)
+            return
 
         # постобработка доски
         board = full_postprocessing(board)
+
         self._board = board
 
         print('Постобработка: ')
