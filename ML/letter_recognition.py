@@ -4,27 +4,32 @@ import numpy as np
 from joblib import load
 from matplotlib import pyplot as plt
 from skimage import img_as_ubyte
-from ML.exceptions import ClfNotFoundException, ScNotFoundException, DimRedNotFoundException
+from ML.exceptions import ClfNotFoundException, \
+    ScNotFoundException, DimRedNotFoundException
 
-from CV.scan import IMG_SIZE, rgb_to_gray, gray_to_binary, cut_board_on_cells, crop_letter
+from CV.scan import IMG_SIZE, rgb_to_gray, gray_to_binary, cut_board_on_cells, \
+    crop_letter
 
 
-# Автор: Матвей
+# author: Matvey
 def classify_images(board: [np.ndarray],
                     clf_path: Path,
                     dimred_path: Path = None,
                     sc_path: Path = None,
                     probability: bool = False) -> ([[int]], [[float]]):
-    """Приводит картинку к серому. Где каждый пиксель представлен интенсивностью белого.
+    """Приводит картинку к серому. Где каждый пиксель представлен
+    интенсивностью белого.
     Загружает дамп обученной модели. И выдает предсказания для каждой клетки.
 
-    :param board: Массив 15х15х3, где каждый пиксель представлен интенсивностями rgb.
+    :param board: Массив 15х15х3, где каждый пиксель представлен
+    интенсивностями rgb.
     :param clf_path: путь к дампу с классификатором.
     :param dimred_path: путь к дампу с декомпозером.
     :param sc_path: путь к дампу со шкалировщиком.
     :param probability: нужно ли возвращать вероятность.
 
-    :return: Двумерный массив размера переданного на вход, с предсказанными клетками.
+    :return: Двумерный массив размера переданного на вход, с
+    предсказанными клетками.
     И второй массив таких же размеров, содержащий вероятности.
     """
 
@@ -47,7 +52,8 @@ def classify_images(board: [np.ndarray],
 
     if dimred_path:
         if not Path(dimred_path).exists():
-            raise DimRedNotFoundException(f'Не найден дамп декомпозера {dimred_path}')
+            raise DimRedNotFoundException(f'Не найден дамп декомпозера '
+                                          f'{dimred_path}')
         dimred = load(dimred_path)
         flat_images = dimred.transform(flat_images)  # Режем слабые признаки
 
@@ -74,8 +80,9 @@ def classify_images(board: [np.ndarray],
     return list(predictions.reshape(15, 15))
 
 
-# Автор: Матвей
-def nums_to_letters(predictions: [[int]], predict_probas: [float] = None) -> [[str]]:
+# author: Matvey
+def nums_to_letters(predictions: [[int]],
+                    predict_probas: [float] = None) -> [[str]]:
     pred_letters = []
     mapping = {1: "а", 2: "б", 3: "в", 4: "г", 5: "д", 6: "е",
                7: "ж", 8: "з", 9: "и", 10: "й", 11: "к",
@@ -99,7 +106,7 @@ def nums_to_letters(predictions: [[int]], predict_probas: [float] = None) -> [[s
     return pred_letters
 
 
-# Автор: Матвей
+# author: Matvey
 def image_to_board(img_squared: np.ndarray,
                    clf_path: Path,
                    dimred_path: Path = None,
