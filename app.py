@@ -29,8 +29,11 @@ class ScrabbleApplication(QWidget):
     Using PyQT5 version 5.14.2
     """
 
+    # настраиваемые параметры
     _hints_amount = 3  # сколько подсказок выдавать
     _asterisk_active = False  # возможность выбрать кроме букв еще и *
+    _console_output = True  # возможность выводить данные в консоль
+
     _chips_varieties = 0  # кол-во разновидностей фишек
 
     # доска в виде двумерного символьного массива
@@ -298,16 +301,17 @@ class ScrabbleApplication(QWidget):
         try:
             board = image_to_board(img_squared, CLASSIFIER_DUMP_PATH)
 
-            print('Результат: ')
-            for row in board:
-                print('|', end='')
-                for i in range(len(row)):
-                    if row[i] == '':
-                        print(' ', end='|')
-                    else:
-                        print(row[i], end='|')
+            if self._console_output:
+                print('Результат: ')
+                for row in board:
+                    print('|', end='')
+                    for i in range(len(row)):
+                        if row[i] == '':
+                            print(' ', end='|')
+                        else:
+                            print(row[i], end='|')
+                    print()
                 print()
-            print()
 
         except ClfNotFoundException:
             self._msg_label.setText(self._msg_clf_dump_error)
@@ -334,15 +338,16 @@ class ScrabbleApplication(QWidget):
 
         self._board = board
 
-        print('Постобработка: ')
-        for row in board:
-            print('|', end='')
-            for i in range(len(row)):
-                if row[i] == '':
-                    print(' ', end='|')
-                else:
-                    print(row[i], end='|')
-            print()
+        if self._console_output:
+            print('Постобработка: ')
+            for row in board:
+                print('|', end='')
+                for i in range(len(row)):
+                    if row[i] == '':
+                        print(' ', end='|')
+                    else:
+                        print(row[i], end='|')
+                print()
 
         # записываем изображение
         imsave('resources/app_images/user_image.jpg', img_squared)
@@ -703,6 +708,6 @@ class ScrabbleApplication(QWidget):
 
 
 if __name__ == '__main__':
-    app = QApplication(sys.argv)
-    scrabble = ScrabbleApplication()
-    sys.exit(app.exec_())
+    app = QApplication(sys.argv)  # создание объекта приложения
+    scrabble = ScrabbleApplication()  # создание объекта главного виджета
+    sys.exit(app.exec_())  # выход из приложения по закрытию окна
