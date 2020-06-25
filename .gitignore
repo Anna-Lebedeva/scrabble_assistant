@@ -3,13 +3,8 @@
 .idea
 .ipynb_checkpoints
 __pycache__
-/ML/dataset_image/
-/ML/color_dataset/
 /ML/dataset/
 /ML/images_to_cut/
-/ML/raw_images_to_cut!/
-/ML/!raw_images_to_cut/
-/ML/!unused/
 /CV/*.jpg
 /*.jpg
 /ML/*.joblib
