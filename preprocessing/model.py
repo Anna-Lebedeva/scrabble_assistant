@@ -20,7 +20,7 @@ DIMRED_DUMP_PATH = Path('ML/decomposer.joblib')
 SCALER_DUMP_PATH = Path('ML/scaler.joblib')
 
 
-# Автор: Матвей
+# author: Matvey
 def prepare_model(dataset_path: Path = DATASET_PATH,
                   clf_dump_path: Path = CLASSIFIER_DUMP_PATH,
                   dimred_dump_path: Path = None,

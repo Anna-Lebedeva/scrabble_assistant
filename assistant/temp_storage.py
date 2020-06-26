@@ -4,7 +4,7 @@ from pathlib import Path
 from assistant.scrabble_assistant import LETTERS_VALUES
 
 
-# author - Matvey
+# author: Matvey
 # fixme: не дописано
 def get_regex_patterns(sharped_row: [str]) -> ([re.Pattern], [[str]]):
     """
@@ -105,7 +105,7 @@ def get_smallest_sub_dict(letters_in_pattern: [str]) -> str:
     return min_sub_dict_name
 
 
-# author - Matvey
+# author: Matvey
 def is_word_fit_to_pattern(word: str, pattern: re.Pattern) -> bool:
     """
     Проверяет - подходит ли слово в паттерн.
@@ -118,7 +118,7 @@ def is_word_fit_to_pattern(word: str, pattern: re.Pattern) -> bool:
     return bool(pattern.search(word))
 
 
-# Автор: Матвей
+# author: Matvey
 def arrange_long_word_to_empty_board(word: str) -> int:
     """Располагает слово, длиной от 5 до 7 на стартовой доске наилучшим образом,
     с учетом бонусов.
@@ -154,7 +154,7 @@ def arrange_long_word_to_empty_board(word: str) -> int:
     return best_start_index
 
 
-# Автор: Матвей
+# author: Matvey
 def get_best_hint_for_empty_board(letters: Counter) -> str:
     """
     Ищет лучшее слово, которое можно составить из букв игрока в начале игры.

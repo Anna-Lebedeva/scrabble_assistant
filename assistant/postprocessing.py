@@ -1,4 +1,4 @@
-# author - Pavel
+# author: Pavel
 def full_postprocessing(board: [[str]]) -> [[str]]:
     """
     Полная постобработка
@@ -10,7 +10,7 @@ def full_postprocessing(board: [[str]]) -> [[str]]:
     return board
 
 
-# author - Pavel
+# author: Pavel
 def delete_alone_letters(board: [[str]]) -> [[str]]:
     """
     Удаление доски от 'шумов' - символов, вокруг которых нет других букв
@@ -67,7 +67,7 @@ def delete_alone_letters(board: [[str]]) -> [[str]]:
     return result_board
 
 
-# author - Pavel
+# author: Pavel
 def delete_asterisks(board: [[str]]) -> [[str]]:
     """
     Удаляет все звездочки * с доски

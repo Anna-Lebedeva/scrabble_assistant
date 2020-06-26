@@ -273,7 +273,7 @@ def get_n_row_hints(board: [[str]], letters: Counter, n: int) -> \
     return best_hints, best_hints_values
 
 
-# authors - Pavel, Matvey
+# authors: Pavel, Matvey
 def get_hint_for_empty_board(board: [[str]],
                              letters: Counter) -> ([[str]], int):
     """
@@ -321,7 +321,7 @@ def get_hint_for_empty_board(board: [[str]],
     return best_hint, best_hint_value
 
 
-# authors: Матвей, Pavel
+# authors: Matvey, Pavel
 def get_empty_board(y: int, x: int) -> [[str]]:
     """
     Генерирует пустую матрицу в y строк и x столбцов

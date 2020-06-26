@@ -21,7 +21,7 @@ IMAGES_TO_CUT_PATH = Path('ML/images_to_cut')
 DATASET_PATH = Path('ML/dataset')
 IS_EMPTY_CELLS_INCLUDED = False  # True, если нужны пустые клетки в датасете
 
-# Авторы: Михаил, Матвей
+# authors: Mikhail, Matvey
 if __name__ == "__main__":
 
     # Массив одномерных координат клеток с буквами и пустых

@@ -7,7 +7,7 @@ import pandas as pd
 from assistant import scrabble_assistant as sa
 
 
-# Автор: Матвей
+# author: Matvey
 def is_word_correct(word: str) -> bool:
     """
     Проверяет слово на корректность - не содержит ли оно неожиданных символов,
@@ -47,7 +47,7 @@ def is_word_correct(word: str) -> bool:
 #     return bool(result)
 
 
-# Автор: Матвей
+# author: Matvey
 def drop_incorrect_words():
     """
     Выполняется 1 раз, для  предобработки словаря.
@@ -79,7 +79,7 @@ def drop_incorrect_words():
                encoding='utf-8')  # Перезаписываем почищенный словарь
 
 
-# Автор: Матвей
+# author: Matvey
 def make_sub_dictionaries():
     """
     Выполняется 1 раз, для  получения подсловарей,
@@ -114,7 +114,7 @@ def make_sub_dictionaries():
         # Записываем подсловарь
 
 
-# author - Pavel
+# author: Pavel
 def prepare_frequency_dictionaries(path: str):
     """
     Разбивка словаря по размеру

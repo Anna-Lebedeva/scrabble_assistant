@@ -1,3 +1,4 @@
+# author: Matvey
 class ClfNotFoundException(FileNotFoundError):
     """
     Исключение, выбрасываемое если не найден дамп классификатора.

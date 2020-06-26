@@ -67,7 +67,7 @@ def get_board_with_hints(board: [[str]], hints: [[str]]) -> [[str]]:
     return result
 
 
-# author - Pavel
+# author: Pavel
 def get_hint_value_coord(hint: [[str]], combined_board: [[str]]) -> (int, int):
     """
     Поиск лучшей позиции для вывода ценности подсказки
