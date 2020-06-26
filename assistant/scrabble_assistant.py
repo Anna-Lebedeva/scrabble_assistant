@@ -25,7 +25,7 @@ LETTERS_AMOUNT = read_json_to_dict(LETTERS_AMOUNT_FILE_PATH)
 BOARD_BONUSES = read_json_to_list(BOARD_BONUSES_FILE_PATH)
 
 
-# author - Pavel
+# author: Pavel
 def hints_intersect(board: [[str]], hint1: [[str]], hint2: [[str]]) -> bool:
     """
     Проверка на пересечение двух подсказок
@@ -44,7 +44,7 @@ def hints_intersect(board: [[str]], hint1: [[str]], hint2: [[str]]) -> bool:
     return False
 
 
-# author - Pavel
+# author: Pavel
 def row_hints_intersect(word1: [str], xs1: int, ys1: int,
                         word2: [str], xs2: int, ys2: int) -> bool:
     """
@@ -68,7 +68,7 @@ def row_hints_intersect(word1: [str], xs1: int, ys1: int,
         return False
 
 
-# author - Pavel
+# author: Pavel
 def get_n_hints(board: [[str]], letters: Counter, n: int) -> ([[[str]]], [int]):
     """
     Поиск n лучших непересекающихся подсказок
@@ -149,7 +149,7 @@ def get_n_hints(board: [[str]], letters: Counter, n: int) -> ([[[str]]], [int]):
     return result_hints, result_values
 
 
-# author - Pavel
+# author: Pavel
 def get_n_row_hints(board: [[str]], letters: Counter, n: int) -> \
         ([[[str]]], [int]):
     """
@@ -321,7 +321,7 @@ def get_hint_for_empty_board(board: [[str]],
     return best_hint, best_hint_value
 
 
-# authors - Матвей and Pavel
+# authors: Матвей, Pavel
 def get_empty_board(y: int, x: int) -> [[str]]:
     """
     Генерирует пустую матрицу в y строк и x столбцов
@@ -334,7 +334,7 @@ def get_empty_board(y: int, x: int) -> [[str]]:
     return [[''] * y for _ in range(x)]
 
 
-# author - Pavel
+# author: Pavel
 def get_marked_rows(board: [[str]]) -> [[str]]:
     """
     Меняет доску, помечая заблокированные клетки знаком #
@@ -406,7 +406,7 @@ def get_marked_rows(board: [[str]]) -> [[str]]:
     return marked_board
 
 
-# author - Pavel
+# author: Pavel
 def get_word_positions_in_row(word: str, row: [str]) -> [int]:
     """
     Находит все возможные позиции слова в строке
@@ -461,7 +461,7 @@ def get_word_positions_in_row(word: str, row: [str]) -> [int]:
     return possible_indexes
 
 
-# author - Pavel
+# author: Pavel
 def get_used_letters(board: [[str]]) -> Counter:
     """
     Возвращает буквы, которые присутствуют на доске
@@ -485,7 +485,7 @@ def get_used_letters(board: [[str]]) -> Counter:
     return letters_counter
 
 
-# authors - Матвей and Pavel
+# authors: Matvey, Pavel
 def transpose_board(board: [[str]]) -> [[str]]:
     """
     Транспонирует двумерный массив
@@ -496,7 +496,7 @@ def transpose_board(board: [[str]]) -> [[str]]:
     return list(np.array(board).transpose())
 
 
-# author - Pavel
+# author: Pavel
 def evaluate_word(word: str, board: [[str]],
                   line_index: int, start_index: int) -> int:
     """
@@ -565,7 +565,7 @@ def evaluate_word(word: str, board: [[str]],
     return value
 
 
-# author - Pavel
+# author: Pavel
 def is_board_empty(board: [[str]]) -> bool:
     """
     Проверяет, является ли доска пустой
@@ -582,7 +582,7 @@ def is_board_empty(board: [[str]]) -> bool:
     return True
 
 
-# author - Pavel
+# author: Pavel
 def is_board_correct(board: [[str]]) -> bool:
     """
     Проверяет доску на корректность символов внутри
@@ -601,7 +601,7 @@ def is_board_correct(board: [[str]]) -> bool:
     return True
 
 
-# author - Pavel
+# author: Pavel
 def is_board_letters_amount_right(board: [[str]]) -> bool:
     """
     Проверяет не превышает ли кол-во букв на доске их кол-во в наборе
@@ -618,7 +618,7 @@ def is_board_letters_amount_right(board: [[str]]) -> bool:
     return True
 
 
-# author - Матвей
+# author: Matvey
 def is_word_compilable(word: str, letters: Counter) -> bool:
     """
     Проверяет возможность составить слово из переданных букв.
@@ -635,7 +635,7 @@ def is_word_compilable(word: str, letters: Counter) -> bool:
     return True
 
 
-# author - Pavel
+# author: Pavel
 def is_symbol_russian_letter(symbol: str) -> bool:
     """
     Проверяет, является ли символ буквой

@@ -22,14 +22,19 @@ from preprocessing.model import CLASSIFIER_DUMP_PATH, DIMRED_DUMP_PATH, \
     SCALER_DUMP_PATH
 
 
-# authors - Pavel, Михаил
+# authors: Pavel, Mikhail
 class ScrabbleApplication(QWidget):
     """
     Application of scrabble-assistant
     Using PyQT5 version 5.14.2
     """
 
+    # настраиваемые параметры
     _hints_amount = 3  # сколько подсказок выдавать
+    _asterisk_active = False  # возможность выбрать кроме букв еще и *
+    _console_output = True  # возможность выводить данные в консоль
+
+    _chips_varieties = 0  # кол-во разновидностей фишек
 
     # доска в виде двумерного символьного массива
     _board = None
@@ -41,11 +46,11 @@ class ScrabbleApplication(QWidget):
     _row_size = 0  # длина линии кнопок в px
 
     # css цвета для вывода ценностей подсказок
-    _colors = ['rgba(25, 114, 32, 160)',   # зелёный
-               'rgba(20, 140, 150, 160)',  # голубой
-               'rgba(129, 125, 0, 160)',  # жёлтый
-               'rgba(49, 30, 100, 160)',  # фиолетовый
-               'rgba(200, 30, 140, 160)']  # розовый
+    _colors = ['rgba(25, 114, 32, 200)',   # зелёный
+               'rgba(20, 140, 150, 200)',  # голубой
+               'rgba(129, 125, 0, 200)',  # жёлтый
+               'rgba(49, 30, 100, 200)',  # фиолетовый
+               'rgba(200, 30, 140, 200)']  # розовый
 
     # пути к папкам с фишками разных цветов
     # фишки используются для вывода подсказок на доске
@@ -92,9 +97,12 @@ class ScrabbleApplication(QWidget):
     _msg_no_chips_error = 'Вы не выбрали ни одной фишки'
     _msg_no_img_error = 'Вы не загрузили изображение'
     _msg_scan_error = 'Доска не распознана, попробуйте другое фото'
-    _msg_clf_dump_error = f'Не найден дамп классификатора в {CLASSIFIER_DUMP_PATH}'
+    _msg_clf_dump_error = 'Не найден дамп классификатора ' + \
+                          f'в {CLASSIFIER_DUMP_PATH}'
+    _msg_clf_error = 'Ошибка классификатора'
     _msg_dec_dump_error = f'Не найден дамп декомпозера в {DIMRED_DUMP_PATH}'
     _msg_sc_dump_error = f'Не найден дамп шкалировщика в {SCALER_DUMP_PATH}'
+    _msg_unknown_recognition_error = 'Неизвестная ошибка распознавания'
 
     _img_label = None  # label для изображения доски
     _board_img = None  # обрезанное изображение доски
@@ -193,10 +201,17 @@ class ScrabbleApplication(QWidget):
             btn.setDisabled(True)
             self._chosen_chips_buttons.append(btn)
 
+        # расчет кол-ва разновидностей фишек
+        # со звездочкой 33, без нее 32
+        if self._asterisk_active:
+            self._chips_varieties = 33
+        else:
+            self._chips_varieties = 32
+
         # кнопки с фишками-буквами
         self._letters_buttons = []
         self._letters_on_buttons = []
-        for i in range(33):
+        for i in range(self._chips_varieties):
             if i == 32:
                 letter_on_button = '*'
             else:
@@ -210,7 +225,7 @@ class ScrabbleApplication(QWidget):
             self._letters_buttons.append(btn)
 
         # пустые кнопки в конце клавиатуры
-        for i in range(3):
+        for i in range(36 - self._chips_varieties):
             btn = QPushButton(self)
             btn.setObjectName("letters")
             btn.setDisabled(True)
@@ -276,7 +291,8 @@ class ScrabbleApplication(QWidget):
             self.clear_hint()
             self._msg_label.setText(self._msg_scan_error)  # error msg
             # блокировка кнопок
-            [self._letters_buttons[i].setDisabled(True) for i in range(33)]
+            for i in range(self._chips_varieties):
+                self._letters_buttons[i].setDisabled(True)
             self._drop_button.setDisabled(True)
             self._start_button.setDisabled(True)
             return
@@ -285,16 +301,17 @@ class ScrabbleApplication(QWidget):
         try:
             board = image_to_board(img_squared, CLASSIFIER_DUMP_PATH)
 
-            print('Результат: ')
-            for row in board:
-                print('|', end='')
-                for i in range(len(row)):
-                    if row[i] == '':
-                        print(' ', end='|')
-                    else:
-                        print(row[i], end='|')
+            if self._console_output:
+                print('Результат: ')
+                for row in board:
+                    print('|', end='')
+                    for i in range(len(row)):
+                        if row[i] == '':
+                            print(' ', end='|')
+                        else:
+                            print(row[i], end='|')
+                    print()
                 print()
-            print()
 
         except ClfNotFoundException:
             self._msg_label.setText(self._msg_clf_dump_error)
@@ -307,23 +324,30 @@ class ScrabbleApplication(QWidget):
         except ScNotFoundException:
             self._msg_label.setText(self._msg_sc_dump_error)
             return
-        # except (Exception):  # todo: подумать над исключениями
-        #     self._msg_label.setText(self._msg_scan_error)
-        #     return
+
+        except ValueError:
+            self._msg_label.setText(self._msg_clf_error)
+            return
+
+        except TypeError:
+            self._msg_label.setText(self._msg_unknown_recognition_error)
+            return
 
         # постобработка доски
         board = full_postprocessing(board)
+
         self._board = board
 
-        print('Постобработка: ')
-        for row in board:
-            print('|', end='')
-            for i in range(len(row)):
-                if row[i] == '':
-                    print(' ', end='|')
-                else:
-                    print(row[i], end='|')
-            print()
+        if self._console_output:
+            print('Постобработка: ')
+            for row in board:
+                print('|', end='')
+                for i in range(len(row)):
+                    if row[i] == '':
+                        print(' ', end='|')
+                    else:
+                        print(row[i], end='|')
+                print()
 
         # записываем изображение
         imsave('resources/app_images/user_image.jpg', img_squared)
@@ -342,7 +366,8 @@ class ScrabbleApplication(QWidget):
 
         # Разблокировка кнопок
         self._start_button.setDisabled(False)
-        [self._letters_buttons[i].setDisabled(False) for i in range(33)]
+        for i in range(self._chips_varieties):
+            self._letters_buttons[i].setDisabled(False)
         self._drop_button.setDisabled(False)
 
         self.init_dicts()  # инициализируем словари
@@ -552,13 +577,6 @@ class ScrabbleApplication(QWidget):
         elif key == Qt.Key_Backspace:
             self._drop_button.animateClick()
 
-        # Перепривязка файла разметки
-        # elif key == Qt.Key_Alt:
-        #     f = open(self._stylesheet_path, 'r')
-        #     self.styleData = f.read()
-        #     f.close()
-        #     self.setStyleSheet(self.styleData)
-
         # если нажатая кнопка - один символ
         elif len(text) == 1:
             # если это "а"-"я"
@@ -578,7 +596,7 @@ class ScrabbleApplication(QWidget):
                 else:
                     self._letters_buttons[ord(text) - 1072].animateClick()
             # аналогично, обработка звездочки
-            elif text == '*':
+            elif text == '*' and self._asterisk_active:
                 if not self._letters_buttons[32].isEnabled() \
                         and self._start_button.isEnabled():
                     if sum(self._chosen_letters.values()) != 7:
@@ -628,7 +646,9 @@ class ScrabbleApplication(QWidget):
             else:
                 self._msg_label.setText(self._msg_no_hints)
 
-            [self._letters_buttons[i].setDisabled(True) for i in range(33)]
+            # блокировака кнопок
+            for i in range(self._chips_varieties):
+                self._letters_buttons[i].setDisabled(True)
             self._start_button.setDisabled(True)
 
     def draw_hint(self, hints: [[[str]]], values: [int]):
@@ -688,6 +708,6 @@ class ScrabbleApplication(QWidget):
 
 
 if __name__ == '__main__':
-    app = QApplication(sys.argv)
-    scrabble = ScrabbleApplication()
-    sys.exit(app.exec_())
+    app = QApplication(sys.argv)  # создание объекта приложения
+    scrabble = ScrabbleApplication()  # создание объекта главного виджета
+    sys.exit(app.exec_())  # выход из приложения по закрытию окна

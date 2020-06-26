@@ -62,7 +62,7 @@ def get_regex_patterns(sharped_row: [str]) -> ([re.Pattern], [[str]]):
     return patterns, letters_in_patterns
 
 
-# author - Matvey
+# author: Matvey
 # todo: удалить или все же пригодится?
 def calculate_letters_value(word: str) -> int:
     """
@@ -74,7 +74,7 @@ def calculate_letters_value(word: str) -> int:
     return sum([LETTERS_VALUES[letter] for letter in word])
 
 
-# author - Matvey
+# author: Matvey
 # fixme: у нас изменились пути, переписать
 # todo: может вернуть не имя файла, а путь к нему?
 def get_smallest_sub_dict(letters_in_pattern: [str]) -> str:

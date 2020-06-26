@@ -1,3 +1,5 @@
+
+
 # author - Pavel
 def is_hint_horizontal(hint: [[str]]) -> bool:
     """

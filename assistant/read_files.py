@@ -15,7 +15,7 @@ def read_json_to_dict(json_path: Path) -> dict:
         return dict(json.load(file))
 
 
-# authors - Матвей, Pavel
+# authors: Matvey, Pavel
 def read_json_to_list(json_path: Path) -> [[str]]:
     """
     Считывает json-файл в list

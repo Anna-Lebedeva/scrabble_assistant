@@ -9,32 +9,11 @@ from skimage.restoration import denoise_tv_bregman
 from CV.exceptions import CutException
 from CV.transform import four_point_transform
 
-# Размер изображений для тренировки и предсказаний модели
+# размер изображений для тренировки и предсказаний модели
 IMG_SIZE = 64
 
 
-# Авторы: Михаил, Матвей
-def get_coordinates(img: np.ndarray) -> ([int], [int], int, int):
-    """Считает координаты для разрезов, по Х, У и высоту, ширину
-    :param img: изображение
-    :return: 2 массива с координатами по Х, У и высоту, ширину.
-    """
-    # Получение высоты и ширины изображения
-    (h, w) = img.shape[:2]
-
-    # Заполнение массивов координат X для вертикальных и
-    # Y для горизонтальных линий
-    x = [0, 0.96 / 15 * w + 1, 1.96 / 15 * w, 2.96 / 15 * w, 3.96 / 15 * w,
-         4.96 / 15 * w, 5.96 / 15 * w, 6.98 / 15 * w, 7.98 / 15 * w, 9 / 15 * w,
-         10 / 15 * w, 11.01 / 15 * w, 12.01 / 15 * w, 13.03 / 15 * w,
-         14.04 / 15 * w, 14.99 / 15 * w]
-    x = [round(x[m]) for m in range(16)]
-    y = [round(h / 15 * n) for n in range(16)]
-
-    return x, y, h, w
-
-
-# Авторы: Pavel, Михаил, Сергей, Матвей
+# authors: Pavel, Mikhail, Sergei, Matvey
 def cut_by_external_contour(img: np.ndarray) -> np.ndarray:
     """
     Обрезает внешний контур объекта на изображении
@@ -48,27 +27,27 @@ def cut_by_external_contour(img: np.ndarray) -> np.ndarray:
         orig = img.copy()
         img = resize(img, height=750)
 
-        # Черно-белое изображение
+        # изображение в оттенках серого
         gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 
-        # Размытие по Гауссу, оптимальные параметры: (5, 5)
+        # размытие по Гауссу, оптимальные параметры: (5, 5)
         gray = cv2.GaussianBlur(gray, (5, 5), 0)
 
-        # Изображение с границами
+        # изображение с границами
         edged = cv2.Canny(gray, 75, 150)
 
-        # Получение некого параметра для морфологического преобразования
-        # Оптимальные параметры: (7, 7)
-        # Затем само морфологическое преобразование (закрытие контуров)
+        # получение некого параметра для морфологического преобразования
+        # оптимальные параметры: (7, 7)
+        # затем само морфологическое преобразование (закрытие контуров)
         kernel = cv2.getStructuringElement(cv2.MORPH_CROSS, (7, 7))
         edged = cv2.morphologyEx(edged, cv2.MORPH_CLOSE, kernel)
 
-        # Массив всех контуров
+        # массив всех контуров
         contours = cv2.findContours(edged.copy(), cv2.RETR_LIST,
                                     cv2.CHAIN_APPROX_SIMPLE)
         contours = grab_contours(contours)
 
-        # Сортировка контуров по убыванию площади
+        # сортировка контуров по убыванию площади
         contours = sorted(contours, key=cv2.contourArea, reverse=True)[:5]
 
         screen_cnt = None  # самый большой контур с 4 точками
@@ -99,7 +78,7 @@ def cut_by_external_contour(img: np.ndarray) -> np.ndarray:
     return cropped
 
 
-# Автор: Михаил
+# author: Mikhail
 def cut_by_internal_contour(img: np.ndarray,
                             left=4.0, top=3.8,
                             right=1.1, bot=1.2) -> np.ndarray:
@@ -117,7 +96,7 @@ def cut_by_internal_contour(img: np.ndarray,
         (h, w) = img.shape[:2]  # получение размеров игровой доски
         # обрезка
         cropped = img[round(top * w / 100):round(h * (1 - bot / 100)),
-                      round(left * h / 100):round(w * (1 - right / 100))]
+                  round(left * h / 100):round(w * (1 - right / 100))]
 
         (h, w) = cropped.shape[:2]  # получение размеров игрового поля
 
@@ -136,7 +115,29 @@ def cut_by_internal_contour(img: np.ndarray,
     return cropped
 
 
-# Автор: Михаил
+# authors: Mikhail, Matvey
+def get_coordinates_to_cut(img: np.ndarray) -> ([int], [int], int, int):
+    """
+    Считает координаты для разрезания на ячейки, а также размеры изображения
+    :param img: Изображение на вход
+    :return: Массивы координат и значения высоты и ширины изображения
+    """
+    # получение высоты и ширины изображения
+    (h, w) = img.shape[:2]
+
+    # заполнение массивов координат X для вертикальных и
+    # Y для горизонтальных линий
+    x = [0, 0.96 / 15 * w + 1, 1.96 / 15 * w, 2.96 / 15 * w, 3.96 / 15 * w,
+         4.96 / 15 * w, 5.96 / 15 * w, 6.98 / 15 * w, 7.98 / 15 * w, 9 / 15 * w,
+         10 / 15 * w, 11.01 / 15 * w, 12.01 / 15 * w, 13.03 / 15 * w,
+         14.04 / 15 * w, 14.99 / 15 * w]
+    x = [round(x[m]) for m in range(16)]
+    y = [round(h / 15 * n) for n in range(16)]
+
+    return x, y, h, w
+
+
+# author: Mikhail
 def draw_the_grid(img: np.ndarray) -> np.ndarray:
     """
     Отладочная функция
@@ -145,15 +146,15 @@ def draw_the_grid(img: np.ndarray) -> np.ndarray:
     :return: Изображение с сеткой
     """
 
-    # Получение координат, высоты и ширины изображения
-    x, y, h, w = get_coordinates(img)
+    # получение координат, высоты и ширины изображения
+    x, y, h, w = get_coordinates_to_cut(img)
 
-    # Вертикальные линии
+    # вертикальные линии
     for n in x:
         start_point = (n, 0)
         end_point = (n, h)
         cv2.line(img, start_point, end_point, color=(0, 255, 0), thickness=2)
-    # Горизонтальные линии
+    # горизонтальные линии
     for n in y:
         start_point = (0, n)
         end_point = (w, n)
@@ -162,7 +163,7 @@ def draw_the_grid(img: np.ndarray) -> np.ndarray:
     return img
 
 
-# Автор: Михаил
+# author: Mikhail
 def cut_board_on_cells(img: np.ndarray) -> [np.ndarray]:
     """
     Делит изображение на квадраты-ячейки, создавая двухмерный массив из них
@@ -170,10 +171,10 @@ def cut_board_on_cells(img: np.ndarray) -> [np.ndarray]:
     :return: Массив ячеек длиной 15x15
     """
 
-    # Получение координат, высоты и ширины изображения
-    x, y, h, w = get_coordinates(img)
+    # получение координат и размеров изображения
+    x, y, h, w = get_coordinates_to_cut(img)
 
-    # Заполнение массива
+    # заполнение массива
     squares = []
     for n in range(1, 16):
         squares.append([])
@@ -185,7 +186,7 @@ def cut_board_on_cells(img: np.ndarray) -> [np.ndarray]:
     return np.array(squares, dtype='uint8')
 
 
-# Автор: Матвей
+# author: Matvey
 def rgb_to_gray(rgb: np.ndarray, coefficients: [float],
                 force_copy=False) -> np.ndarray:
     """
@@ -202,7 +203,7 @@ def rgb_to_gray(rgb: np.ndarray, coefficients: [float],
     :return: изображение в оттенках серого
     """
 
-    # Проверяем форму массива
+    # проверяем форму массива
     rgb = np.asanyarray(rgb)
     if rgb.shape[-1] != 3:
         raise ValueError('Ожидается форма массива == (..., 3)), '
@@ -217,7 +218,7 @@ def rgb_to_gray(rgb: np.ndarray, coefficients: [float],
     return rgb @ coeffs
 
 
-# Авторы: Матвей, Михаил
+# authors: Matvey, Mikhail
 def gray_to_binary(image_gray: np.ndarray) -> np.ndarray:
     """
     Переводит изображение из оттенокв серого в черно-белое.
@@ -235,7 +236,7 @@ def gray_to_binary(image_gray: np.ndarray) -> np.ndarray:
     return img_bin
 
 
-# Авторы: Сергей, Михаил
+# authors: Sergei, Mikhail
 def crop_letter(img_bin: np.ndarray) -> np.ndarray:
     """
     Вырезает из клетки букву
@@ -248,16 +249,17 @@ def crop_letter(img_bin: np.ndarray) -> np.ndarray:
     contours, _ = cv2.findContours(cropped, cv2.RETR_EXTERNAL,
                                    cv2.CHAIN_APPROX_NONE)
 
-    # Перебор контуров. Если периметр достаточно большой,
-    # считаем, что это буква и обрезаем картинку по
-    # её левому нижнему углу
+    # перебор контуров
+    # если площадь достаточно большая, считаем, что это буква и
+    # обрезаем картинку по её левому нижнему углу
     for idx, contour in enumerate(contours):
         (x, y, w, h) = cv2.boundingRect(contour)
         contour_square = w * h
         min_letter_square = np.square(IMG_SIZE) / 9.3
         if contour_square > min_letter_square:
             cropped = cropped[0:y + h, x:x + y + h]
-            # Превращение из квадрата/прямоугольника в квадрат
+            # превращение из квадрата/прямоугольника в квадрат
+            # чтобы избежать возможного растягивания изображения при ресайзе
             (h, w) = cropped.shape[:2]
             cropped = cropped[abs(h - w):h, 0:h]
             break
