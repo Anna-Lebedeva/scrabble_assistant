@@ -1,14 +1,16 @@
 # Scrabble assistant
-Распознавание доски и получение подсказок по фотографии в настольной игре Эрудит (Scrabble)
+##### Распознавание доски и получение подсказок по фотографии в настольной игре Эрудит (Scrabble)
+![Фото](resources/for_md_files/for_readme/headline1.jpg)
+
+#### Подготовлен детальный разбор принципа работы программы:
+[Пример и принцип работы приложения](EXAMPLE.md)
 
 ## Необходимые пакеты:
 - [Python 3.7.7](https://www.python.org/)
 - [numpy 1.18.2](https://numpy.org)
 - [PyQt5 5.14.2](https://pypi.org/project/PyQt5/)
 - [OpenCV-python 4.2.0.34](https://pypi.org/project/opencv-python/)
-- [imageio 2.8.0](https://imageio.readthedocs.io/en/stable/installation.html)
 - [Pandas 1.0.3](https://github.com/pandas-dev/pandas/releases)
-- [Imutils 0.5.3](https://github.com/jrosebr1/imutils)
 - [scikit-image 0.17.2](https://scikit-image.org/)
 - [scikit-learn 0.22.2.post1](https://scikit-learn.org/stable/index.html)
 
@@ -43,9 +45,6 @@ pip install -r requirements.txt
 IMAGES_TO_CUT_PATH и запускаем скрипт. Результат окажется в папке, 
 указанной DATASET_PATH. В CV/scan.py IMG_SIZE настраиват 
 размер фишек для датасета.
-
-#### Демонстрация обработки изображения:
-[Пример](EXAMPLE.md)
 
 #### Тренировка (preprocessing/model.py)
 Разархивировать датасет в проект. Сейчас используется путь ../ML/dataset.
