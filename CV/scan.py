@@ -1,6 +1,5 @@
 import cv2
 import numpy as np
-from imutils import grab_contours, resize
 from skimage import img_as_ubyte
 from skimage.exposure import adjust_sigmoid, rescale_intensity
 from skimage.filters import threshold_isodata
@@ -25,7 +24,7 @@ def cut_by_external_contour(img: np.ndarray) -> np.ndarray:
     try:
         ratio = img.shape[0] / 750.0
         orig = img.copy()
-        img = resize(img, height=750)
+        img = resize_img(img, height=750)
 
         # изображение в оттенках серого
         gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
@@ -43,9 +42,8 @@ def cut_by_external_contour(img: np.ndarray) -> np.ndarray:
         edged = cv2.morphologyEx(edged, cv2.MORPH_CLOSE, kernel)
 
         # массив всех контуров
-        contours = cv2.findContours(edged.copy(), cv2.RETR_LIST,
-                                    cv2.CHAIN_APPROX_SIMPLE)
-        contours = grab_contours(contours)
+        contours, _ = cv2.findContours(edged.copy(), cv2.RETR_LIST,
+                                       cv2.CHAIN_APPROX_SIMPLE)
 
         # сортировка контуров по убыванию площади
         contours = sorted(contours, key=cv2.contourArea, reverse=True)[:5]
@@ -115,6 +113,22 @@ def cut_by_internal_contour(img: np.ndarray,
     return cropped
 
 
+# author: Mikhail
+def resize_img(img: np.ndarray, height: int, width=None) -> np.ndarray:
+    """
+    Ресайзит изображение
+    :param img: Изображение на вход
+    :param height: Высота
+    :param width: Ширина
+    :return:
+    """
+
+    # если не указана ширина, сохраняем соотношение сторон
+    if not width:
+        width = int(height / img.shape[0] * img.shape[1])
+    return cv2.resize(img, (width, height))
+
+
 # authors: Mikhail, Matvey
 def get_coordinates_to_cut(img: np.ndarray) -> ([int], [int], int, int):
     """
@@ -180,7 +194,7 @@ def cut_board_on_cells(img: np.ndarray) -> [np.ndarray]:
         squares.append([])
         for m in range(1, 16):
             cropped = img[y[n - 1]:y[n], x[m - 1]:x[m]]
-            cropped = cv2.resize(cropped, (IMG_SIZE, IMG_SIZE))
+            cropped = resize_img(cropped, IMG_SIZE, IMG_SIZE)
             squares[n - 1].append(cropped)
 
     return np.array(squares, dtype='uint8')
@@ -265,4 +279,4 @@ def crop_letter(img_bin: np.ndarray) -> np.ndarray:
             cropped = cropped[abs(h - w):h, 0:h]
             break
 
-    return cv2.resize(cropped, (IMG_SIZE, IMG_SIZE))
+    return resize_img(cropped, IMG_SIZE, IMG_SIZE)
