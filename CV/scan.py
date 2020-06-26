@@ -5,7 +5,6 @@ import pickle
 import cv2
 import numpy as np
 import tensorflow as tf
-from imutils import grab_contours, resize
 from keras.models import model_from_json
 from skimage import img_as_ubyte
 from skimage.exposure import adjust_sigmoid, rescale_intensity
@@ -31,7 +30,7 @@ def cut_by_external_contour(img: np.ndarray) -> np.ndarray:
     try:
         ratio = img.shape[0] / 750.0
         orig = img.copy()
-        img = resize(img, height=750)
+        img = cv2.resize(img, (750, 750))
 
         # изображение в оттенках серого
         gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
@@ -49,9 +48,8 @@ def cut_by_external_contour(img: np.ndarray) -> np.ndarray:
         edged = cv2.morphologyEx(edged, cv2.MORPH_CLOSE, kernel)
 
         # массив всех контуров
-        contours = cv2.findContours(edged.copy(), cv2.RETR_LIST,
-                                    cv2.CHAIN_APPROX_SIMPLE)
-        contours = grab_contours(contours)
+        contours, _ = cv2.findContours(edged.copy(), cv2.RETR_LIST,
+                                       cv2.CHAIN_APPROX_SIMPLE)
 
         # сортировка контуров по убыванию площади
         contours = sorted(contours, key=cv2.contourArea, reverse=True)[:5]
@@ -121,6 +119,21 @@ def cut_by_internal_contour(img: np.ndarray,
     return cropped
 
 
+def resize_img(img: np.ndarray, height=800, width=None) -> np.ndarray:
+    """
+    Ресайзит изображение
+    :param img: Изображение на вход
+    :param height: Высота
+    :param width: Ширина
+    :return:
+    """
+
+    # если не указана ширина, сохраняем соотношение сторон
+    if not width:
+        width = int(height / img.shape[0] * img.shape[1])
+    return cv2.resize(img, (width, height))
+
+
 # authors: Mikhail, Matvey
 def get_coordinates_to_cut(img: np.ndarray) -> ([int], [int], int, int):
     """
@@ -186,7 +199,7 @@ def cut_board_on_cells(img: np.ndarray) -> [np.ndarray]:
         squares.append([])
         for m in range(1, 16):
             cropped = img[y[n - 1]:y[n], x[m - 1]:x[m]]
-            cropped = cv2.resize(cropped, (IMG_SIZE, IMG_SIZE))
+            cropped = resize_img(cropped, IMG_SIZE, IMG_SIZE)
             squares[n - 1].append(cropped)
 
     return np.array(squares, dtype='uint8')
@@ -269,7 +282,9 @@ def crop_letter(img_bin: np.ndarray) -> np.ndarray:
             cropped = cropped[abs(h - w):h, 0:h]
             break
 
-    return cv2.resize(cropped, (IMG_SIZE, IMG_SIZE))
+    output = resize_img(cropped, IMG_SIZE, IMG_SIZE)
+
+    return output
 
 
 # author - Mikhail
@@ -314,11 +329,10 @@ def get_prediction(square: list) -> [np.ndarray]:
         predictions.append([])
         for c in range(15):
             img = square[r][c]
-            img = cv2.resize(img, (IMG_SIZE, IMG_SIZE))
+            img = resize_img(img, IMG_SIZE, IMG_SIZE)
             img = np.reshape(img, (IMG_SIZE, IMG_SIZE, 1))
             img = np.array([img])
-            img = img.astype('float32')
-            img = img / 255.0
+            img = img.astype('float32') / 255.0
 
             prediction_arr = loaded_model.predict(img)
             prediction = int_to_word_out[np.argmax(prediction_arr)]
@@ -336,9 +350,23 @@ def get_prediction(square: list) -> [np.ndarray]:
 
 
 if __name__ == "__main__":
-    image = img_as_ubyte(
-        cv2.imread('../ML//test/test1.jpg'))
-    # image = img_as_ubyte(cv2.imread('../resources/app_images/test.jpg'))
+
+    # path = '../ML/dataset/'
+    # for cat in os.listdir(path):
+    #     for file in os.listdir(path + cat):
+    #         img = cv2.imread(path + cat + '/' + file, cv2.IMREAD_UNCHANGED)
+    #         # img = cv2.resize(img, (IMG_SIZE, IMG_SIZE))
+    #         # img = np.reshape(img, (IMG_SIZE, IMG_SIZE, 1))
+    #         # cv2.imwrite(path + cat + '/' + file, img)
+    #         print(img.shape)
+
+    path = '../ML/test/test1.jpg'
+
+    try:
+        image = img_as_ubyte(cv2.imread(path))
+    except ValueError:
+        raise Exception('Файл не найден')
+
     img_external_crop = cut_by_external_contour(image)
     img_internal_crop = cut_by_internal_contour(img_external_crop)
 
@@ -346,15 +374,26 @@ if __name__ == "__main__":
 
     board_squares = img_as_ubyte(cut_board_on_cells(img_bw))
 
-    # обрезка букв в клетках
-    for i in range(len(board_squares)):
-        for j in range(len(board_squares[0])):
-            board_squares[i][j] = crop_letter(
-                board_squares[i][j])  # todo check types
-
-    # предсказания
-    for row in get_prediction(board_squares):
-        print(row)
-    cv2.imshow('', resize(img_internal_crop, 700))
+    # # обрезка букв в клетках
+    # for i in range(len(board_squares)):
+    #     for j in range(len(board_squares[0])):
+    #         board_squares[i][j] = crop_letter(
+    #             board_squares[i][j])
+    #
+    # # cv2.imshow('', resize(img_bw, 700))
+    # # cv2.imshow('', board_squares[4][4])
+    # # cv2.waitKey()
+    # # cv2.destroyAllWindows()
+    #
+    # # предсказания
+    # for row in get_prediction(board_squares):
+    #     print('|', end='')
+    #     for i in range(len(row)):
+    #         if row[i] == '':
+    #             print(' ', end='|')
+    #         else:
+    #             print(row[i], end='|')
+    #     print()
+    cv2.imshow('', resize_img(img_internal_crop, 800))
     cv2.waitKey()
     cv2.destroyAllWindows()

@@ -1,5 +1,4 @@
 pathlib==1.0.1
-imutils==0.5.3
 pyqt5==5.14.2
 pandas~=1.0.3
 numpy~=1.18.2
@@ -7,6 +6,5 @@ opencv-python~=4.2.0.34
 matplotlib~=3.2.1
 joblib~=0.14.1
 scikit-image~=0.17.2
-imageio~=2.8.0
 tensorflow==2.2.0
 keras==2.3.1
