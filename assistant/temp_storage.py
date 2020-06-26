@@ -116,3 +116,82 @@ def is_word_fit_to_pattern(word: str, pattern: re.Pattern) -> bool:
 
     # todo: вернуть индексы
     return bool(pattern.search(word))
+
+
+# Автор: Матвей
+def arrange_long_word_to_empty_board(word: str) -> int:
+    """Располагает слово, длиной от 5 до 7 на стартовой доске наилучшим образом,
+    с учетом бонусов.
+    :param word: слово, которое располагаем
+    :return: Индекс начала слова, начиная с которого слово будет располагаться
+    наилучшим образом
+    """
+    most_expensive_letter_value = 0
+    most_expensive_letter_index = None
+    best_hint = get_empty_board(15, 15)  # Создаем пустую доску
+    center_of_board_by_x = int(len(best_hint[int(len(best_hint) / 2)]) / 2)
+    distance_to_bonus = 4  # Расстояние от стартового поля до бонуса x2
+    # todo: calculate it for each board
+    movement = len(word) - distance_to_bonus
+    # На сколько слово может двигаться, оставаясь на стартовом поле
+
+    letters_to_bonus = ''.join([word[:movement], word[-movement:]])
+    # Выбираем буквы, которые могут быть на бонусе
+
+    for i in range(len(letters_to_bonus)):
+        if LETTERS_VALUES[letters_to_bonus[i]] > most_expensive_letter_value:
+            most_expensive_letter_value = LETTERS_VALUES[letters_to_bonus[i]]
+            most_expensive_letter_index = i if i < len(letters_to_bonus) / 2 \
+                else i + len(word) - len(letters_to_bonus)
+            # Находим индекс самой ценной буквы из доступных
+
+    bonus_index = center_of_board_by_x - distance_to_bonus \
+        if most_expensive_letter_index < int(len(word) / 2) \
+        else center_of_board_by_x + distance_to_bonus
+
+    best_start_index = bonus_index - most_expensive_letter_index
+
+    return best_start_index
+
+
+# Автор: Матвей
+def get_best_hint_for_empty_board(letters: Counter) -> str:
+    """
+    Ищет лучшее слово, которое можно составить из букв игрока в начале игры.
+    :param letters: буквы, которые есть у игрока
+    :return: лучшее слово
+    """
+    best_word = ''
+    best_word_value = 0
+    best_start_index = None
+    best_hint = get_empty_board(15, 15)  # Создаем пустую доску
+    center_of_board_by_y = int(len(best_hint) / 2)
+
+    with open(Path(Path.cwd() / 'dictionaries' / DICTIONARY_MAX_7_LETTERS_FILE_PATH),
+              'r', encoding='utf-8') as dict_file:
+        for line in dict_file:  # Читаем строки из словаря
+            word = line[:-1]  # Записываем слово без '\n'
+            if is_word_compilable(letters, word):
+                # Если слово можно составить из букв игрока
+                if len(word) < 5:
+                    word_value = calculate_letters_value(word)
+                elif len(word) < 8:  # Если слово состоит из 5-7 букв
+                    word_start_by_x = arrange_long_word_to_empty_board(word)
+                    # Располагаем слово наилучшим образом
+                    word_value = calculate_word_value(word, best_hint,
+                                                      center_of_board_by_y,
+                                                      word_start_by_x)
+                    # Считаем ценность слова, при лучшем расположении
+
+                if word_value > best_word_value:  # Если найдено слово лучше
+                    best_word = word
+                    best_word_value = word_value
+                    best_start_index = int((len(best_hint[center_of_board_by_y]) -
+                                            len(best_word)) / 2) if len(best_word) < 5 \
+                        else word_start_by_x
+
+    for i in range(len(best_word)):
+        best_hint[center_of_board_by_y][best_start_index + i] = best_word[i]
+    # Вписываем найденое слово в доску
+
+    return best_hint
