@@ -30,7 +30,7 @@ def cut_by_external_contour(img: np.ndarray) -> np.ndarray:
     try:
         ratio = img.shape[0] / 750.0
         orig = img.copy()
-        img = cv2.resize(img, (750, 750))
+        img = resize_img(img, height=750)
 
         # изображение в оттенках серого
         gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
@@ -82,7 +82,7 @@ def cut_by_external_contour(img: np.ndarray) -> np.ndarray:
     return cropped
 
 
-# author: Mikhail
+# author: Mikhail, Pavel
 def cut_by_internal_contour(img: np.ndarray,
                             left=4.0, top=3.8,
                             right=1.1, bot=1.2) -> np.ndarray:
@@ -119,7 +119,8 @@ def cut_by_internal_contour(img: np.ndarray,
     return cropped
 
 
-def resize_img(img: np.ndarray, height=800, width=None) -> np.ndarray:
+# author: Mikhail
+def resize_img(img: np.ndarray, height: int, width=None) -> np.ndarray:
     """
     Ресайзит изображение
     :param img: Изображение на вход
@@ -146,10 +147,10 @@ def get_coordinates_to_cut(img: np.ndarray) -> ([int], [int], int, int):
 
     # заполнение массивов координат X для вертикальных и
     # Y для горизонтальных линий
-    x = [0, 0.96 / 15 * w + 1, 1.96 / 15 * w, 2.96 / 15 * w, 3.96 / 15 * w,
-         4.96 / 15 * w, 5.96 / 15 * w, 6.98 / 15 * w, 7.98 / 15 * w, 9 / 15 * w,
-         10 / 15 * w, 11.01 / 15 * w, 12.01 / 15 * w, 13.03 / 15 * w,
-         14.04 / 15 * w, 14.99 / 15 * w]
+    k = w / 15
+    x = [0, 0.96 * k + 1, 1.96 * k, 2.96 * k, 3.96 * k, 4.96 * k, 5.96 * k,
+         6.98 * k, 7.98 * k, 9 * k, 10 * k, 11.01 * k, 12.01 * k, 13.03 * k,
+         14.04 * k, 14.99 * k]
     x = [round(x[m]) for m in range(16)]
     y = [round(h / 15 * n) for n in range(16)]
 
@@ -248,10 +249,10 @@ def gray_to_binary(image_gray: np.ndarray) -> np.ndarray:
 
     img_resc = rescale_intensity(img_denoised, in_range=(0, 1),
                                  out_range=(0, 1))
-    img_adj = adjust_sigmoid(img_resc, cutoff=0.4)
-
-    # находим порог для изображения и возвращаем изображение в ЧБ
-    return img_as_ubyte(img_adj > threshold_isodata(img_adj))
+    img_adj = adjust_sigmoid(img_resc, cutoff=0.4)  # Коррекция контраста
+    img_bin = img_as_ubyte(img_adj > threshold_isodata(img_adj))  # Порогование
+    # Находим порог для изображения и возвращаем изображение в ЧБ
+    return img_bin
 
 
 # authors: Sergei, Mikhail
