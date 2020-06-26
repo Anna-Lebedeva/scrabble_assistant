@@ -1,3 +1,6 @@
+#!/usr/bin/env python
+# coding: utf-8
+
 # Запускаем один раз, для нарезки датасета.
 
 import time
@@ -7,7 +10,6 @@ from shutil import rmtree
 
 import numpy as np
 from skimage import img_as_ubyte
-
 from skimage.io import imread, imsave
 
 from CV.exceptions import CutException

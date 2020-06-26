@@ -8,18 +8,14 @@ from assistant.read_files import read_json_to_list, read_json_to_dict
 # Пути к json файлам:
 #
 # ценность букв
-LETTERS_VALUES_FILE_PATH = Path('resources') / Path('jsons') / \
-                           Path('letters_values.json')
+LETTERS_VALUES_FILE_PATH = Path('resources/jsons/letters_values.json')
 # кол-во букв
-LETTERS_AMOUNT_FILE_PATH = Path('resources') / Path('jsons') / \
-                           Path('letters_amount.json')
+LETTERS_AMOUNT_FILE_PATH = Path('resources/jsons/letters_amount.json')
 # бонусы на доске
-BOARD_BONUSES_FILE_PATH = Path('resources') / Path('jsons') / \
-                          Path('board_bonuses.json')
+BOARD_BONUSES_FILE_PATH = Path('resources/jsons/board_bonuses.json')
 
 # путь к основному словарю
-DICTIONARY_FILE_PATH = Path('resources') / Path('dictionaries') / \
-                       Path('nouns_15000.txt')
+DICTIONARY_FILE_PATH = Path('resources/dictionaries/nouns_5000.txt')
 
 # словарь с ценностью букв
 LETTERS_VALUES = read_json_to_dict(LETTERS_VALUES_FILE_PATH)
@@ -277,7 +273,7 @@ def get_n_row_hints(board: [[str]], letters: Counter, n: int) -> \
     return best_hints, best_hints_values
 
 
-# author: Pavel
+# authors - Pavel, Matvey
 def get_hint_for_empty_board(board: [[str]],
                              letters: Counter) -> ([[str]], int):
     """
@@ -286,6 +282,8 @@ def get_hint_for_empty_board(board: [[str]],
     :param letters: буквы, имеющиеся у игрока
     :return: доска с лучшим словом, ценность этого слова на доске
     """
+
+    # todo: написал качественнее, после замера скорости заменю.
 
     mid_index = int(len(board[0]) / 2)  # 7 for standard board
 

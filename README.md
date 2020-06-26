@@ -1,14 +1,16 @@
 # Scrabble assistant
-Распознавание доски и получение подсказок по фотографии в настольной игре Эрудит (Scrabble)
+##### Распознавание доски и получение подсказок по фотографии в настольной игре Эрудит (Scrabble)
+![Фото](resources/for_md_files/for_readme/headline1.jpg)
+
+#### Подготовлен детальный разбор принципа работы программы:
+[Пример и принцип работы приложения](EXAMPLE.md)
 
 ## Необходимые пакеты:
 - [Python 3.7.7](https://www.python.org/)
 - [numpy 1.18.2](https://numpy.org)
 - [PyQt5 5.14.2](https://pypi.org/project/PyQt5/)
 - [OpenCV-python 4.2.0.34](https://pypi.org/project/opencv-python/)
-- [imageio 2.8.0](https://imageio.readthedocs.io/en/stable/installation.html)
 - [Pandas 1.0.3](https://github.com/pandas-dev/pandas/releases)
-- [Imutils 0.5.3](https://github.com/jrosebr1/imutils)
 - [scikit-image 0.17.2](https://scikit-image.org/)
 - [scikit-learn 0.22.2.post1](https://scikit-learn.org/stable/index.html)
 
@@ -18,13 +20,13 @@ pip install -r requirements.txt
 ```
 ## Что сделано/не сделано
 
- - Реализовано:
+ - Есть:
    + Обрезка доски по внешнему и затем внутреннему контуру
    + Подготовка ячеек доски к дальнейшему использованию
    + Тренировка и распознавание
    + Алгоритм поиска подсказок
-   + Удобное приложение
- - Пока не реализовано:
+   + Приложение для десктопа
+ - Нет:
    + Алгоритмы для звёздочки
    + Вывод значений найденных слов
 
@@ -32,15 +34,14 @@ pip install -r requirements.txt
 #### Подготовка датасета (preprocessing/dataset.py)
 Для начала необходимо собрать фотографии доски с фишками, 
 расставленными по алфавиту следующим образом:  
-![Доска для датасета](resources/for_readme/raw.jpg)  
-От количества сделанных фотографий будет зависеть качество предсказаний модели.
+![Доска для датасета](resources/for_md_files/for_readme/raw.jpg)
+
+От количества сделанных фотографий будет зависит качество предсказаний модели.
 
 Далее помещаем эти фотографии в одну папку, указываем путь до неё в 
 IMAGES_TO_CUT_PATH и запускаем скрипт. Результат окажется в папке, 
 указанной DATASET_PATH. В CV/scan.py IMG_SIZE настраиват 
 размер фишек для датасета.
-
-Датасет, подготовленный нами, расположен в archives/dataset.rar
 
 #### Тренировка (preprocessing/model.py)
 Разархивировать датасет в проект. Сейчас используется путь ../ML/dataset.

@@ -1,6 +1,6 @@
 
 
-# author: Pavel
+# author - Pavel
 def is_hint_horizontal(hint: [[str]]) -> bool:
     """
     Проверка подсказки на горизонтальное расположение
@@ -14,7 +14,7 @@ def is_hint_horizontal(hint: [[str]]) -> bool:
                 return True
 
 
-# author: Pavel
+# author - Pavel
 def get_hint_start_coord(hint: [[str]]) -> (int, int):
     """
     Получение координаты первого символа подсказки
@@ -30,7 +30,7 @@ def get_hint_start_coord(hint: [[str]]) -> (int, int):
     return -1, -1
 
 
-# author: Pavel
+# author - Pavel
 def get_hint_end_coord(hint: [[str]]) -> (int, int):
     """
     Получение координаты последнего символа подсказки
@@ -46,7 +46,7 @@ def get_hint_end_coord(hint: [[str]]) -> (int, int):
     return -1, -1
 
 
-# author: Pavel
+# author - Pavel
 def get_board_with_hints(board: [[str]], hints: [[str]]) -> [[str]]:
     """
     Объединение доски с непересекающимися подсказками
@@ -67,7 +67,7 @@ def get_board_with_hints(board: [[str]], hints: [[str]]) -> [[str]]:
     return result
 
 
-# author: Pavel
+# author - Pavel
 def get_hint_value_coord(hint: [[str]], combined_board: [[str]]) -> (int, int):
     """
     Поиск лучшей позиции для вывода ценности подсказки

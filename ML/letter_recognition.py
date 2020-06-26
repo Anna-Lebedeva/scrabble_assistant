@@ -2,13 +2,14 @@ from pathlib import Path
 
 import numpy as np
 from joblib import load
-from matplotlib import pyplot as plt
+# from matplotlib import pyplot as plt
 from skimage import img_as_ubyte
-from ML.exceptions import ClfNotFoundException, \
-    ScNotFoundException, DimRedNotFoundException
 
-from CV.scan import IMG_SIZE, rgb_to_gray, gray_to_binary, cut_board_on_cells, \
-    crop_letter
+from CV.scan import IMG_SIZE, rgb_to_gray, gray_to_binary, cut_board_on_cells, crop_letter
+from ML.exceptions import ClfNotFoundException, ScNotFoundException, DimRedNotFoundException
+
+
+# plt.rcParams["figure.figsize"] = (40, 40)  # размер графиков
 
 
 # author: Matvey
@@ -126,22 +127,26 @@ def image_to_board(img_squared: np.ndarray,
     :param sc_path: путь до дампа шкалировщика
     :return: массив букв распознанной позиции с фотографии
     """
-
+    # Перевод в оттенки серого
     img_gray = rgb_to_gray(img_squared, [1, 0, 0])
+
     img_bw = gray_to_binary(img_gray)
-    plt.imshow(img_bw)
-
-    fig, ax1 = plt.subplots(nrows=15, ncols=15)
     board_squares = img_as_ubyte(cut_board_on_cells(img_bw))
-    for i in range(len(board_squares)):
-        for j in range(len(board_squares[0])):
-            ax1[i, j].imshow(board_squares[i][j])
 
-    fig, ax2 = plt.subplots(nrows=15, ncols=15)
+    # Для того, чтобы посмотреть графики - расскомментировать:
+    # plt.imshow(img_bw)
+    # fig, ax1 = plt.subplots(nrows=15, ncols=15)
+    #
+    # for i in range(len(board_squares)):
+    #     for j in range(len(board_squares[0])):
+    #         ax1[i, j].imshow(board_squares[i][j])
+    #
+    # fig, ax2 = plt.subplots(nrows=15, ncols=15)
+
     for i in range(len(board_squares)):
         for j in range(len(board_squares[0])):
             board_squares[i][j] = crop_letter(board_squares[i][j])
-            ax2[i, j].imshow(board_squares[i][j])
+            # ax2[i, j].imshow(board_squares[i][j])
 
     # plt.show()
 
