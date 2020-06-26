@@ -76,7 +76,7 @@ def cut_by_external_contour(img: np.ndarray) -> np.ndarray:
     return cropped
 
 
-# author: Mikhail
+# author: Mikhail, Pavel
 def cut_by_internal_contour(img: np.ndarray,
                             left=4.0, top=3.8,
                             right=1.1, bot=1.2) -> np.ndarray:
@@ -141,10 +141,10 @@ def get_coordinates_to_cut(img: np.ndarray) -> ([int], [int], int, int):
 
     # заполнение массивов координат X для вертикальных и
     # Y для горизонтальных линий
-    x = [0, 0.96 / 15 * w + 1, 1.96 / 15 * w, 2.96 / 15 * w, 3.96 / 15 * w,
-         4.96 / 15 * w, 5.96 / 15 * w, 6.98 / 15 * w, 7.98 / 15 * w, 9 / 15 * w,
-         10 / 15 * w, 11.01 / 15 * w, 12.01 / 15 * w, 13.03 / 15 * w,
-         14.04 / 15 * w, 14.99 / 15 * w]
+    k = w / 15
+    x = [0, 0.96 * k + 1, 1.96 * k, 2.96 * k, 3.96 * k, 4.96 * k, 5.96 * k,
+         6.98 * k, 7.98 * k, 9 * k, 10 * k, 11.01 * k, 12.01 * k, 13.03 * k,
+         14.04 * k, 14.99 * k]
     x = [round(x[m]) for m in range(16)]
     y = [round(h / 15 * n) for n in range(16)]
 
