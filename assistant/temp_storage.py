@@ -1,10 +1,11 @@
 import re
 from pathlib import Path
+
 from assistant.scrabble_assistant import LETTERS_VALUES
 
 
 # author - Matvey
-# fixme: не работает для многих случаев
+# fixme: не дописано
 def get_regex_patterns(sharped_row: [str]) -> ([re.Pattern], [[str]]):
     """
     Получает строку, возвращает паттерны, соответствующие этой строке,
@@ -105,7 +106,6 @@ def get_smallest_sub_dict(letters_in_pattern: [str]) -> str:
 
 
 # author - Matvey
-# todo: если она точно работает, можно функцию убрать
 def is_word_fit_to_pattern(word: str, pattern: re.Pattern) -> bool:
     """
     Проверяет - подходит ли слово в паттерн.
@@ -114,6 +114,5 @@ def is_word_fit_to_pattern(word: str, pattern: re.Pattern) -> bool:
     :return:
     """
 
-
-    #  fixme: вернуть индексы
+    # todo: вернуть индексы
     return bool(pattern.search(word))

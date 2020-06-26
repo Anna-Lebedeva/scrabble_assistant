@@ -2,7 +2,7 @@ from pathlib import Path
 import json
 
 
-# author - Матвей
+# Автор: Матвей
 def read_json_to_dict(json_path: Path) -> dict:
     """
     Считывает json-файл в dict

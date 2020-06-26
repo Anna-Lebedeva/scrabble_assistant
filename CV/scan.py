@@ -229,10 +229,10 @@ def gray_to_binary(image_gray: np.ndarray) -> np.ndarray:
     # img_denoised = denoise_nl_means(image_gray)
 
     img_resc = rescale_intensity(img_denoised, in_range=(0, 1), out_range=(0, 1))
-    img_adj = adjust_sigmoid(img_resc, cutoff=0.4)
-
+    img_adj = adjust_sigmoid(img_resc, cutoff=0.4)  # Коррекция контраста
+    img_bin = img_as_ubyte(img_adj > threshold_isodata(img_adj))  # Порогование
     # Находим порог для изображения и возвращаем изображение в ЧБ
-    return img_as_ubyte(img_adj > threshold_isodata(img_adj))
+    return img_bin
 
 
 # Авторы: Сергей, Михаил

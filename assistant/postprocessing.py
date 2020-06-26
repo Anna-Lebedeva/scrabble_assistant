@@ -1,5 +1,3 @@
-
-
 # author - Pavel
 def full_postprocessing(board: [[str]]) -> [[str]]:
     """
