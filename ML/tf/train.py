@@ -1,21 +1,18 @@
-import os
-import numpy as np
-from keras.callbacks import TensorBoard, EarlyStopping
-from keras.layers import Dropout, Activation
-from keras.layers import Flatten
-from keras.layers import Conv2D
+from os import environ
+from numpy import random
+from keras.callbacks import EarlyStopping
+from keras.layers import Dropout, Flatten, Conv2D
 from keras.layers.convolutional import MaxPooling2D
-from keras.optimizers import SGD, Adam
-from keras.utils import np_utils
-from ML.tf import load_data
+from keras import optimizers
+from keras.utils.np_utils import to_categorical
+from ML.tf.load_data import data_set
 from keras.models import Sequential
 from keras.layers import Dense
 from CV.scan import IMG_SIZE
 
 # Скрытие предупреждений
-os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
+environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 
-CLASSIFIER_PATH = "int_to_word_out.pickle"
 MODEL_JSON_PATH = "model_face.json"
 MODEL_WEIGHTS_PATH = "model_face.h5"
 EPOCHS = 30  # Кол-во эпох
@@ -25,30 +22,35 @@ input_shape = (IMG_SIZE, IMG_SIZE, 1)
 
 # Задание seed для повторяемости результатов при одинаковых начальных условиях
 seed = 7
-np.random.seed(seed)
+random.seed(seed)
 
 # Загрузка датасета
-(X_train, y_train) = load_data.data_set
+(X_train, y_train) = data_set
 
 # Нормализация данных из 0-255 в 0-1
 X_train = X_train.astype('float32') / 255.0
 # Преобразуем метки в категории
-y_train = np_utils.to_categorical(y_train)
+y_train = to_categorical(y_train)
 num_classes = y_train.shape[1]
 
 # Создание модели
 model = Sequential()
-model.add(Conv2D(filters=128, kernel_size=(3, 3), padding='valid',
+model.add(Conv2D(filters=32, kernel_size=(3, 3), padding='valid',
                  input_shape=input_shape, activation='relu'))
+model.add(MaxPooling2D(pool_size=(2, 2)))
+
+model.add(Conv2D(filters=32, kernel_size=(3, 3), activation='relu'))
+model.add(MaxPooling2D(pool_size=(2, 2)))
+
 model.add(Conv2D(filters=64, kernel_size=(3, 3), activation='relu'))
 model.add(MaxPooling2D(pool_size=(2, 2)))
 model.add(Dropout(0.5))
 model.add(Flatten())
-model.add(Dense(64, activation='relu'))
+model.add(Dense(128, activation='relu'))
 model.add(Dropout(0.5))
 model.add(Dense(num_classes, activation='softmax'))
 # binary_crossentropy
-model.compile(loss='categorical_crossentropy', optimizer=Adam(),
+model.compile(loss='binary_crossentropy', optimizer=optimizers.RMSprop(),
               metrics=['accuracy'])
 
 print(model.summary())

@@ -361,7 +361,7 @@ if __name__ == "__main__":
     #         # cv2.imwrite(path + cat + '/' + file, img)
     #         print(img.shape)
 
-    path = '../ML/test/test1.jpg'
+    path = '../ML/test/test0.jpg'
 
     try:
         image = img_as_ubyte(cv2.imread(path))
@@ -375,26 +375,26 @@ if __name__ == "__main__":
 
     board_squares = img_as_ubyte(cut_board_on_cells(img_bw))
 
-    # # обрезка букв в клетках
-    # for i in range(len(board_squares)):
-    #     for j in range(len(board_squares[0])):
-    #         board_squares[i][j] = crop_letter(
-    #             board_squares[i][j])
-    #
-    # # cv2.imshow('', resize(img_bw, 700))
-    # # cv2.imshow('', board_squares[4][4])
-    # # cv2.waitKey()
-    # # cv2.destroyAllWindows()
-    #
-    # # предсказания
-    # for row in get_prediction(board_squares):
-    #     print('|', end='')
-    #     for i in range(len(row)):
-    #         if row[i] == '':
-    #             print(' ', end='|')
-    #         else:
-    #             print(row[i], end='|')
-    #     print()
+    # обрезка букв в клетках
+    for i in range(len(board_squares)):
+        for j in range(len(board_squares[0])):
+            board_squares[i][j] = crop_letter(
+                board_squares[i][j])
+
+    # cv2.imshow('', resize(img_bw, 700))
+    # cv2.imshow('', board_squares[4][4])
+    # cv2.waitKey()
+    # cv2.destroyAllWindows()
+
+    # предсказания
+    for row in get_prediction(board_squares):
+        print('|', end='')
+        for i in range(len(row)):
+            if row[i] == '':
+                print(' ', end='|')
+            else:
+                print(row[i], end='|')
+        print()
     cv2.imshow('', resize_img(img_internal_crop, 800))
     cv2.waitKey()
     cv2.destroyAllWindows()

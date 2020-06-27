@@ -4,19 +4,19 @@ from numpy import reshape, array
 from os import listdir
 from CV.scan import IMG_SIZE
 
-path_to_classifier = "int_to_word_out.pickle"
-path_to_dataset = "../dataset/"
+CLASSIFIER_PATH = "int_to_word_out.pickle"
+DATASET_PATH = "../dataset/"
 
-label = listdir(path_to_dataset)
+label = listdir(DATASET_PATH)
 dataset = []
 for image_label in label:
 
-    images = listdir(path_to_dataset + image_label)
+    images = listdir(DATASET_PATH + image_label)
 
     print(str(image_label), end=", ")
 
     for image in images:
-        img = imread(path_to_dataset + image_label + "/" + image,
+        img = imread(DATASET_PATH + image_label + "/" + image,
                      IMREAD_UNCHANGED)
         img = reshape(img, (IMG_SIZE, IMG_SIZE, 1))
         dataset.append((img, image_label))
@@ -35,6 +35,6 @@ X_train, y_train, = X, Y
 
 data_set = (X_train, y_train)
 
-save_label = open(path_to_classifier, "wb")
+save_label = open(CLASSIFIER_PATH, "wb")
 dump(label, save_label)
 save_label.close()
