@@ -342,7 +342,7 @@ def get_prediction(square: list) -> [np.ndarray]:
             # Замена числа на букву
             prediction_letter = folder_values["{}".format(prediction)]
 
-            if np.max(prediction_arr) > 0.999:
+            if np.max(prediction_arr) >= 0.999:
                 predictions[r][c] = prediction_letter
             else:
                 predictions[r][c] = ' '
@@ -351,15 +351,6 @@ def get_prediction(square: list) -> [np.ndarray]:
 
 
 if __name__ == "__main__":
-
-    # path = '../ML/dataset/'
-    # for cat in os.listdir(path):
-    #     for file in os.listdir(path + cat):
-    #         img = cv2.imread(path + cat + '/' + file, cv2.IMREAD_UNCHANGED)
-    #         # img = cv2.resize(img, (IMG_SIZE, IMG_SIZE))
-    #         # img = np.reshape(img, (IMG_SIZE, IMG_SIZE, 1))
-    #         # cv2.imwrite(path + cat + '/' + file, img)
-    #         print(img.shape)
 
     path = '../ML/test/test0.jpg'
 

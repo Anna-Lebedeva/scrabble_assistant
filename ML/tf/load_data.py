@@ -1,11 +1,17 @@
+from os import listdir
 from pickle import dump
+from shutil import rmtree
+
+import tensorflow as tf
 from cv2 import imread, IMREAD_UNCHANGED
 from numpy import reshape, array
-from os import listdir
+
 from CV.scan import IMG_SIZE
 
 CLASSIFIER_PATH = "int_to_word_out.pickle"
 DATASET_PATH = "../dataset/"
+LOGDIR = './logs'
+rmtree(LOGDIR, True)
 
 label = listdir(DATASET_PATH)
 dataset = []
@@ -32,6 +38,12 @@ X = array(X)
 Y = array(Y)
 
 X_train, y_train, = X, Y
+
+# Запись изображений датасета в логи
+file_writer = tf.summary.create_file_writer(LOGDIR + '/train')
+with file_writer.as_default():
+    images = reshape(X_train[0:len(X_train)], (-1, IMG_SIZE, IMG_SIZE, 1))
+    tf.summary.image("Training data", images, step=0, max_outputs=len(X_train))
 
 data_set = (X_train, y_train)
 
